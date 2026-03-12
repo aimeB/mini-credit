@@ -1,0 +1,16 @@
+package com.mini.credit.enums;
+
+public enum CategorieOperationCaisse {
+
+    COTISATION,
+    EPARGNE,
+    RETRAIT_EPARGNE,
+    FRAIS_DEMANDE,
+    DEPOT_GARANTIE,
+    DECAISSEMENT_CREDIT,
+    REMBOURSEMENT_CREDIT,
+    PENALITE_RETARD,
+    APPROVISIONNEMENT,
+    ENTREE_DIVERSE,
+    SORTIE_DIVERSE
+}
