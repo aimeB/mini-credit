@@ -9,6 +9,7 @@ import com.mini.credit.enums.DureeUnite;
 import com.mini.credit.enums.PeriodiciteRemboursement;
 import com.mini.credit.enums.StatutDemandeCredit;
 import jakarta.persistence.*;
+import jakarta.persistence.Version;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -26,7 +27,8 @@ import java.util.List;
 @Builder
 public class DemandeCredit extends BaseEntity {
 
-
+    @Version
+    private Long version;
 
     @Column(name = "numero_demande", nullable = false, unique = true, length = 50)
     private String numeroDemande;
@@ -48,6 +50,9 @@ public class DemandeCredit extends BaseEntity {
 
     @Column(name = "montant_demande", nullable = false, precision = 18, scale = 2)
     private BigDecimal montantDemande;
+
+    @Column(name = "frais_demande_payes", nullable = false, precision = 18, scale = 2)
+    private BigDecimal fraisDemandePayes = BigDecimal.ZERO;
 
     @Column(nullable = false, length = 10)
     private String devise = "CDF";

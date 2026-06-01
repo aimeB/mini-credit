@@ -3,6 +3,7 @@ package com.mini.credit.entity.credit;
 import com.mini.credit.entity.base.BaseEntity;
 import com.mini.credit.enums.StatutEcheance;
 import jakarta.persistence.*;
+import jakarta.persistence.Version;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -20,7 +21,8 @@ import java.time.LocalDate;
 @Builder
 public class EcheanceCredit extends BaseEntity {
 
-
+    @Version
+    private Long version;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "credit_id", nullable = false)

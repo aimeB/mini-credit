@@ -1,10 +1,10 @@
-package com.mini.credit.entity.credit;
+package com.mini.credit.entity.caisse;
 
 import com.mini.credit.entity.base.BaseEntity;
-import com.mini.credit.entity.caisse.Caisse;
 import com.mini.credit.entity.referentiel.Utilisateur;
 import com.mini.credit.enums.StatutSessionCaisse;
 import jakarta.persistence.*;
+import jakarta.persistence.Version;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -19,7 +19,8 @@ import java.time.LocalDateTime;
 @Builder
 public class SessionCaisse extends BaseEntity {
 
-
+    @Version
+    private Long version;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "caisse_id", nullable = false)

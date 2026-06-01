@@ -8,6 +8,7 @@ import com.mini.credit.enums.DureeUnite;
 import com.mini.credit.enums.PeriodiciteRemboursement;
 import com.mini.credit.enums.StatutCredit;
 import jakarta.persistence.*;
+import jakarta.persistence.Version;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -25,7 +26,8 @@ import java.util.List;
 @Builder
 public class Credit extends BaseEntity {
 
-
+    @Version
+    private Long version;
 
     @Column(name = "numero_credit", nullable = false, unique = true, length = 50)
     private String numeroCredit;
@@ -106,6 +108,7 @@ public class Credit extends BaseEntity {
     @OneToMany(mappedBy = "credit", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<EcheanceCredit> echeances = new ArrayList<>();
+
 
     @OneToMany(mappedBy = "credit", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
