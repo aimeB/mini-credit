@@ -21,10 +21,13 @@ import java.util.List;
 @Builder
 public class CompteEpargne extends BaseEntity {
 
+    @Version
+    private Long version;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "membre_id", nullable = false)
     private Membre membre;
+
 
     @Column(name = "numero_compte", nullable = false, unique = true, length = 50)
     private String numeroCompte;

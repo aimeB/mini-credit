@@ -1,6 +1,7 @@
 package com.mini.credit.entity.credit;
 
 import com.mini.credit.entity.base.BaseEntity;
+import com.mini.credit.entity.caisse.SessionCaisse;
 import com.mini.credit.entity.membre.Membre;
 import com.mini.credit.entity.referentiel.AgentTerrain;
 import com.mini.credit.entity.referentiel.Utilisateur;

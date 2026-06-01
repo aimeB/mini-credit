@@ -1,9 +1,9 @@
 package com.mini.credit.enums;
 
 public enum StatutGarantie {
-
-    ACTIVE,
+    ACTIF,
+    EN_ATTENTE,
+    REALISEE,
     LIBEREE,
-    SAISIE,
-    ANNULEE
+    SAISIE
 }

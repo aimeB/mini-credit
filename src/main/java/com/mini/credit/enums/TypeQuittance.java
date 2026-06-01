@@ -5,7 +5,9 @@ public enum TypeQuittance {
     COTISATION,
     EPARGNE,
     FRAIS,
-    DECAISSEMENT,
+    RETRAIT,
+    DECAISSEMENT_CREDIT,
     REMBOURSEMENT,
+    AJUSTEMENT_EPARGNE,
     PENALITE
 }

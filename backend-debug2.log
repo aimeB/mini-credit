@@ -1,0 +1,232 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] --------------------< com.mini.credit:mini-credit >---------------------
+[INFO] Building mini-credit 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:4.0.3:run (default-cli) > test-compile @ mini-credit >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ mini-credit ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ mini-credit ---
+[INFO] Changes detected - recompiling the module! :source
+[INFO] Compiling 177 source files with javac [debug release 17] to target\classes
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/credit/DemandeCredit.java:[51,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/credit/DemandeCredit.java:[54,20] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/credit/DemandeCredit.java:[61,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/credit/DemandeCredit.java:[65,38] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/credit/DemandeCredit.java:[83,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/credit/DemandeCredit.java:[86,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/credit/DemandeCredit.java:[89,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/credit/DemandeCredit.java:[93,33] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/credit/RemboursementCredit.java:[45,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/credit/RemboursementCredit.java:[48,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/credit/RemboursementCredit.java:[51,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/credit/Credit.java:[55,20] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/credit/Credit.java:[65,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/credit/Credit.java:[69,38] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/credit/Credit.java:[81,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/credit/Credit.java:[91,26] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/referentiel/Utilisateur.java:[41,21] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/caisse/Caisse.java:[30,20] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/caisse/Caisse.java:[33,21] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/dto/auth/AuthResponse.java:[16,20] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/credit/EcheanceCredit.java:[42,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/credit/EcheanceCredit.java:[48,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/credit/EcheanceCredit.java:[51,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/credit/EcheanceCredit.java:[54,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/credit/EcheanceCredit.java:[57,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/credit/EcheanceCredit.java:[67,28] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/Utilisateur.java:[41,21] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/document/Quittance.java:[42,20] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/credit/Garantie.java:[46,28] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/membre/Membre.java:[62,20] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/membre/Membre.java:[86,26] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/credit/ContratCredit.java:[42,21] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/credit/ContratCredit.java:[45,21] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/referentiel/Site.java:[33,20] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/referentiel/Site.java:[36,21] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/dto/auth/RegisterRequest.java:[33,20] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/caisse/OperationCaisse.java:[55,20] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/referentiel/AgentTerrain.java:[36,21] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/epargne/CompteEpargne.java:[40,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/epargne/CompteEpargne.java:[43,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/epargne/CompteEpargne.java:[47,26] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/caisse/SessionCaisse.java:[38,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/caisse/SessionCaisse.java:[41,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/caisse/SessionCaisse.java:[44,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/caisse/SessionCaisse.java:[47,24] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/entity/caisse/SessionCaisse.java:[57,33] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[INFO] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/security/JwtProvider.java: c:\Users\admin\Documents\mini-credit\src\main\java\com\mini\credit\security\JwtProvider.java uses or overrides a deprecated API.
+[INFO] /c:/Users/admin/Documents/mini-credit/src/main/java/com/mini/credit/security/JwtProvider.java: Recompile with -Xlint:deprecation for details.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ mini-credit ---
+[INFO] skip non existing resourceDirectory c:\Users\admin\Documents\mini-credit\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ mini-credit ---
+[INFO] Changes detected - recompiling the module! :dependency
+[INFO] Compiling 1 source file with javac [debug release 17] to target\test-classes
+[INFO] 
+[INFO] <<< spring-boot:4.0.3:run (default-cli) < test-compile @ mini-credit <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:4.0.3:run (default-cli) @ mini-credit ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.3)
+
+2026-04-05T18:07:41.336+02:00  INFO 30608 --- [mini-credit] [           main] com.mini.credit.MiniCreditApplication    : Starting MiniCreditApplication using Java 17.0.12 with PID 30608 (C:\Users\admin\Documents\mini-credit\target\classes started by admin in c:\Users\admin\Documents\mini-credit)
+2026-04-05T18:07:41.345+02:00  INFO 30608 --- [mini-credit] [           main] com.mini.credit.MiniCreditApplication    : No active profile set, falling back to 1 default profile: "default"
+2026-04-05T18:07:43.205+02:00  INFO 30608 --- [mini-credit] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-04-05T18:07:43.427+02:00  INFO 30608 --- [mini-credit] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 206 ms. Found 18 JPA repository interfaces.
+2026-04-05T18:07:44.432+02:00  INFO 30608 --- [mini-credit] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8082 (http)
+2026-04-05T18:07:44.459+02:00  INFO 30608 --- [mini-credit] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-04-05T18:07:44.460+02:00  INFO 30608 --- [mini-credit] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.18]
+2026-04-05T18:07:44.585+02:00  INFO 30608 --- [mini-credit] [           main] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 3146 ms
+2026-04-05T18:07:44.943+02:00  INFO 30608 --- [mini-credit] [           main] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-04-05T18:07:45.030+02:00  INFO 30608 --- [mini-credit] [           main] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.2.4.Final
+2026-04-05T18:07:46.120+02:00  INFO 30608 --- [mini-credit] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-04-05T18:07:46.192+02:00  INFO 30608 --- [mini-credit] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-04-05T18:07:46.434+02:00  INFO 30608 --- [mini-credit] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@ef85567
+2026-04-05T18:07:46.436+02:00  INFO 30608 --- [mini-credit] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-04-05T18:07:46.563+02:00  INFO 30608 --- [mini-credit] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:mysql://localhost:3306/microcredit_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC]
+	Database driver: MySQL Connector/J
+	Database dialect: MySQLDialect
+	Database version: 9.1
+	Default catalog/schema: microcredit_db/undefined
+	Autocommit mode: undefined/unknown
+	Isolation level: REPEATABLE_READ [default REPEATABLE_READ]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-04-05T18:07:49.338+02:00  INFO 30608 --- [mini-credit] [           main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+Hibernate: 
+    alter table analyse_risque 
+       modify column recommandation enum ('DEFAVORABLE','FAVORABLE','FAVORABLE_AVEC_RESERVE') not null
+Hibernate: 
+    alter table analyse_risque 
+       modify column risque_niveau enum ('ELEVE','FAIBLE','MOYEN')
+Hibernate: 
+    alter table compte_epargne 
+       modify column statut enum ('ACTIF','BLOQUE','FERME','INACTIF') not null
+Hibernate: 
+    alter table compte_epargne 
+       modify column type_compte enum ('COTISATION','EPARGNE_VOLONTAIRE','MIXTE') not null
+Hibernate: 
+    alter table credit 
+       modify column duree_unite enum ('JOUR','MOIS','SEMAINE') not null
+Hibernate: 
+    alter table credit 
+       modify column periodicite_remboursement enum ('HEBDOMADAIRE','JOURNALIER','MENSUEL') not null
+Hibernate: 
+    alter table credit 
+       modify column statut enum ('ANNULE','APPROUVE','CONTENTIEUX','DECAISSE','EN_COURS','EN_RETARD','REMBOURSE') not null
+Hibernate: 
+    alter table demande_credit 
+       modify column duree_unite enum ('JOUR','MOIS','SEMAINE') not null
+Hibernate: 
+    alter table demande_credit 
+       modify column periodicite_remboursement enum ('HEBDOMADAIRE','JOURNALIER','MENSUEL') not null
+Hibernate: 
+    alter table demande_credit 
+       modify column statut enum ('ANNULEE','APPROUVEE','BROUILLON','EN_ANALYSE','REJETEE','SOUMISE') not null
+Hibernate: 
+    alter table echeance_credit 
+       modify column statut enum ('A_PAYER','EN_RETARD','PARTIEL','PAYE') not null
+Hibernate: 
+    alter table garantie 
+       modify column statut enum ('ACTIVE','ANNULEE','LIBEREE','SAISIE') not null
+Hibernate: 
+    alter table garantie 
+       modify column type_garantie enum ('AUTRE','BIEN_MATERIEL','CAUTION_MORALE','EPARGNE_BLOQUEE') not null
+Hibernate: 
+    alter table journal_audit 
+       modify column action enum ('APPROUVE','CREATE','DECAISSE','DELETE','LOGIN','LOGOUT','REJETE','REMBOURSE','UPDATE') not null
+Hibernate: 
+    alter table membre 
+       modify column statut enum ('ACTIF','BLOQUE','CLOTURE','EN_ATTENTE','SUSPENDU') not null
+Hibernate: 
+    alter table membre_document 
+       modify column type_document enum ('AUTRE','CNI','CONTRAT_SIGNE','JUSTIFICATIF_DOMICILE','PHOTO') not null
+Hibernate: 
+    alter table operation_caisse 
+       modify column categorie_operation enum ('APPROVISIONNEMENT','COTISATION','DECAISSEMENT_CREDIT','DEPOT_GARANTIE','DEPOT_GARANTIE_CREDIT','ENTREE_DIVERSE','EPARGNE','FRAIS_DEMANDE','FRAIS_DEMANDE_CREDIT','PENALITE_RETARD','REMBOURSEMENT_CREDIT','RETRAIT_EPARGNE','SORTIE_DIVERSE') not null
+Hibernate: 
+    alter table operation_caisse 
+       modify column mode_paiement enum ('AUTRE','CARTE','ESPECES','MOBILE_MONEY','VIREMENT')
+Hibernate: 
+    alter table operation_caisse 
+       modify column type_operation enum ('ENTREE','SORTIE') not null
+Hibernate: 
+    alter table operation_epargne 
+       modify column mode_paiement enum ('AUTRE','CARTE','ESPECES','MOBILE_MONEY','VIREMENT')
+Hibernate: 
+    alter table operation_epargne 
+       modify column sens enum ('ENTREE','SORTIE') not null
+Hibernate: 
+    alter table operation_epargne 
+       modify column type_operation enum ('AJUSTEMENT','BLOCAGE_GARANTIE','COTISATION','DEBLOCAGE_GARANTIE','EPARGNE','RETRAIT') not null
+Hibernate: 
+    alter table paiement_credit 
+       modify column canal enum ('MANUEL','MOBILE_MONEY','VIREMENT')
+Hibernate: 
+    alter table paiement_credit 
+       modify column statut enum ('ANNULE','CONFIRME','ECHOUE','EN_ATTENTE','INITIE')
+Hibernate: 
+    alter table quittance 
+       modify column type_quittance enum ('AJUSTEMENT_EPARGNE','COTISATION','DECAISSEMENT_CREDIT','EPARGNE','FRAIS','PENALITE','REMBOURSEMENT','RETRAIT') not null
+Hibernate: 
+    alter table remboursement_credit 
+       modify column mode_paiement enum ('AUTRE','CARTE','ESPECES','MOBILE_MONEY','VIREMENT')
+Hibernate: 
+    alter table session_caisse 
+       modify column statut enum ('ANNULEE','FERMEE','OUVERTE') not null
+2026-04-05T18:07:50.247+02:00  INFO 30608 --- [mini-credit] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-04-05T18:07:50.392+02:00  INFO 30608 --- [mini-credit] [           main] o.s.d.j.r.query.QueryEnhancerFactories   : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-04-05T18:07:50.734+02:00  WARN 30608 --- [mini-credit] [           main] r$InitializeUserDetailsManagerConfigurer : Found 2 UserDetailsService beans, with names [utilisateurDetailsService, userDetailsService]. Global Authentication Manager will not use a UserDetailsService for username/password login. Consider publishing a single UserDetailsService bean.
+2026-04-05T18:07:54.664+02:00  WARN 30608 --- [mini-credit] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.context.ApplicationContextException: Failed to start bean 'webServerStartStop'
+2026-04-05T18:07:54.669+02:00  INFO 30608 --- [mini-credit] [           main] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-04-05T18:07:54.672+02:00  INFO 30608 --- [mini-credit] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-04-05T18:07:54.684+02:00  INFO 30608 --- [mini-credit] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-04-05T18:07:54.701+02:00  INFO 30608 --- [mini-credit] [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-04-05T18:07:54.727+02:00 ERROR 30608 --- [mini-credit] [           main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Web server failed to start. Port 8082 was already in use.
+
+Action:
+
+Identify and stop the process that's listening on port 8082 or configure this application to listen on another port.
+
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  46.761 s
+[INFO] Finished at: 2026-04-05T18:07:54+02:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.springframework.boot:spring-boot-maven-plugin:4.0.3:run (default-cli) on project mini-credit: Process terminated with exit code: 1 -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException

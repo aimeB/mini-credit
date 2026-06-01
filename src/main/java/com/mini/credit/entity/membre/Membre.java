@@ -10,6 +10,8 @@ import com.mini.credit.entity.referentiel.Site;
 import com.mini.credit.entity.referentiel.Utilisateur;
 import com.mini.credit.enums.Sexe;
 import com.mini.credit.enums.StatutMembre;
+import com.mini.credit.listener.MembreEntityListener;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -19,6 +21,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "membre")
+@EntityListeners(MembreEntityListener.class)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -94,15 +97,47 @@ public class Membre extends BaseEntity {
     @JoinColumn(name = "created_by")
     private Utilisateur createdBy;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "utilisateur_id")
+    private Utilisateur utilisateur;
+
     @OneToMany(mappedBy = "membre", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     @Builder.Default
     private List<CompteEpargne> comptesEpargne = new ArrayList<>();
 
     @OneToMany(mappedBy = "membre", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     @Builder.Default
     private List<DemandeCredit> demandesCredit = new ArrayList<>();
 
     @OneToMany(mappedBy = "membre")
+    @JsonIgnore
     @Builder.Default
     private List<Credit> credits = new ArrayList<>();
+
+    /**
+     * ⚠️ IMPORTANT: Synchronise bidirectionnellement la relation Membre <-> Utilisateur
+     * Cela garantit que les deux côtés de la relation sont toujours à jour.
+     * 
+     * Si vous assignez un Utilisateur, utilisez TOUJOURS cette méthode:
+     *   membre.setUtilisateurSync(user);
+     * 
+     * Et JAMAIS:
+     *   membre.setUtilisateur(user);  ❌ N'utilise pas le setter normal!
+     */
+    public void setUtilisateurSync(Utilisateur utilisateur) {
+        // Détacher l'ancien utilisateur s'il existe
+        if (this.utilisateur != null) {
+            this.utilisateur.setMembre(null);
+        }
+
+        // Assigner le nouvel utilisateur
+        this.utilisateur = utilisateur;
+
+        // Synchroniser l'autre côté de la relation
+        if (utilisateur != null) {
+            utilisateur.setMembre(this);
+        }
+    }
 }

@@ -1,4 +1,9 @@
 package com.mini.credit.repository.projection;
 
-public class CategorieMontantProjection {
+
+import java.math.BigDecimal;
+
+public interface CategorieMontantProjection {
+    String getCategorie();
+    BigDecimal getMontant();
 }

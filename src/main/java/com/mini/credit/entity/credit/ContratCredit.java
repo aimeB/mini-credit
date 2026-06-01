@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Table(name = "contrat_credit")
@@ -14,8 +15,6 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Builder
 public class ContratCredit extends BaseEntity {
-
-
 
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "credit_id", nullable = false, unique = true)
@@ -50,4 +49,7 @@ public class ContratCredit extends BaseEntity {
 
     @Column(name = "fonction_signataire_institution", length = 150)
     private String fonctionSignataireInstitution;
+
+    @OneToMany(mappedBy = "contratCredit", cascade = CascadeType.ALL)
+    private List<PaiementCredit> paiements;
 }

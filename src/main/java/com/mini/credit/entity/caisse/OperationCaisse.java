@@ -2,13 +2,14 @@ package com.mini.credit.entity.caisse;
 
 import com.mini.credit.entity.base.BaseEntity;
 import com.mini.credit.entity.credit.Credit;
+import com.mini.credit.entity.credit.PaiementCredit;
 import com.mini.credit.entity.credit.RemboursementCredit;
-import com.mini.credit.entity.credit.SessionCaisse;
 import com.mini.credit.entity.epargne.OperationEpargne;
 import com.mini.credit.entity.membre.Membre;
 import com.mini.credit.entity.referentiel.AgentTerrain;
 import com.mini.credit.entity.referentiel.Utilisateur;
 import com.mini.credit.enums.CategorieOperationCaisse;
+import com.mini.credit.enums.ModePaiement;
 import com.mini.credit.enums.TypeOperationCaisse;
 import jakarta.persistence.*;
 import lombok.*;
@@ -24,7 +25,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class OperationCaisse extends BaseEntity {
-
 
     @Column(name = "numero_piece", nullable = false, unique = true, length = 50)
     private String numeroPiece;
@@ -74,9 +74,19 @@ public class OperationCaisse extends BaseEntity {
     @JoinColumn(name = "agent_id")
     private AgentTerrain agent;
 
+    @Column(columnDefinition = "TEXT")
     private String description;
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
     private Utilisateur createdBy;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "paiement_credit_id")
+    private PaiementCredit paiementCredit;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "mode_paiement", length = 30)
+    private ModePaiement modePaiement;
 }

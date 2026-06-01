@@ -1,4 +1,4 @@
-package com.mini.credit.dto.contrat;
+package com.mini.credit.dto.document;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

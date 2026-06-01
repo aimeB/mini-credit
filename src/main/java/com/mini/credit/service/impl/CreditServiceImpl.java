@@ -1,5 +1,8 @@
 package com.mini.credit.service.impl;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import com.mini.credit.dto.caisse.OperationCaisseRequest;
 import com.mini.credit.dto.credit.ApprobationCreditRequest;
 import com.mini.credit.dto.credit.CreditResponse;
@@ -875,5 +878,11 @@ public class CreditServiceImpl implements CreditService {
 
     private String genererNumeroRecu(RemboursementCredit remboursement) {
         return "REC-" + LocalDate.now().getYear() + "-" + remboursement.getId();
+    }
+
+    @Override
+    public Page<CreditResponse> getAll(Pageable pageable) {
+        // PHASE 3B: Return paginated list of all credits
+        return creditRepository.findAll(pageable).map(creditMapper::toResponse);
     }
 }

@@ -38,6 +38,8 @@ import lombok.val;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -499,5 +501,11 @@ public class OperationEpargneServiceImpl implements OperationEpargneService {
         }
 
         return false;
+    }
+
+    @Override
+    public Page<OperationEpargneResponse> getAll(Pageable pageable) {
+        // PHASE 3B: Return paginated list of all savings operations
+        return operationEpargneRepository.findAll(pageable).map(savingMapper::toResponse);
     }
 }

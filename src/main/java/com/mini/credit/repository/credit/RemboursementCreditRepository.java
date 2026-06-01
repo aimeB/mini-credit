@@ -1,4 +1,7 @@
 package com.mini.credit.repository.credit;
 
-public class RemboursementCreditRepository {
+import com.mini.credit.entity.credit.RemboursementCredit;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface RemboursementCreditRepository extends JpaRepository<RemboursementCredit, Long> {
 }

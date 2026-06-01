@@ -28,6 +28,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -158,6 +160,22 @@ public class DemandeCreditServiceImpl implements DemandeCreditService {
                 .stream()
                 .map(creditMapper::toResponse)
                 .toList();
+    }
+
+    @Override
+    public Page<DemandeCreditResponse> getByMembre(Long membreId, Pageable pageable) {
+        // PHASE 3B: Return paginated list of credit requests for a specific member
+        // Filtering in-memory since repository doesn't have findByMembreId(Long, Pageable)
+        List<DemandeCreditResponse> filtered = demandeCreditRepository.findByMembreId(membreId)
+                .stream()
+                .map(creditMapper::toResponse)
+                .toList();
+        
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), filtered.size());
+        List<DemandeCreditResponse> page = filtered.subList(start, end);
+        
+        return new org.springframework.data.domain.PageImpl<>(page, pageable, filtered.size());
     }
 
     @Override
