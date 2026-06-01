@@ -87,6 +87,12 @@ public class DemandeCreditServiceImpl implements DemandeCreditService {
             throw new BusinessException("Accès refusé: vous n'êtes pas autorisé à créer une demande de crédit pour ce membre");
         }
 
+        // AJOUT PHASE 3A: Validation des plages de durée
+        Integer dureeValeur = request.getDureeValeur();
+        if (dureeValeur == null || dureeValeur < 1 || dureeValeur > 60) {
+            throw new BusinessException("La durée doit être entre 1 et 60 (peu importe l'unité: jour, semaine, mois)");
+        }
+
         validateCreationRequest(
                 montantDemande,
                 tauxInteret,
@@ -223,8 +229,21 @@ public class DemandeCreditServiceImpl implements DemandeCreditService {
             throw new BusinessException("Le montant demandé doit être supérieur à 0");
         }
 
+        // AJOUT PHASE 3A: Validation des plages de montant
+        if (montantDemande.compareTo(BigDecimal.valueOf(1)) < 0) {
+            throw new BusinessException("Le montant demandé doit être >= 1 CDF");
+        }
+        if (montantDemande.compareTo(BigDecimal.valueOf(100_000_000)) > 0) {
+            throw new BusinessException("Le montant demandé ne peut pas dépasser 100 millions CDF");
+        }
+
         if (tauxInteret == null || tauxInteret.compareTo(ZERO) < 0) {
             throw new BusinessException("Le taux d'intérêt ne peut pas être négatif");
+        }
+
+        // AJOUT PHASE 3A: Validation des plages de taux
+        if (tauxInteret.compareTo(BigDecimal.valueOf(20)) > 0) {
+            throw new BusinessException("Le taux d'intérêt ne peut pas dépasser 20%");
         }
 
         if (revenusEstimes == null || revenusEstimes.compareTo(ZERO) < 0) {

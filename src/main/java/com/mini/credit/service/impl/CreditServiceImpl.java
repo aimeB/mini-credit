@@ -185,6 +185,24 @@ public class CreditServiceImpl implements CreditService {
             default -> throw new BusinessException("Statut de demande non pris en charge");
         }
 
+        // AJOUT PHASE 3A: Valider les plages à nouveau (duplex validation)
+        BigDecimal montant = demande.getMontantDemande();
+        BigDecimal taux = demande.getTauxInteret();
+        Integer duree = demande.getDureeValeur();
+
+        if (montant == null || montant.compareTo(BigDecimal.valueOf(1)) < 0 || 
+            montant.compareTo(BigDecimal.valueOf(100_000_000)) > 0) {
+            throw new BusinessException("Montant du crédit invalide pour approbation (doit être entre 1 et 100M CDF)");
+        }
+
+        if (taux == null || taux.compareTo(BigDecimal.valueOf(20)) > 0) {
+            throw new BusinessException("Taux du crédit invalide pour approbation (doit être <= 20%)");
+        }
+
+        if (duree == null || duree < 1 || duree > 60) {
+            throw new BusinessException("Durée du crédit invalide pour approbation (doit être entre 1 et 60)");
+        }
+
         if (demande.getCredit() != null) {
             throw new BusinessException("Cette demande a déjà généré un crédit");
         }
