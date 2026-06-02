@@ -44,7 +44,8 @@ import com.mini.credit.service.QuittanceService;
 import com.mini.credit.service.security.ScopeService;
 import com.mini.credit.service.audit.Auditable;
 import com.mini.credit.enums.security.AuditAction;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -73,6 +74,7 @@ public class CreditServiceImpl implements CreditService {
     private final ScopeService scopeService;
 
     @Override
+    @Transactional(isolation = Isolation.SERIALIZABLE)  // PHASE 9: SERIALIZABLE isolation for race condition prevention
     @Auditable(action = AuditAction.CREDIT_APPROVED, entityType = "DemandeCredit", entityIdParameter = "demandeId")
     public CreditResponse approuverDemande(Long demandeId, ApprobationCreditRequest request) {
         DemandeCredit demande = demandeCreditRepository.findById(demandeId)
@@ -258,6 +260,7 @@ public class CreditServiceImpl implements CreditService {
     }
 
     @Override
+    @Transactional(isolation = Isolation.SERIALIZABLE)  // PHASE 9: SERIALIZABLE isolation for race condition prevention
     @Auditable(action = AuditAction.CREDIT_DISBURSED, entityType = "Credit", entityIdParameter = "creditId")
     public CreditResponse decaisserCredit(Long creditId, DecaissementCreditRequest request) {
         Credit credit = creditRepository.findById(creditId)
@@ -364,6 +367,7 @@ public class CreditServiceImpl implements CreditService {
     }
 
     @Override
+    @Transactional(isolation = Isolation.SERIALIZABLE)  // PHASE 9: SERIALIZABLE isolation for race condition prevention
     @Auditable(action = AuditAction.REMBOURSEMENT_CREATED, entityType = "Credit", entityIdParameter = "creditId")
     public void enregistrerRemboursement(Long creditId, RemboursementRequest request) {
         Credit credit = creditRepository.findById(creditId)
