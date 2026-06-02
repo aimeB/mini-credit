@@ -1,7 +1,9 @@
 package com.mini.credit.controller;
 
+import com.mini.credit.annotation.Auditable;
 import com.mini.credit.dto.epargne.OperationEpargneRequest;
 import com.mini.credit.dto.epargne.OperationEpargneResponse;
+import com.mini.credit.enums.security.AuditAction;
 import com.mini.credit.service.OperationEpargneService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -29,6 +31,7 @@ public class OperationEpargneController {
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'RESPONSABLE', 'AGENT_BUREAU', 'CAISSIER')")
     @Operation(summary = "Record savings operation", description = "Record a new savings operation")
+    @Auditable(action = AuditAction.OPERATION_EPARGNE_CREATED, entityType = "OperationEpargne", captureParameters = true, captureResult = true)
     public OperationEpargneResponse enregistrer(@Valid @RequestBody OperationEpargneRequest request) {
         return operationEpargneService.enregistrer(request);
     }

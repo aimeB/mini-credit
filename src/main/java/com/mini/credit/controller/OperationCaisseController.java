@@ -1,7 +1,9 @@
 package com.mini.credit.controller;
 
+import com.mini.credit.annotation.Auditable;
 import com.mini.credit.dto.caisse.OperationCaisseResponse;
 import com.mini.credit.dto.caisse.OperationCaisseRequest;
+import com.mini.credit.enums.security.AuditAction;
 import com.mini.credit.service.OperationCaisseService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -29,6 +31,7 @@ public class OperationCaisseController {
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'RESPONSABLE', 'CAISSIER')")
     @Operation(summary = "Register caisse operation", description = "Register a new caisse operation")
+    @Auditable(action = AuditAction.OPERATION_CAISSE_CREATED, entityType = "OperationCaisse", captureParameters = true, captureResult = true)
     public OperationCaisseResponse enregistrer(@Valid @RequestBody OperationCaisseRequest request) {
         return operationCaisseService.enregistrer(request);
     }

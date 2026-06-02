@@ -1,8 +1,10 @@
 package com.mini.credit.controller;
 
+import com.mini.credit.annotation.Auditable;
 import com.mini.credit.dto.credit.AnalyseRisqueRequest;
 import com.mini.credit.dto.credit.DemandeCreditCreateRequest;
 import com.mini.credit.dto.credit.DemandeCreditResponse;
+import com.mini.credit.enums.security.AuditAction;
 import com.mini.credit.service.DemandeCreditService;
 import com.mini.credit.service.security.ScopeService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,6 +34,7 @@ public class DemandeCreditController {
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'AGENT_BUREAU', 'MEMBER')")
     @Operation(summary = "Create credit request", description = "Create a new credit request")
+    @Auditable(action = AuditAction.DEMANDE_CREDIT_CREATED, entityType = "DemandeCredit", captureParameters = true, captureResult = true)
     public DemandeCreditResponse create(@Valid @RequestBody DemandeCreditCreateRequest request) {
         return demandeCreditService.create(request);
     }

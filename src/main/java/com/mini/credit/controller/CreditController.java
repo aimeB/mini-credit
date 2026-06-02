@@ -1,9 +1,11 @@
 package com.mini.credit.controller;
 
+import com.mini.credit.annotation.Auditable;
 import com.mini.credit.dto.credit.ApprobationCreditRequest;
 import com.mini.credit.dto.credit.CreditResponse;
 import com.mini.credit.dto.credit.DecaissementCreditRequest;
 import com.mini.credit.dto.credit.RemboursementRequest;
+import com.mini.credit.enums.security.AuditAction;
 import com.mini.credit.service.CreditService;
 import com.mini.credit.service.security.ScopeService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,6 +35,7 @@ public class CreditController {
     @PostMapping("/demande/{demandeId}/approbation")
     @PreAuthorize("hasAuthority('CREDIT_APPROVE')")
     @Operation(summary = "Approve credit request", description = "Approve a credit request and create contract")
+    @Auditable(action = AuditAction.CREDIT_APPROVED, entityType = "Credit", entityIdExpression = "#demandeId", captureResult = true)
     public CreditResponse approuver(@PathVariable Long demandeId,
                                     @Valid @RequestBody ApprobationCreditRequest request) {
         return creditService.approuverDemande(demandeId, request);
@@ -41,6 +44,7 @@ public class CreditController {
     @PostMapping("/{creditId}/remboursements")
     @PreAuthorize("hasAnyRole('ADMIN', 'RESPONSABLE', 'CAISSIER', 'MEMBER')")
     @Operation(summary = "Register credit repayment", description = "Register a repayment for a credit")
+    @Auditable(action = AuditAction.REMBOURSEMENT_CREATED, entityType = "Credit", entityIdExpression = "#creditId", captureParameters = true)
     public void rembourser(@PathVariable Long creditId,
                            @Valid @RequestBody RemboursementRequest request) {
         creditService.enregistrerRemboursement(creditId, request);
