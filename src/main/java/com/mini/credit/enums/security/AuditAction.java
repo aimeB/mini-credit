@@ -50,6 +50,12 @@ public enum AuditAction {
     DEMANDE_RETRAIT_EPARGNE_DISBURSED("Demande retrait épargne décaissée par CAISSIER"),
     DEMANDE_RETRAIT_EPARGNE_CANCELLED("Demande retrait épargne annulée"),
 
+    // ============ PHASE 6: Recettes Journalières Terrain ============
+    RECETTE_JOURNALIERE_CREATED("Recette journalière créée (encodage terrain)"),
+    RECETTE_JOURNALIERE_VALIDATED("Recette journalière validée par CONTROLEUR (réconciliation)"),
+    RECETTE_JOURNALIERE_REJECTED("Recette journalière rejetée"),
+    RECETTE_JOURNALIERE_CANCELLED("Recette journalière annulée"),
+
     // ============ Sécurité et audit ============
     ACCESS_DENIED("Accès refusé (autorisation)"),
     DATA_EXPORT("Données exportées"),
