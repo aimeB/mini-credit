@@ -1,6 +1,7 @@
 package com.mini.credit.repository.epargne;
 
 import com.mini.credit.entity.epargne.CompteEpargne;
+import com.mini.credit.enums.StatutCompte;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -10,6 +11,6 @@ public interface CompteEpargneRepository extends JpaRepository<CompteEpargne, Lo
     Optional<CompteEpargne> findByNumeroCompte(String numeroCompte);
     List<CompteEpargne> findByMembreId(Long membreId);
     
-    // PHASE 9: Intérêts Épargne
-    List<CompteEpargne> findAllByActifTrue();
+    // PHASE 9: Intérêts Épargne - comptes actifs
+    List<CompteEpargne> findByStatut(StatutCompte statut);
 }

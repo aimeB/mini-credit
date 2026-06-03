@@ -5,6 +5,7 @@ import com.mini.credit.entity.epargne.CompteEpargne;
 import com.mini.credit.entity.epargne.OperationEpargne;
 import com.mini.credit.enums.ModePaiement;
 import com.mini.credit.enums.SensOperation;
+import com.mini.credit.enums.StatutCompte;
 import com.mini.credit.enums.TypeOperationEpargne;
 import com.mini.credit.mapper.OperationEpargneMapper;
 import com.mini.credit.repository.epargne.CompteEpargneRepository;
@@ -55,7 +56,7 @@ public class GenerationInteretServiceImpl implements GenerationInteretService {
         log.info("PHASE 9: Démarrage batch génération intérêts épargne (mensuel)");
 
         // Récupère tous les comptes actifs
-        List<CompteEpargne> comptesActifs = compteEpargneRepository.findAllByActifTrue();
+        List<CompteEpargne> comptesActifs = compteEpargneRepository.findByStatut(StatutCompte.ACTIF);
         log.info("Nombre de comptes actifs: {}", comptesActifs.size());
 
         // Génère intérêts pour chaque compte
