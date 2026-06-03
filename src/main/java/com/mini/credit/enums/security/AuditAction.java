@@ -63,6 +63,12 @@ public enum AuditAction {
     ECART_CAISSE_ACCEPTE("Écart caisse accepté par R.C.I. (variance normalisée)"),
     ECART_CAISSE_REJETE("Écart caisse rejeté (erreur système)"),
 
+    // ============ PHASE 8: Commissions Agents ============
+    COMMISSION_CREATED("Commission agent créée (calcul montant)"),
+    COMMISSION_VALIDATED("Commission validée par gestionnaire"),
+    COMMISSION_PAID("Commission payée à l'agent"),
+    COMMISSION_CANCELLED("Commission annulée"),
+
     // ============ Sécurité et audit ============
     ACCESS_DENIED("Accès refusé (autorisation)"),
     DATA_EXPORT("Données exportées"),
