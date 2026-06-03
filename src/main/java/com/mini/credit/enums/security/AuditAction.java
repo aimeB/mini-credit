@@ -56,6 +56,13 @@ public enum AuditAction {
     RECETTE_JOURNALIERE_REJECTED("Recette journalière rejetée"),
     RECETTE_JOURNALIERE_CANCELLED("Recette journalière annulée"),
 
+    // ============ PHASE 7: Écarts Caisse / Investigation ============
+    ECART_CAISSE_DETECTE("Écart caisse détecté"),
+    ECART_CAISSE_ENQUETE("Écart caisse enquêté par CONTROLEUR"),
+    ECART_CAISSE_RESOLU("Écart caisse résolu (raison documentée)"),
+    ECART_CAISSE_ACCEPTE("Écart caisse accepté par R.C.I. (variance normalisée)"),
+    ECART_CAISSE_REJETE("Écart caisse rejeté (erreur système)"),
+
     // ============ Sécurité et audit ============
     ACCESS_DENIED("Accès refusé (autorisation)"),
     DATA_EXPORT("Données exportées"),
