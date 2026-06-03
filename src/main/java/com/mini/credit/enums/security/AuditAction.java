@@ -83,6 +83,13 @@ public enum AuditAction {
     RECONCILIATION_RAPPROCHEE("Réconciliation caisse rapprochée (écart résolu/approuvé)"),
     RECONCILIATION_REJETEE("Réconciliation caisse rejetée (écart confirmé intentionnel)"),
     RECONCILIATION_BATCH_GENERO("Batch réconciliations caisse généré quotidien (02:00)"),
+
+    // ============ PHASE 12: Rapports Financiers Complets ============
+    RAPPORT_GENERE("Rapport financier généré (Bilan, Compte résultat, KPIs)"),
+    RAPPORT_VALIDE("Rapport financier validé (approuvé par admin)"),
+    RAPPORT_ARCHIVE("Rapport financier archivé (historique)"),
+    RAPPORT_BATCH_GENERO("Batch rapports financiers quotidiens généré (03:00)"),
+
     // ============ Sécurité et audit ============
     ACCESS_DENIED("Accès refusé (autorisation)"),
     DATA_EXPORT("Données exportées"),
