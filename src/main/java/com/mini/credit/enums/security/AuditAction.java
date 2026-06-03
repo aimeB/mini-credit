@@ -43,6 +43,13 @@ public enum AuditAction {
     CREDIT_VALIDATION_CHECKED("Validation stricte crédit vérifiée (PHASE 4)"),
     REMBOURSEMENT_CREATED("Remboursement enregistré"),
 
+    // ============ PHASE 5: Retraits Épargne ============
+    DEMANDE_RETRAIT_EPARGNE_CREATED("Demande retrait épargne créée"),
+    DEMANDE_RETRAIT_EPARGNE_VALIDATED("Demande retrait épargne validée par CONTROLEUR"),
+    DEMANDE_RETRAIT_EPARGNE_REJECTED("Demande retrait épargne rejetée"),
+    DEMANDE_RETRAIT_EPARGNE_DISBURSED("Demande retrait épargne décaissée par CAISSIER"),
+    DEMANDE_RETRAIT_EPARGNE_CANCELLED("Demande retrait épargne annulée"),
+
     // ============ Sécurité et audit ============
     ACCESS_DENIED("Accès refusé (autorisation)"),
     DATA_EXPORT("Données exportées"),

@@ -9,7 +9,8 @@ import com.mini.credit.exception.ResourceNotFoundException;
 import com.mini.credit.repository.credit.CreditRepository;
 import com.mini.credit.repository.credit.EcheanceCreditRepository;
 import com.mini.credit.service.PenaliteService;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -81,6 +82,7 @@ public class PenaliteServiceImpl implements PenaliteService {
     }
 
     @Override
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void appliquerPenalitesCredit(Long creditId, LocalDate dateReference) {
         Credit credit = creditRepository.findById(creditId)
                 .orElseThrow(() -> new ResourceNotFoundException("Crédit introuvable"));

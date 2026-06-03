@@ -35,7 +35,7 @@ public class MembreController {
 
     @PostMapping
     @Transactional
-    @PreAuthorize("hasAnyRole('ADMIN', 'RESPONSABLE', 'AGENT_BUREAU', 'AGENT_TERRAIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RESPONSABLE', 'AGENT_TERRAIN')")
     @Operation(summary = "Create member", description = "Create a new member with activation code")
     public ResponseEntity<MembreActivationResponseDTO> create(@Valid @RequestBody MembreCreateRequest request) {
         MembreActivationResponseDTO response = membreService.createWithActivationCode(request);

@@ -105,12 +105,12 @@ public class Credit extends BaseEntity {
     @OneToOne(mappedBy = "credit", cascade = CascadeType.ALL, orphanRemoval = true)
     private ContratCredit contratCredit;
 
-    @OneToMany(mappedBy = "credit", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "credit", cascade = CascadeType.ALL, orphanRemoval = false)
     @Builder.Default
     private List<EcheanceCredit> echeances = new ArrayList<>();
 
 
-    @OneToMany(mappedBy = "credit", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "credit", cascade = CascadeType.ALL, orphanRemoval = false)
     @Builder.Default
     private List<RemboursementCredit> remboursements = new ArrayList<>();
 
