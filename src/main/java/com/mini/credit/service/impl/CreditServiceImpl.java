@@ -39,7 +39,6 @@ import com.mini.credit.repository.membre.MembreRepository;
 import com.mini.credit.repository.utilisateur.UtilisateurRepository;
 import com.mini.credit.service.CreditService;
 import com.mini.credit.service.OperationCaisseService;
-import com.mini.credit.service.PenaliteService;
 import com.mini.credit.service.QuittanceService;
 import com.mini.credit.service.security.ScopeService;
 import com.mini.credit.service.audit.Auditable;
@@ -69,7 +68,6 @@ public class CreditServiceImpl implements CreditService {
     private final MembreRepository membreRepository;
     private final CreditMapper creditMapper;
     private final OperationCaisseService operationCaisseService;
-    private final PenaliteService penaliteService;
     private final QuittanceService quittanceService;
     private final ScopeService scopeService;
 
@@ -401,7 +399,8 @@ public class CreditServiceImpl implements CreditService {
             throw new BusinessException("Le membreId fourni ne correspond pas au propriétaire du crédit");
         }
 
-        penaliteService.appliquerPenalitesCredit(creditId, request.getDatePaiement().toLocalDate());
+        // PHASE 10: Pénalités gérées par batch job quotidien (00:01)
+        // penaliteService.appliquerPenalitesCredit(creditId, request.getDatePaiement().toLocalDate());
 
         Membre membre = membreRepository.findById(request.getMembreId())
                 .orElseThrow(() -> new ResourceNotFoundException("Membre introuvable"));

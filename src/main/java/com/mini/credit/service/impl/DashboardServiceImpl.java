@@ -11,7 +11,6 @@ import com.mini.credit.repository.credit.CreditRepository;
 import com.mini.credit.repository.credit.EcheanceCreditRepository;
 import com.mini.credit.repository.projection.CategorieMontantProjection;
 import com.mini.credit.service.DashboardService;
-import com.mini.credit.service.PenaliteService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,7 +29,6 @@ public class DashboardServiceImpl implements DashboardService {
     private final EcheanceCreditRepository echeanceCreditRepository;
     private final OperationCaisseRepository operationCaisseRepository;
     private final SessionCaisseRepository sessionCaisseRepository;
-    private final PenaliteService penaliteService;
 
     @Override
     public PortefeuilleDashboardResponse getPortefeuilleDashboard() {
