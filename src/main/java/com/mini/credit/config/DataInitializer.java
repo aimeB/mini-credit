@@ -4,14 +4,19 @@ import com.mini.credit.entity.referentiel.Utilisateur;
 import com.mini.credit.entity.membre.Membre;
 import com.mini.credit.entity.referentiel.Role;
 import com.mini.credit.entity.referentiel.ParametreMetier;
+import com.mini.credit.entity.referentiel.Employe;
+import com.mini.credit.entity.referentiel.Site;
 import com.mini.credit.enums.StatutMembre;
 import com.mini.credit.enums.security.RoleCode;
 import com.mini.credit.enums.TypeParametre;
 import com.mini.credit.enums.CategorieParametre;
+import com.mini.credit.enums.PosteEmploye;
 import com.mini.credit.repository.UtilisateurRepository;
 import com.mini.credit.repository.membre.MembreRepository;
 import com.mini.credit.repository.referentiel.RoleRepository;
 import com.mini.credit.repository.referentiel.ParametreMetierRepository;
+import com.mini.credit.repository.referentiel.EmployeRepository;
+import com.mini.credit.repository.referentiel.SiteRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -31,7 +36,9 @@ public class DataInitializer {
                                                     MembreRepository membreRepository,
                                                     RoleRepository roleRepository,
                                                     PasswordEncoder passwordEncoder,
-                                                    com.mini.credit.repository.referentiel.ParametreMetierRepository parametreMetierRepository) {
+                                                    ParametreMetierRepository parametreMetierRepository,
+                                                    EmployeRepository employeRepository,
+                                                    SiteRepository siteRepository) {
         return args -> {
             // Assurer que tous les rôles existent
             Role adminRole = ensureRoleExists(roleRepository, RoleCode.ADMIN);
@@ -44,6 +51,11 @@ public class DataInitializer {
 
             // PHASE 1: Initialiser les paramètres métier
             initializeParametresMétier(parametreMetierRepository);
+
+            // PHASE 3: Initialiser les postes métier et employés
+            // Créer un site par défaut
+            Site defaultSite = ensureDefaultSiteExists(siteRepository);
+            initializeEmployes(employeRepository, defaultSite);
 
             // Créer admin
             createOrUpdateUser(utilisateurRepository, "admin", "admin123", "admin@minicredit.com", 
@@ -333,6 +345,93 @@ public class DataInitializer {
             
             repository.save(param);
             log.debug("Paramètre {} créé", cle);
+        }
+    }
+
+    /**
+     * PHASE 3: Assure qu'un site par défaut existe.
+     * Crée le site "Siège Social" s'il n'existe pas.
+     */
+    private Site ensureDefaultSiteExists(SiteRepository siteRepository) {
+        return siteRepository.findByCodeSite("SIEGE")
+                .orElseGet(() -> {
+                    Site site = Site.builder()
+                            .codeSite("SIEGE")
+                            .nomSite("Siège Social")
+                            .adresse("Kinshasa")
+                            .commune("Gombe")
+                            .ville("Kinshasa")
+                            .actif(true)
+                            .build();
+                    siteRepository.save(site);
+                    log.info("Default site (Siège Social) created");
+                    return site;
+                });
+    }
+
+    /**
+     * PHASE 3: Initialise les postes métier et employés par défaut.
+     * Crée les employés de base s'ils n'existent pas.
+     */
+    private void initializeEmployes(EmployeRepository employeRepository, Site defaultSite) {
+        // Vérifier si les employés existent déjà
+        if (employeRepository.existsByCodeEmploye("EMP-001")) {
+            log.info("Employés déjà initialisés, passage");
+            return;
+        }
+
+        log.info("Initialisation des employés...");
+
+        // Chef de Bureau
+        createEmployeIfNotExists(employeRepository, 
+            "EMP-001", "Chief Bureau", "Chief", "Bureau", 
+            PosteEmploye.CHEF_BUREAU, defaultSite);
+
+        // Gestionnaire
+        createEmployeIfNotExists(employeRepository,
+            "EMP-002", "Manager Terrain", "Manager", "Terrain",
+            PosteEmploye.GESTIONNAIRE, defaultSite);
+
+        // Contrôleur
+        createEmployeIfNotExists(employeRepository,
+            "EMP-003", "Controller Caisse", "Controller", "Caisse",
+            PosteEmploye.CONTROLEUR, defaultSite);
+
+        // Caissier
+        createEmployeIfNotExists(employeRepository,
+            "EMP-004", "Cashier Main", "Cashier", "Main",
+            PosteEmploye.CAISSIER, defaultSite);
+
+        // Agent Terrain
+        createEmployeIfNotExists(employeRepository,
+            "EMP-005", "Agent Terrain 1", "Agent", "Terrain",
+            PosteEmploye.AGENT_TERRAIN, defaultSite);
+
+        log.info("Employés initialisés avec succès");
+    }
+
+    /**
+     * Crée un employé s'il n'existe pas déjà.
+     */
+    private void createEmployeIfNotExists(
+            EmployeRepository employeRepository,
+            String codeEmploye, String nomComplet, String prenom, String nom,
+            PosteEmploye poste, Site site) {
+        
+        if (!employeRepository.existsByCodeEmploye(codeEmploye)) {
+            Employe employe = Employe.builder()
+                    .codeEmploye(codeEmploye)
+                    .nomComplet(nomComplet)
+                    .prenom(prenom)
+                    .nom(nom)
+                    .poste(poste)
+                    .site(site)
+                    .dateEmbauche(LocalDate.now())
+                    .actif(true)
+                    .build();
+            
+            employeRepository.save(employe);
+            log.debug("Employé {} créé avec poste {}", codeEmploye, poste);
         }
     }
 }

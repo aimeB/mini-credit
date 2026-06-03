@@ -46,6 +46,14 @@ public class Utilisateur extends BaseEntity implements UserDetails {
     @JoinColumn(name = "membre_id")
     private Membre membre;
 
+    /**
+     * Employé associé (pour les utilisateurs avec poste métier)
+     * OneToOne: un utilisateur = un employé
+     */
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "employe_id", foreignKey = @ForeignKey(name = "fk_user_employe"))
+    private Employe employe;
+
     @Column(nullable = false)
     private Boolean actif = true;
 
