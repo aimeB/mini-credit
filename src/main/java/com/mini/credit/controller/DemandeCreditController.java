@@ -81,4 +81,14 @@ public class DemandeCreditController {
     public List<DemandeCreditResponse> getMesDemandes() {
         return demandeCreditService.getCurrentMemberRequests();
     }
+
+    // ============ PHASE 4: VALIDATION CRÉDIT STRICTE ============
+
+    @GetMapping("/{id}/validation")
+    @PreAuthorize("hasAuthority('CONTROLEUR_CREDITS_VALIDATE')")
+    @Operation(summary = "Validate credit request (PHASE 4)", description = "Check if credit request meets all PHASE 4 validation criteria: fees paid, guarantee deposited, terrain analysis complete")
+    @Auditable(action = AuditAction.CREDIT_VALIDATION_CHECKED, entityType = "DemandeCredit")
+    public com.mini.credit.dto.credit.CreditValidationResult validateCredit(@PathVariable Long id) {
+        return demandeCreditService.validerCredit(id);
+    }
 }

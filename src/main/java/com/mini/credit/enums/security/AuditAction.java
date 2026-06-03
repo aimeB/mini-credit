@@ -40,6 +40,7 @@ public enum AuditAction {
     PAIEMENT_INITIAL_DEMANDE_CREATED("Paiement initial de demande crédit enregistré"),
     CREDIT_APPROVED("Crédit approuvé (DÉCISION, non décaissement)"),
     CREDIT_DISBURSED("Crédit décaissé (EXÉCUTION)"),
+    CREDIT_VALIDATION_CHECKED("Validation stricte crédit vérifiée (PHASE 4)"),
     REMBOURSEMENT_CREATED("Remboursement enregistré"),
 
     // ============ Sécurité et audit ============

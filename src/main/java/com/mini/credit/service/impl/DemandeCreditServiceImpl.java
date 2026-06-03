@@ -21,6 +21,7 @@ import com.mini.credit.repository.membre.MembreRepository;
 import com.mini.credit.repository.site.SiteRepository;
 import com.mini.credit.repository.utilisateur.UtilisateurRepository;
 import com.mini.credit.service.DemandeCreditService;
+import com.mini.credit.service.CreditValidationService;
 import com.mini.credit.service.audit.Auditable;
 import com.mini.credit.enums.security.AuditAction;
 import com.mini.credit.service.security.ScopeService;
@@ -56,6 +57,7 @@ public class DemandeCreditServiceImpl implements DemandeCreditService {
     private final AnalyseRisqueRepository analyseRisqueRepository;
     private final CreditMapper creditMapper;
     private final ScopeService scopeService;
+    private final CreditValidationService creditValidationService;
 
     @Override
     @Auditable(action = AuditAction.DEMANDE_CREDIT_CREATED, entityType = "DemandeCredit")
@@ -377,5 +379,16 @@ public class DemandeCreditServiceImpl implements DemandeCreditService {
 
     private String genererNumeroDemande() {
         return "DCR-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+    }
+
+    /**
+     * PHASE 4: Valide les critères strictes de crédit
+     */
+    @Override
+    public com.mini.credit.dto.credit.CreditValidationResult validerCredit(Long demandeId) {
+        DemandeCredit demandeCredit = demandeCreditRepository.findById(demandeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Demande crédit non trouvée: " + demandeId));
+
+        return creditValidationService.validerCreditComplet(demandeCredit);
     }
 }

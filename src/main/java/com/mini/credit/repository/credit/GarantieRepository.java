@@ -1,6 +1,7 @@
 package com.mini.credit.repository.credit;
 
 import com.mini.credit.entity.credit.Garantie;
+import com.mini.credit.entity.credit.DemandeCredit;
 import com.mini.credit.enums.StatutGarantie;
 import com.mini.credit.enums.TypeGarantie;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -20,6 +21,9 @@ public interface GarantieRepository extends JpaRepository<Garantie, Long> {
 
     // Recherches par demande de crédit
     List<Garantie> findByDemandeCreditId(Long demandeCreditId);
+
+    // PHASE 4: Recherche par entité DemandeCredit
+    List<Garantie> findByDemandeCredit(DemandeCredit demandeCredit);
 
     // Recherches par membre
     List<Garantie> findByMembreId(Long membreId);

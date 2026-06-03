@@ -1,6 +1,7 @@
 package com.mini.credit.service;
 
 import com.mini.credit.dto.credit.AnalyseRisqueRequest;
+import com.mini.credit.dto.credit.CreditValidationResult;
 import com.mini.credit.dto.credit.DemandeCreditCreateRequest;
 import com.mini.credit.dto.credit.DemandeCreditResponse;
 import org.springframework.data.domain.Page;
@@ -19,4 +20,9 @@ public interface DemandeCreditService {
     boolean isCurrentUserRequest(Long demandeId);
     boolean isCurrentUserMembre(Long membreId);
     List<DemandeCreditResponse> getCurrentMemberRequests();
+
+    /**
+     * PHASE 4: Valide les critères strictes de crédit (frais, garantie, analyse terrain)
+     */
+    CreditValidationResult validerCredit(Long demandeId);
 }
