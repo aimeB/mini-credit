@@ -4,7 +4,7 @@ import com.mini.credit.entity.referentiel.Utilisateur;
 import com.mini.credit.entity.membre.Membre;
 import com.mini.credit.entity.referentiel.Role;
 import com.mini.credit.entity.referentiel.ParametreMetier;
-import com.mini.credit.entity.referentiel.Employe;
+import com.mini.credit.entity.employe.Employe;
 import com.mini.credit.entity.referentiel.Site;
 import com.mini.credit.enums.StatutMembre;
 import com.mini.credit.enums.security.RoleCode;
@@ -15,7 +15,7 @@ import com.mini.credit.repository.UtilisateurRepository;
 import com.mini.credit.repository.membre.MembreRepository;
 import com.mini.credit.repository.referentiel.RoleRepository;
 import com.mini.credit.repository.referentiel.ParametreMetierRepository;
-import com.mini.credit.repository.referentiel.EmployeRepository;
+import com.mini.credit.repository.EmployeRepository;
 import com.mini.credit.repository.referentiel.SiteRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -375,7 +375,7 @@ public class DataInitializer {
      */
     private void initializeEmployes(EmployeRepository employeRepository, Site defaultSite) {
         // Vérifier si les employés existent déjà
-        if (employeRepository.existsByCodeEmploye("EMP-001")) {
+        if (employeRepository.existsByMatricule("MAT-001")) {
             log.info("Employés déjà initialisés, passage");
             return;
         }
@@ -384,28 +384,23 @@ public class DataInitializer {
 
         // Chef de Bureau
         createEmployeIfNotExists(employeRepository, 
-            "EMP-001", "Chief Bureau", "Chief", "Bureau", 
-            PosteEmploye.CHEF_BUREAU, defaultSite);
+            "MAT-001", "Chief", "Bureau", new BigDecimal("500000"));
 
         // Gestionnaire
         createEmployeIfNotExists(employeRepository,
-            "EMP-002", "Manager Terrain", "Manager", "Terrain",
-            PosteEmploye.GESTIONNAIRE, defaultSite);
+            "MAT-002", "Manager", "Terrain", new BigDecimal("400000"));
 
         // Contrôleur
         createEmployeIfNotExists(employeRepository,
-            "EMP-003", "Controller Caisse", "Controller", "Caisse",
-            PosteEmploye.CONTROLEUR, defaultSite);
+            "MAT-003", "Controller", "Caisse", new BigDecimal("350000"));
 
         // Caissier
         createEmployeIfNotExists(employeRepository,
-            "EMP-004", "Cashier Main", "Cashier", "Main",
-            PosteEmploye.CAISSIER, defaultSite);
+            "MAT-004", "Cashier", "Main", new BigDecimal("300000"));
 
         // Agent Terrain
         createEmployeIfNotExists(employeRepository,
-            "EMP-005", "Agent Terrain 1", "Agent", "Terrain",
-            PosteEmploye.AGENT_TERRAIN, defaultSite);
+            "MAT-005", "Agent", "Terrain", new BigDecimal("250000"));
 
         log.info("Employés initialisés avec succès");
     }
@@ -415,23 +410,20 @@ public class DataInitializer {
      */
     private void createEmployeIfNotExists(
             EmployeRepository employeRepository,
-            String codeEmploye, String nomComplet, String prenom, String nom,
-            PosteEmploye poste, Site site) {
+            String matricule, String prenom, String nom, BigDecimal salaire) {
         
-        if (!employeRepository.existsByCodeEmploye(codeEmploye)) {
+        if (!employeRepository.existsByMatricule(matricule)) {
             Employe employe = Employe.builder()
-                    .codeEmploye(codeEmploye)
-                    .nomComplet(nomComplet)
+                    .matricule(matricule)
                     .prenom(prenom)
                     .nom(nom)
-                    .poste(poste)
-                    .site(site)
+                    .salaireBase(salaire)
                     .dateEmbauche(LocalDate.now())
                     .actif(true)
                     .build();
             
             employeRepository.save(employe);
-            log.debug("Employé {} créé avec poste {}", codeEmploye, poste);
+            log.debug("Employé {} créé avec salaire {}", matricule, salaire);
         }
     }
 }
