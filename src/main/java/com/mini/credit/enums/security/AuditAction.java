@@ -73,6 +73,12 @@ public enum AuditAction {
     INTERET_EPARGNE_GENERE("Batch intérêts épargne généré (tous comptes actifs)"),
     INTERET_EPARGNE_ACCRUED("Intérêt épargne acquis sur compte (mensuel = solde × taux / 12)"),
 
+    // ============ PHASE 10: Pénalités de Retard Crédit ============
+    PENALITE_CREEE("Pénalité retard crédit créée (montant = jours × taux)"),
+    PENALITE_ACQUITTEE("Pénalité retard acquittée (payée)"),
+    PENALITE_EFFACEE("Pénalité retard effacée (pardon/remise documentée)"),
+    PENALITE_BATCH_GENERE("Batch pénalités retard généré quotidien"),
+
     // ============ Sécurité et audit ============
     ACCESS_DENIED("Accès refusé (autorisation)"),
     DATA_EXPORT("Données exportées"),
