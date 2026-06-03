@@ -30,7 +30,7 @@ public interface ReconciliationCaisseRepository extends JpaRepository<Reconcilia
             List<StatutReconciliation> statuts);
 
     // Somme des écarts en attente (CREEE)
-    @Query("SELECT SUM(CASE WHEN rc.isDeficit() THEN -rc.montantEcart ELSE rc.montantEcart END) " +
+    @Query("SELECT SUM(CASE WHEN rc.montantEcart < 0 THEN -rc.montantEcart ELSE rc.montantEcart END) " +
            "FROM ReconciliationCaisse rc WHERE rc.statut = ?1")
     BigDecimal sumMontantEcartByStatut(StatutReconciliation statut);
 
