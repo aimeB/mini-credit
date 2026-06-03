@@ -31,6 +31,11 @@ public enum RoleCode {
     CAISSIER("Caissier", "Gestion caisse, versements, retraits, remboursements"),
 
     /**
+     * Contrôleur - validation et réconciliation caisse/épargne
+     */
+    CONTROLEUR("Contrôleur", "Validation recettes, retraits, crédits, réconciliation caisse"),
+
+    /**
      * Membre/Client - accès limité à ses propres données
      */
     MEMBER("Membre client", "Accès à son profil, ses crédits et comptes épargne");

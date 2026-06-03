@@ -52,7 +52,22 @@ public enum PermissionCode {
 
     // ============ Dashboard et audit ============
     DASHBOARD_GLOBAL_READ("Voir le dashboard global"),
-    AUDIT_READ("Consulter l'audit");
+    AUDIT_READ("Consulter l'audit"),
+
+    // ============ Permissions CONTROLEUR (Validation & Réconciliation) ============
+    CONTROLEUR_EPARGNE_READ("Voir les comptes épargne (CONTROLEUR)"),
+    CONTROLEUR_EPARGNE_OPERATION_READ("Voir les opérations épargne (CONTROLEUR)"),
+    CONTROLEUR_CREDIT_READ("Voir les crédits (CONTROLEUR)"),
+    CONTROLEUR_DEMANDE_CREDIT_READ("Voir les demandes crédit (CONTROLEUR)"),
+    CONTROLEUR_DEMANDE_CREDIT_VALIDATE("Valider/modifier analyse risque demandes crédit"),
+    CONTROLEUR_SESSION_CAISSE_READ("Voir les SessionCaisse (CONTROLEUR)"),
+    CONTROLEUR_SESSION_CAISSE_VALIDATE("Valider clôture SessionCaisse"),
+    CONTROLEUR_ECART_READ("Voir les écarts caisse"),
+    CONTROLEUR_ECART_VALIDATE("Valider/modifier écarts investigation"),
+    CONTROLEUR_RECETTES_VALIDATE("Valider recettes journalières (réconciliation)"),
+    CONTROLEUR_RETRAITS_VALIDATE("Valider retraits épargne (vérif solde)"),
+    CONTROLEUR_CREDITS_VALIDATE("Valider crédits (garanties, frais, décaissement)"),
+    CONTROLEUR_AUDIT_READ("Consulter audit logs antenne");
 
     private final String description;
 

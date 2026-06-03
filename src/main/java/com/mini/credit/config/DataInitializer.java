@@ -39,6 +39,7 @@ public class DataInitializer {
             Role agentBureauRole = ensureRoleExists(roleRepository, RoleCode.AGENT_BUREAU);
             Role agentTerrainRole = ensureRoleExists(roleRepository, RoleCode.AGENT_TERRAIN);
             Role caissierRole = ensureRoleExists(roleRepository, RoleCode.CAISSIER);
+            Role controleurRole = ensureRoleExists(roleRepository, RoleCode.CONTROLEUR);
             Role memberRole = ensureRoleExists(roleRepository, RoleCode.MEMBER);
 
             // PHASE 1: Initialiser les paramètres métier
@@ -63,6 +64,10 @@ public class DataInitializer {
             // Créer caissier
             createOrUpdateUser(utilisateurRepository, "caissier", "caisse123", "caissier@minicredit.com", 
                     "Caissier", caissierRole, passwordEncoder);
+
+            // Créer contrôleur
+            createOrUpdateUser(utilisateurRepository, "controleur", "controle123", "controleur@minicredit.com", 
+                    "Contrôleur", controleurRole, passwordEncoder);
 
             // Créer membre avec son profil Membre
             Membre defaultMembre = null;
