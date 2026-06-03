@@ -69,6 +69,10 @@ public enum AuditAction {
     COMMISSION_PAID("Commission payée à l'agent"),
     COMMISSION_CANCELLED("Commission annulée"),
 
+    // ============ PHASE 9: Intérêts Épargne ============
+    INTERET_EPARGNE_GENERE("Batch intérêts épargne généré (tous comptes actifs)"),
+    INTERET_EPARGNE_ACCRUED("Intérêt épargne acquis sur compte (mensuel = solde × taux / 12)"),
+
     // ============ Sécurité et audit ============
     ACCESS_DENIED("Accès refusé (autorisation)"),
     DATA_EXPORT("Données exportées"),

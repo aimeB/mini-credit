@@ -7,5 +7,6 @@ public enum TypeOperationEpargne {
     RETRAIT,
     BLOCAGE_GARANTIE,
     DEBLOCAGE_GARANTIE,
-    AJUSTEMENT
+    AJUSTEMENT,
+    INTERET  // PHASE 9: Intérêts épargne générés automatiquement
 }

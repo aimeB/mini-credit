@@ -322,7 +322,7 @@ public class OperationEpargneServiceImpl implements OperationEpargneService {
 
     private SensOperation resolveSens(OperationEpargneRequest request) {
         return switch (request.getTypeOperation()) {
-            case COTISATION, EPARGNE, DEBLOCAGE_GARANTIE -> SensOperation.ENTREE;
+            case COTISATION, EPARGNE, DEBLOCAGE_GARANTIE, INTERET -> SensOperation.ENTREE;
             case RETRAIT, BLOCAGE_GARANTIE -> SensOperation.SORTIE;
             case AJUSTEMENT -> {
                 if (request.getSens() == null) {
@@ -343,7 +343,7 @@ public class OperationEpargneServiceImpl implements OperationEpargneService {
             BigDecimal montant
     ) {
         switch (type) {
-            case COTISATION, EPARGNE -> {
+            case COTISATION, EPARGNE, INTERET -> {
                 compte.setSoldeDisponible(compte.getSoldeDisponible().add(montant));
             }
             case RETRAIT -> {
@@ -370,7 +370,7 @@ public class OperationEpargneServiceImpl implements OperationEpargneService {
     private boolean caisseObligatoire(TypeOperationEpargne type) {
         return switch (type) {
             case COTISATION, EPARGNE, RETRAIT -> true;
-            case BLOCAGE_GARANTIE, DEBLOCAGE_GARANTIE, AJUSTEMENT -> false;
+            case BLOCAGE_GARANTIE, DEBLOCAGE_GARANTIE, AJUSTEMENT, INTERET -> false;
         };
     }
 
@@ -378,7 +378,7 @@ public class OperationEpargneServiceImpl implements OperationEpargneService {
         return switch (type) {
             case COTISATION, EPARGNE, RETRAIT -> true;
             case AJUSTEMENT -> session != null;
-            case BLOCAGE_GARANTIE, DEBLOCAGE_GARANTIE -> false;
+            case BLOCAGE_GARANTIE, DEBLOCAGE_GARANTIE, INTERET -> false;
         };
     }
 
@@ -386,7 +386,7 @@ public class OperationEpargneServiceImpl implements OperationEpargneService {
         return switch (type) {
             case COTISATION, EPARGNE, RETRAIT -> true;
             case AJUSTEMENT -> session != null;
-            case BLOCAGE_GARANTIE, DEBLOCAGE_GARANTIE -> false;
+            case BLOCAGE_GARANTIE, DEBLOCAGE_GARANTIE, INTERET -> false;
         };
     }
 
@@ -419,7 +419,7 @@ public class OperationEpargneServiceImpl implements OperationEpargneService {
         return switch (type) {
             case COTISATION, EPARGNE -> TypeOperationCaisse.ENTREE;
             case RETRAIT -> TypeOperationCaisse.SORTIE;
-            case BLOCAGE_GARANTIE, DEBLOCAGE_GARANTIE ->
+            case BLOCAGE_GARANTIE, DEBLOCAGE_GARANTIE, INTERET ->
                     throw new BusinessException("Aucune opération de caisse ne doit être générée pour ce type d'opération");
             case AJUSTEMENT -> sens == SensOperation.ENTREE
                     ? TypeOperationCaisse.ENTREE
@@ -432,7 +432,7 @@ public class OperationEpargneServiceImpl implements OperationEpargneService {
             case COTISATION -> CategorieOperationCaisse.COTISATION;
             case EPARGNE -> CategorieOperationCaisse.EPARGNE;
             case RETRAIT -> CategorieOperationCaisse.RETRAIT_EPARGNE;
-            case BLOCAGE_GARANTIE, DEBLOCAGE_GARANTIE ->
+            case BLOCAGE_GARANTIE, DEBLOCAGE_GARANTIE, INTERET ->
                     throw new BusinessException("Aucune catégorie caisse ne doit être générée pour ce type d'opération");
             case AJUSTEMENT -> {
                 if (sens == SensOperation.ENTREE) {
@@ -455,7 +455,7 @@ public class OperationEpargneServiceImpl implements OperationEpargneService {
                 }
                 yield TypeQuittance.AJUSTEMENT_EPARGNE;
             }
-            case BLOCAGE_GARANTIE, DEBLOCAGE_GARANTIE ->
+            case BLOCAGE_GARANTIE, DEBLOCAGE_GARANTIE, INTERET ->
                     throw new BusinessException("Aucune quittance ne doit être générée pour ce type d'opération");
         };
     }

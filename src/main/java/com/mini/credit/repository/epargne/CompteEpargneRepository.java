@@ -9,4 +9,7 @@ import java.util.Optional;
 public interface CompteEpargneRepository extends JpaRepository<CompteEpargne, Long> {
     Optional<CompteEpargne> findByNumeroCompte(String numeroCompte);
     List<CompteEpargne> findByMembreId(Long membreId);
+    
+    // PHASE 9: Intérêts Épargne
+    List<CompteEpargne> findAllByActifTrue();
 }

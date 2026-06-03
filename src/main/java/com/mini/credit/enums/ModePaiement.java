@@ -6,5 +6,6 @@ public enum ModePaiement {
     MOBILE_MONEY,
     VIREMENT,
     CARTE,
+    SYSTEME,    // PHASE 9: Opérations système (intérêts, ajustements)
     AUTRE
 }
