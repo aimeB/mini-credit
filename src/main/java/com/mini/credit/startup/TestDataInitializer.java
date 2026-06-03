@@ -2,7 +2,7 @@ package com.mini.credit.startup;
 
 import com.mini.credit.entity.referentiel.Site;
 import com.mini.credit.entity.referentiel.AgentTerrain;
-import com.mini.credit.repository.site.SiteRepository;
+import com.mini.credit.repository.referentiel.SiteRepository;
 import com.mini.credit.repository.agentTerrain.AgentTerrainRepository;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.boot.CommandLineRunner;

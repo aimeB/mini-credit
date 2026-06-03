@@ -16,7 +16,7 @@ import com.mini.credit.exception.ResourceNotFoundException;
 import com.mini.credit.mapper.MembreMapper;
 import com.mini.credit.repository.agentTerrain.AgentTerrainRepository;
 import com.mini.credit.repository.membre.MembreRepository;
-import com.mini.credit.repository.site.SiteRepository;
+import com.mini.credit.repository.referentiel.SiteRepository;
 import com.mini.credit.service.MembreService;
 import com.mini.credit.service.UtilisateurService;
 import com.mini.credit.service.ActivationService;

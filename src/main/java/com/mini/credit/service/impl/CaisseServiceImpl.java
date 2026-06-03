@@ -8,7 +8,7 @@ import com.mini.credit.exception.BusinessException;
 import com.mini.credit.exception.ResourceNotFoundException;
 import com.mini.credit.mapper.CashMapper;
 import com.mini.credit.repository.caisse.CaisseRepository;
-import com.mini.credit.repository.site.SiteRepository;
+import com.mini.credit.repository.referentiel.SiteRepository;
 import com.mini.credit.service.CaisseService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

@@ -18,7 +18,7 @@ import com.mini.credit.repository.agentTerrain.AgentTerrainRepository;
 import com.mini.credit.repository.credit.AnalyseRisqueRepository;
 import com.mini.credit.repository.credit.DemandeCreditRepository;
 import com.mini.credit.repository.membre.MembreRepository;
-import com.mini.credit.repository.site.SiteRepository;
+import com.mini.credit.repository.referentiel.SiteRepository;
 import com.mini.credit.repository.utilisateur.UtilisateurRepository;
 import com.mini.credit.service.DemandeCreditService;
 import com.mini.credit.service.CreditValidationService;

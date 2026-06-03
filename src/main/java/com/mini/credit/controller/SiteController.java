@@ -1,7 +1,7 @@
 package com.mini.credit.controller;
 
 import com.mini.credit.dto.referentiel.SiteResponse;
-import com.mini.credit.repository.site.SiteRepository;
+import com.mini.credit.repository.referentiel.SiteRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
