@@ -78,7 +78,11 @@ public enum AuditAction {
     PENALITE_ACQUITTEE("Pénalité retard acquittée (payée)"),
     PENALITE_EFFACEE("Pénalité retard effacée (pardon/remise documentée)"),
     PENALITE_BATCH_GENERE("Batch pénalités retard généré quotidien"),
-
+    // ============ PHASE 11: Réconciliation Caisse Automatique ============
+    RECONCILIATION_CREEE("Réconciliation caisse créée (écart détecté: montant = solde physique - théorique)"),
+    RECONCILIATION_RAPPROCHEE("Réconciliation caisse rapprochée (écart résolu/approuvé)"),
+    RECONCILIATION_REJETEE("Réconciliation caisse rejetée (écart confirmé intentionnel)"),
+    RECONCILIATION_BATCH_GENERO("Batch réconciliations caisse généré quotidien (02:00)"),
     // ============ Sécurité et audit ============
     ACCESS_DENIED("Accès refusé (autorisation)"),
     DATA_EXPORT("Données exportées"),
