@@ -11,14 +11,27 @@ public enum RoleCode {
     ADMIN("Administrateur système", "Super administrateur avec accès complet"),
 
     /**
-     * Responsable de bureau - supervision et validation des opérations
+     * Chef de bureau - rôle officiel cible (migration progressive depuis RESPONSABLE).
      */
-    RESPONSABLE("Responsable bureau", "Supervision, validation des crédits, rapports"),
+    CHEF_BUREAU("Chef de Bureau", "Supervision, validation des crédits, rapports"),
 
     /**
-     * Agent de bureau - saisie des données, analyse administrative
+     * Alias technique legacy du rôle CHEF_BUREAU.
+     *
+     * Contrainte de migration P3.2:
+     * - Conserver temporairement pour compatibilité JWT / comptes historiques.
+     * - Ne plus l'utiliser comme rôle métier principal dans les nouvelles règles.
      */
-    AGENT_BUREAU("Agent de bureau", "Saisie membres, demandes crédit, suivi administratif"),
+    RESPONSABLE("Alias legacy Chef de Bureau", "Alias technique temporaire pour compatibilité migration vers CHEF_BUREAU"),
+
+    /**
+     * Agent de bureau - saisie des données, analyse administrative.
+     *
+     * Alignement 3N (RBAC-1): ce code technique correspond au rôle métier
+     * "Gestionnaire". Le renommage technique éventuel est traité dans un lot
+     * de migration distinct pour éviter les ruptures de compatibilité.
+     */
+    AGENT_BUREAU("Agent de bureau", "Saisie membres, demandes crédit, suivi administratif (équivalent métier: Gestionnaire 3N)"),
 
     /**
      * Agent de terrain - prospection et suivi membres sur site
@@ -26,14 +39,52 @@ public enum RoleCode {
     AGENT_TERRAIN("Agent terrain", "Prospection, suivi membres, saisie initiale"),
 
     /**
+     * Contrôleur - validation et réconciliation caisse/épargne
+     */
+    CONTROLEUR("Contrôleur", "Validation recettes, retraits, crédits, réconciliation caisse"),
+
+    /**
      * Caissier - opérations de caisse uniquement
      */
     CAISSIER("Caissier", "Gestion caisse, versements, retraits, remboursements"),
 
     /**
-     * Contrôleur - validation et réconciliation caisse/épargne
+     * COO - supervision transverse des opérations.
+     *
+     * RBAC-1: formalisation du rôle dans le référentiel technique.
+     * La matrice détaillée des permissions est traitée dans RBAC-2.
      */
-    CONTROLEUR("Contrôleur", "Validation recettes, retraits, crédits, réconciliation caisse"),
+    COO("COO", "Supervision transverse des opérations et du pilotage métier"),
+
+    /**
+     * Responsable du Contrôle Interne (RCI) — rôle métier officiel distinct.
+     *
+     * PATCH 11 — Mapping 3N :
+     * Le RCI est un rôle métier officiel distinct du Chef de Bureau (RESPONSABLE)
+     * et du Contrôleur (CONTROLEUR). Ces trois rôles ne sont pas interchangeables.
+     *
+     * Périmètre RCI selon les documents 3N :
+     *   - Audit et contrôle interne des opérations de caisse.
+     *   - Investigation et enquête sur les écarts détectés.
+     *   - Consultation de l'ensemble des écarts et rapports.
+     *   - Supervision des contrôleurs et caissiers (sans rôle opérationnel dans la
+     *     chaîne d'approbation commerciale).
+     *   - Recommandations après audit (hors scope technique Phase 11).
+     *
+     * Ce que RCI NE fait PAS :
+     *   - N'accepte pas les variances (= Chef de Bureau / RESPONSABLE).
+     *   - Ne valide pas les opérations courantes (= CONTROLEUR).
+     *   - N'administre pas le système (= ADMIN).
+     */
+    RCI("Responsable du Contrôle Interne", "Audit, enquête, contrôle interne des opérations — rôle distinct du Chef de Bureau et du Contrôleur"),
+
+    /**
+     * Gérant Général - gouvernance et supervision globale.
+     *
+     * RBAC-1: formalisation du rôle dans le référentiel technique.
+     * La matrice détaillée des permissions est traitée dans RBAC-2.
+     */
+    GERANT_GENERAL("Gérant Général", "Gouvernance globale et supervision de haut niveau"),
 
     /**
      * Membre/Client - accès limité à ses propres données

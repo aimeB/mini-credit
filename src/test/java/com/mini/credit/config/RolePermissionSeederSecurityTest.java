@@ -14,6 +14,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DisplayName("RolePermissionSeeder - Matrice sécurité")
 class RolePermissionSeederSecurityTest {
 
+    @Test
+    void agentBureau_shouldRemainTechnicalEquivalentOfGestionnaire3n() {
+        assertThat(RoleCode.AGENT_BUREAU.getDescription()).contains("Gestionnaire 3N");
+        assertThat(RoleCode.AGENT_BUREAU).isNotEqualTo(RoleCode.AGENT_TERRAIN);
+    }
+
     @SuppressWarnings("unchecked")
     private Map<RoleCode, Set<PermissionCode>> buildMatrix() throws Exception {
         RolePermissionSeeder seeder = new RolePermissionSeeder();
@@ -104,5 +110,6 @@ class RolePermissionSeederSecurityTest {
         Set<PermissionCode> rci = matrix.get(RoleCode.RCI);
         assertThat(rci).contains(PermissionCode.CAISSE_READ, PermissionCode.OPERATION_CAISSE_READ, PermissionCode.AUDIT_READ);
         assertThat(rci).doesNotContain(PermissionCode.OPERATION_CAISSE_CREATE, PermissionCode.CREDIT_DISBURSE);
+        assertThat(RoleCode.RCI).isNotEqualTo(RoleCode.CHEF_BUREAU);
     }
 }
