@@ -4,19 +4,31 @@ import com.mini.credit.dto.utilisateur.UtilisateurDTO;
 import com.mini.credit.dto.utilisateur.CreateUtilisateurRequest;
 import com.mini.credit.dto.utilisateur.UpdateUtilisateurRequest;
 import com.mini.credit.dto.utilisateur.ChangePasswordRequest;
+import com.mini.credit.dto.utilisateur.AdminPasswordResetRequest;
+import com.mini.credit.dto.utilisateur.ResetPasswordResponse;
+import com.mini.credit.entity.employe.Employe;
 import com.mini.credit.entity.referentiel.Utilisateur;
 import com.mini.credit.entity.referentiel.Role;
+import com.mini.credit.enums.PosteEmploye;
+import com.mini.credit.enums.security.AuditAction;
 import com.mini.credit.enums.security.RoleCode;
+import com.mini.credit.repository.agentTerrain.AgentTerrainRepository;
+import com.mini.credit.repository.EmployeRepository;
 import com.mini.credit.repository.UtilisateurRepository;
 import com.mini.credit.repository.referentiel.RoleRepository;
+import com.mini.credit.service.audit.AuditService;
 import com.mini.credit.service.UtilisateurService;
+import com.mini.credit.service.security.SecurityUtils;
 import com.mini.credit.util.PasswordGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,7 +38,57 @@ public class UtilisateurServiceImpl implements UtilisateurService {
 
     private final UtilisateurRepository utilisateurRepository;
     private final RoleRepository roleRepository;
+    private final EmployeRepository employeRepository;
+    private final AgentTerrainRepository agentTerrainRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuditService auditService;
+
+    /**
+     * R\u00f4les op\u00e9rationnels : employeId obligatoire lors de la cr\u00e9ation.
+     * Exceptions : ADMIN et MEMBER peuvent \u00eatre cr\u00e9\u00e9s sans fiche employ\u00e9.
+     */
+    private static final Set<RoleCode> OPERATIONAL_ROLES = Set.of(
+            RoleCode.AGENT_TERRAIN,
+            RoleCode.AGENT_BUREAU,
+            RoleCode.CONTROLEUR,
+            RoleCode.CAISSIER,
+            RoleCode.CHEF_BUREAU,
+            RoleCode.RESPONSABLE,
+            RoleCode.RCI
+    );
+
+    /**
+     * Mapping rôle applicatif → fonction employé obligatoire.
+     * Validation BLOQUANTE à la création d'un utilisateur opérationnel.
+     * Non appliqué à ADMIN ni MEMBER.
+     */
+    private static final Map<RoleCode, PosteEmploye> ROLE_FONCTION_ATTENDUE;
+    static {
+        ROLE_FONCTION_ATTENDUE = new EnumMap<>(RoleCode.class);
+        ROLE_FONCTION_ATTENDUE.put(RoleCode.AGENT_TERRAIN, PosteEmploye.AGENT_TERRAIN);
+        ROLE_FONCTION_ATTENDUE.put(RoleCode.AGENT_BUREAU,  PosteEmploye.GESTIONNAIRE);
+        ROLE_FONCTION_ATTENDUE.put(RoleCode.CONTROLEUR,    PosteEmploye.CONTROLEUR);
+        ROLE_FONCTION_ATTENDUE.put(RoleCode.CAISSIER,      PosteEmploye.CAISSIER);
+        ROLE_FONCTION_ATTENDUE.put(RoleCode.CHEF_BUREAU,   PosteEmploye.CHEF_BUREAU);
+        ROLE_FONCTION_ATTENDUE.put(RoleCode.RESPONSABLE,   PosteEmploye.CHEF_BUREAU);
+        ROLE_FONCTION_ATTENDUE.put(RoleCode.RCI,           PosteEmploye.RCI);
+    }
+
+    private static final Set<RoleCode> PROTECTED_RESET_ROLES = Set.of(
+            RoleCode.ADMIN,
+            RoleCode.RCI
+    );
+
+    private static final Set<String> PROTECTED_RESET_USERNAMES = Set.of(
+            "admin",
+            "coo",
+            "gerant_general"
+    );
+
+    private RoleCode normalizeRoleCode(String roleName) {
+        RoleCode parsed = RoleCode.valueOf(roleName);
+        return parsed == RoleCode.RESPONSABLE ? RoleCode.CHEF_BUREAU : parsed;
+    }
 
     @Override
     public UtilisateurDTO create(CreateUtilisateurRequest request) {
@@ -41,7 +103,23 @@ public class UtilisateurServiceImpl implements UtilisateurService {
         if (motDePasse == null || motDePasse.trim().isEmpty()) {
             motDePasse = PasswordGenerator.generateTemporaryPassword();
             motDePasseGenere = true;
-            System.out.println("🔐 Mot de passe temporaire généré automatiquement");
+            System.out.println("\uD83D\uDD10 Mot de passe temporaire généré automatiquement");
+        }
+
+        // Résoudre le rôle avant la validation employe
+        RoleCode roleCode = null;
+        Role role = null;
+        if (request.getRoles() != null && !request.getRoles().isEmpty()) {
+            roleCode = normalizeRoleCode(request.getRoles().get(0));
+            role = roleRepository.findByCode(roleCode)
+                .orElseThrow(() -> new RuntimeException("Rôle non trouvé: " + request.getRoles().get(0)));
+        }
+
+        // Validation : rôle opérationnel → employeId obligatoire
+        if (roleCode != null && OPERATIONAL_ROLES.contains(roleCode) && request.getEmployeId() == null) {
+            throw new RuntimeException(
+                "Un employé lié est obligatoire pour le rôle " + roleCode.name()
+                + ". Créez d'abord la fiche Employé, puis revenez créer le compte utilisateur.");
         }
 
         // Crée un nouvel utilisateur
@@ -49,45 +127,47 @@ public class UtilisateurServiceImpl implements UtilisateurService {
         utilisateur.setUsername(request.getUsername());
         utilisateur.setMotDePasseHash(passwordEncoder.encode(motDePasse));
         utilisateur.setEmail(request.getEmail());
-        utilisateur.setNomComplet(request.getNomComplet());
-        utilisateur.setTelephone(request.getTelephone());
         utilisateur.setActif(true);
         utilisateur.setIsEnabled(true);
-        
-        // Met le flag pour forcer le changement de mot de passe à la première connexion
-        utilisateur.setPasswordResetRequired(true);
-        utilisateur.setPasswordResetToken(PasswordGenerator.generateResetToken());
+        utilisateur.setIsLocked(false);
+        utilisateur.setPasswordResetRequired(false);
 
-        // Assigne le premier rôle si disponible
-        if (request.getRoles() != null && !request.getRoles().isEmpty()) {
-            String roleName = request.getRoles().get(0);
-            RoleCode roleCode = RoleCode.valueOf(roleName);
-            Role role = roleRepository.findByCode(roleCode)
-                    .orElseThrow(() -> new RuntimeException("Rôle non trouvé: " + roleName));
+        if (role != null) {
             utilisateur.setRole(role);
+        }
+
+        // Lier l'employé si fourni
+        if (request.getEmployeId() != null) {
+            Employe employe = employeRepository.findById(request.getEmployeId())
+                    .orElseThrow(() -> new RuntimeException("Employé non trouvé: id=" + request.getEmployeId()));
+
+            // L'employé doit être actif
+            if (!Boolean.TRUE.equals(employe.getActif())) {
+                throw new RuntimeException("L'employé sélectionné est inactif. Seuls les employés actifs peuvent recevoir un compte.");
+            }
+
+            // Unicité : vérifier qu'aucun utilisateur n'est déjà lié à cet employé
+            if (employe.getUtilisateur() != null) {
+                throw new RuntimeException("Cet employé est déjà associé à un compte utilisateur");
+            }
+
+            // Copie l'identité depuis l'employé (source de vérité)
+            utilisateur.setNomComplet(employe.getNomComplet());
+            utilisateur.setTelephone(employe.getTelephone());
+
+            // Validation BLOQUANTE : cohérence rôle applicatif / fonction métier
+            validateRoleMatchesEmployeFunction(roleCode, employe);
+
+            utilisateur.setEmploye(employe);
+        } else {
+            // Pas d'employé lié (ADMIN ou MEMBER) : utiliser les champs du request
+            utilisateur.setNomComplet(request.getNomComplet());
+            utilisateur.setTelephone(request.getTelephone());
         }
 
         Utilisateur saved = utilisateurRepository.save(utilisateur);
 
-        // TODO: Envoyer email de bienvenue quand mail est correctement configuré
-        // L'envoi d'email est désactivé pour permettre la création d'utilisateur à fonctionner
-        /*
-        if (request.getEmail() != null && !request.getEmail().trim().isEmpty() && motDePasseGenere) {
-            try {
-                emailService.envoyerEmailBienvenueMotDePasse(
-                    request.getEmail(),
-                    request.getNomComplet(),
-                    request.getUsername(),
-                    motDePasse
-                );
-                System.out.println("✓ Email de bienvenue envoyé à " + request.getEmail());
-            } catch (Exception e) {
-                System.err.println("⚠️ Erreur lors de l'envoi de l'email: " + e.getMessage());
-                // Continuer même si l'email échoue
-            }
-        }
-        */
-        System.out.println("📧 Utilisateur créé - Email envoyé à: " + request.getEmail() + " (à configurer)");
+        System.out.println("\uD83D\uDCE7 Utilisateur créé: " + saved.getUsername());
 
         return toDTO(saved);
     }
@@ -113,10 +193,17 @@ public class UtilisateurServiceImpl implements UtilisateurService {
         // Assigne le premier rôle si disponible
         if (request.getRoles() != null && !request.getRoles().isEmpty()) {
             String roleName = request.getRoles().get(0);
-            RoleCode roleCode = RoleCode.valueOf(roleName);
+            RoleCode roleCode = normalizeRoleCode(roleName);
             Role role = roleRepository.findByCode(roleCode)
-                    .orElseThrow(() -> new RuntimeException("Rôle non trouvé: " + roleName));
+                .orElseThrow(() -> new RuntimeException("Rôle non trouvé: " + roleCode.name()));
             utilisateur.setRole(role);
+        }
+
+        // Lier un employé si fourni
+        if (request.getEmployeId() != null && utilisateur.getEmploye() == null) {
+            Employe employe = employeRepository.findById(request.getEmployeId())
+                    .orElseThrow(() -> new RuntimeException("Employé non trouvé: id=" + request.getEmployeId()));
+            utilisateur.setEmploye(employe);
         }
 
         Utilisateur updated = utilisateurRepository.save(utilisateur);
@@ -140,6 +227,16 @@ public class UtilisateurServiceImpl implements UtilisateurService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<UtilisateurDTO> getByRole(RoleCode roleCode) {
+        return utilisateurRepository.findAll().stream()
+                .filter(u -> u.getActif() != null && u.getActif())
+                .filter(u -> u.getRole() != null && u.getRole().getCode() == roleCode)
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public void delete(Long id) {
         if (!utilisateurRepository.existsById(id)) {
             throw new RuntimeException("Utilisateur non trouvé");
@@ -147,9 +244,40 @@ public class UtilisateurServiceImpl implements UtilisateurService {
         utilisateurRepository.deleteById(id);
     }
 
+    /**
+     * Valide que le r\u00f4le applicatif correspond \u00e0 la fonction m\u00e9tier de l'employ\u00e9.
+     * <p>
+     * R\u00e8gles :
+     * <ul>
+     *   <li>ADMIN et MEMBER sont exempts (pas de mapping d\u00e9fini).</li>
+     *   <li>Tout autre r\u00f4le op\u00e9rationnel doit correspondre exactement.</li>
+     * </ul>
+    * Exemples valides : AGENT_BUREAU + GESTIONNAIRE, CHEF_BUREAU + CHEF_BUREAU.
+     * Exemples refus\u00e9s : CAISSIER + CONTROLEUR, AGENT_TERRAIN + GESTIONNAIRE.
+     *
+     * @throws RuntimeException si le r\u00f4le ne correspond pas \u00e0 la fonction
+     */
+    private void validateRoleMatchesEmployeFunction(RoleCode roleCode, Employe employe) {
+        if (roleCode == null || !ROLE_FONCTION_ATTENDUE.containsKey(roleCode)) {
+            // ADMIN, MEMBER ou r\u00f4le sans mapping d\u00e9fini \u2014 validation ignor\u00e9e
+            return;
+        }
+        PosteEmploye fonctionAttendue = ROLE_FONCTION_ATTENDUE.get(roleCode);
+        if (employe.getFonction() != fonctionAttendue) {
+            throw new RuntimeException(
+                "Le r\u00f4le s\u00e9lectionn\u00e9 ne correspond pas \u00e0 la fonction de l'employ\u00e9 li\u00e9. "
+                + "R\u00f4le " + roleCode.name() + " attend la fonction " + fonctionAttendue.name()
+                + " mais l'employ\u00e9 a la fonction "
+                + (employe.getFonction() != null ? employe.getFonction().name() : "null")
+                + ". V\u00e9rifiez la fiche employ\u00e9 ou choisissez le r\u00f4le correspondant.");
+        }
+    }
+
     private UtilisateurDTO toDTO(Utilisateur utilisateur) {
         List<String> roles = utilisateur.getRole() != null ?
                 List.of(utilisateur.getRole().getCode().name()) : List.of();
+
+        Employe employe = utilisateur.getEmploye();
 
         return UtilisateurDTO.builder()
                 .id(utilisateur.getId())
@@ -160,6 +288,17 @@ public class UtilisateurServiceImpl implements UtilisateurService {
                 .active(utilisateur.getActif())
                 .roles(roles)
                 .passwordResetRequired(utilisateur.getPasswordResetRequired())
+                .passwordChangeRequired(utilisateur.getPasswordChangeRequired())
+                .employeId(employe != null ? employe.getId() : null)
+                .employeMatricule(employe != null ? employe.getMatricule() : null)
+                .employeNomComplet(employe != null ? employe.getNomComplet() : null)
+                .employeFonction(employe != null && employe.getFonction() != null
+                        ? employe.getFonction().name() : null)
+                .employeTelephone(employe != null ? employe.getTelephone() : null)
+                .employeAgenceNom(employe != null && employe.getAgence() != null
+                        ? employe.getAgence().getNomAgence() : null)
+                .employeSiteNom(employe != null && employe.getSite() != null
+                        ? employe.getSite().getNomSite() : null)
                 .dateCreation(utilisateur.getDateCreation())
                 .dateModification(utilisateur.getDateModification())
                 .build();
@@ -204,9 +343,9 @@ public class UtilisateurServiceImpl implements UtilisateurService {
         // Assigne le premier rôle si disponible
         if (request.getRoles() != null && !request.getRoles().isEmpty()) {
             String roleName = request.getRoles().get(0);
-            com.mini.credit.enums.security.RoleCode roleCode = com.mini.credit.enums.security.RoleCode.valueOf(roleName);
+            com.mini.credit.enums.security.RoleCode roleCode = normalizeRoleCode(roleName);
             com.mini.credit.entity.referentiel.Role role = roleRepository.findByCode(roleCode)
-                    .orElseThrow(() -> new RuntimeException("Rôle non trouvé: " + roleName));
+                .orElseThrow(() -> new RuntimeException("Rôle non trouvé: " + roleCode.name()));
             utilisateur.setRole(role);
         }
 
@@ -258,14 +397,57 @@ public class UtilisateurServiceImpl implements UtilisateurService {
         }
 
         // Valider que le mot de passe actuel est correct
-        if (!passwordEncoder.matches(request.getCurrentPassword(), utilisateur.getMotDePasseHash())) {
+        if (!passwordEncoder.matches(request.resolveCurrentPassword(), utilisateur.getMotDePasseHash())) {
             throw new RuntimeException("Le mot de passe actuel est incorrect");
         }
 
         // Mettre à jour le mot de passe
         utilisateur.setMotDePasseHash(passwordEncoder.encode(request.getNewPassword()));
         utilisateur.setPasswordResetRequired(false);
+        utilisateur.setPasswordChangeRequired(false);
+        utilisateur.setCredentialsVersion((utilisateur.getCredentialsVersion() == null ? 0 : utilisateur.getCredentialsVersion()) + 1);
         utilisateurRepository.save(utilisateur);
+
+        auditService.logSuccess(
+                AuditAction.USER_PASSWORD_CHANGED,
+                "Utilisateur",
+                utilisateur.getId(),
+                "Changement de mot de passe via endpoint legacy"
+        );
+    }
+
+    @Override
+    @Transactional
+    public void changeOwnPassword(ChangePasswordRequest request) {
+        Utilisateur currentUser = SecurityUtils.getCurrentUserOrThrow();
+
+        if (request == null) {
+            throw new RuntimeException("La requête est obligatoire");
+        }
+
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new RuntimeException("Les mots de passe ne correspondent pas");
+        }
+
+        if (!passwordEncoder.matches(request.resolveCurrentPassword(), currentUser.getMotDePasseHash())) {
+            throw new RuntimeException("Le mot de passe actuel est incorrect");
+        }
+
+        currentUser.setMotDePasseHash(passwordEncoder.encode(request.getNewPassword()));
+        currentUser.setPasswordResetRequired(false);
+        currentUser.setPasswordChangeRequired(false);
+        currentUser.setPasswordResetToken(null);
+        currentUser.setFailedLoginAttempts(0);
+        currentUser.setAccountLocked(false);
+        currentUser.setCredentialsVersion((currentUser.getCredentialsVersion() == null ? 0 : currentUser.getCredentialsVersion()) + 1);
+        utilisateurRepository.save(currentUser);
+
+        auditService.logSuccess(
+                AuditAction.USER_PASSWORD_CHANGED,
+                "Utilisateur",
+                currentUser.getId(),
+                "Changement de mot de passe utilisateur courant"
+        );
     }
 
     /**
@@ -281,6 +463,10 @@ public class UtilisateurServiceImpl implements UtilisateurService {
         Utilisateur utilisateur = utilisateurRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
 
+        if (isSensitiveAccount(utilisateur)) {
+            throw new RuntimeException("Ce compte doit utiliser le changement de mot de passe avec ancien mot de passe.");
+        }
+
         // Valider que les mots de passe correspondent
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
             throw new RuntimeException("Les mots de passe ne correspondent pas");
@@ -294,9 +480,130 @@ public class UtilisateurServiceImpl implements UtilisateurService {
         // Mettre à jour le mot de passe
         utilisateur.setMotDePasseHash(passwordEncoder.encode(request.getNewPassword()));
         utilisateur.setPasswordResetRequired(false);
+        utilisateur.setPasswordChangeRequired(false);
+        utilisateur.setCredentialsVersion((utilisateur.getCredentialsVersion() == null ? 0 : utilisateur.getCredentialsVersion()) + 1);
         utilisateurRepository.save(utilisateur);
 
+        auditService.logSuccess(
+            AuditAction.USER_PASSWORD_CHANGED,
+            "Utilisateur",
+            utilisateur.getId(),
+            "Réinitialisation self du mot de passe"
+        );
+
         System.out.println("✓ Mot de passe réinitialisé avec succès pour l'utilisateur ID " + id);
+    }
+
+    @Override
+    @Transactional
+    public ResetPasswordResponse resetPasswordByAdmin(Long targetUserId, AdminPasswordResetRequest request) {
+        Utilisateur actor = SecurityUtils.getCurrentUserOrThrow();
+        Utilisateur target = utilisateurRepository.findById(targetUserId)
+                .orElseThrow(() -> new RuntimeException("Utilisateur cible non trouvé"));
+
+        if (request == null || request.getMotif() == null || request.getMotif().isBlank()) {
+            throw new RuntimeException("Le motif de réinitialisation est obligatoire");
+        }
+        String motif = request.getMotif().trim();
+        if (motif.length() < 5) {
+            throw new RuntimeException("Le motif de réinitialisation est obligatoire (min 5 caractères)");
+        }
+
+        validateResetAuthorization(actor, target);
+
+        String temporaryPassword = PasswordGenerator.generateTemporaryPassword();
+        target.setMotDePasseHash(passwordEncoder.encode(temporaryPassword));
+        target.setPasswordResetRequired(true);
+        target.setPasswordChangeRequired(true);
+        target.setPasswordResetToken(PasswordGenerator.generateResetToken());
+        target.setLastPasswordResetAt(java.time.LocalDateTime.now());
+        target.setLastPasswordResetBy(actor);
+        target.setFailedLoginAttempts(0);
+        target.setAccountLocked(false);
+        target.setCredentialsVersion((target.getCredentialsVersion() == null ? 0 : target.getCredentialsVersion()) + 1);
+        utilisateurRepository.save(target);
+
+        String actorRole = actor.getRole() != null ? actor.getRole().getCode().name() : "UNKNOWN";
+        String siteInfo = actor.getSite() != null ? actor.getSite().getNomSite() :
+            (actor.getEmploye() != null && actor.getEmploye().getSite() != null ? actor.getEmploye().getSite().getNomSite() : "SITE_INCONNU");
+        auditService.logSuccess(
+                AuditAction.USER_PASSWORD_RESET,
+                "Utilisateur",
+                target.getId(),
+            "Reset mot de passe | actor=" + actor.getUsername()
+                + " | role=" + actorRole
+                + " | site=" + siteInfo
+                + " | target=" + target.getUsername()
+            + " | motif=" + motif
+        );
+
+        return ResetPasswordResponse.builder()
+                .username(target.getUsername())
+                .temporaryPassword(temporaryPassword)
+                .passwordChangeRequired(true)
+            .advisoryMessage("Ce mot de passe temporaire est affiché une seule fois. Il doit être transmis immédiatement à l'utilisateur.")
+                .build();
+    }
+
+    private void validateResetAuthorization(Utilisateur actor, Utilisateur target) {
+        RoleCode actorRole = actor.getRole() != null ? actor.getRole().getCode() : null;
+
+        if (isSensitiveAccount(target)) {
+            throw new RuntimeException("La réinitialisation de ce compte sensible est interdite par l’endpoint standard.");
+        }
+
+        if (actorRole == null) {
+            throw new RuntimeException("Rôle utilisateur courant introuvable");
+        }
+
+        if (actorRole == RoleCode.ADMIN) {
+            return;
+        }
+
+        if (actorRole != RoleCode.CHEF_BUREAU && actorRole != RoleCode.RESPONSABLE) {
+            throw new RuntimeException("Vous n'êtes pas autorisé à réinitialiser le mot de passe d'autres utilisateurs");
+        }
+
+        Long actorSiteId = resolveSiteId(actor);
+        Long targetSiteId = resolveSiteId(target);
+        if (actorSiteId == null || targetSiteId == null || !actorSiteId.equals(targetSiteId)) {
+            throw new RuntimeException("Réinitialisation refusée: utilisateur hors périmètre site/antenne");
+        }
+    }
+
+    private boolean isSensitiveAccount(Utilisateur utilisateur) {
+        if (utilisateur == null) {
+            return false;
+        }
+
+        String username = utilisateur.getUsername();
+        if (username != null && PROTECTED_RESET_USERNAMES.contains(username.trim().toLowerCase())) {
+            return true;
+        }
+
+        RoleCode roleCode = utilisateur.getRole() != null ? utilisateur.getRole().getCode() : null;
+        if (roleCode == null) {
+            return false;
+        }
+
+        if (PROTECTED_RESET_ROLES.contains(roleCode)) {
+            return true;
+        }
+
+        String roleName = roleCode.name();
+        return "COO".equals(roleName) || "GERANT_GENERAL".equals(roleName);
+    }
+
+    private Long resolveSiteId(Utilisateur utilisateur) {
+        if (utilisateur.getSite() != null && utilisateur.getSite().getId() != null) {
+            return utilisateur.getSite().getId();
+        }
+        if (utilisateur.getEmploye() != null
+                && utilisateur.getEmploye().getSite() != null
+                && utilisateur.getEmploye().getSite().getId() != null) {
+            return utilisateur.getEmploye().getSite().getId();
+        }
+        return null;
     }
 
     /**
@@ -343,5 +650,24 @@ public class UtilisateurServiceImpl implements UtilisateurService {
     @Transactional(readOnly = true)
     public boolean usernameExists(String username) {
         return utilisateurRepository.existsByUsername(username.trim().toLowerCase());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UtilisateurDTO> getDisponiblesAgentTerrain() {
+        // IDs des utilisateurs déjà associés à un profil AgentTerrain
+        Set<Long> dejaAgents = agentTerrainRepository.findAll().stream()
+                .map(at -> at.getUtilisateur().getId())
+                .collect(Collectors.toSet());
+
+        return utilisateurRepository.findAll().stream()
+                .filter(u -> Boolean.TRUE.equals(u.getActif()))
+                .filter(u -> u.getRole() != null
+                          && u.getRole().getCode() == RoleCode.AGENT_TERRAIN)
+                .filter(u -> u.getEmploye() != null
+                          && u.getEmploye().getFonction() == PosteEmploye.AGENT_TERRAIN)
+                .filter(u -> !dejaAgents.contains(u.getId()))
+                .map(this::toDTO)
+                .collect(Collectors.toList());
     }
 }
