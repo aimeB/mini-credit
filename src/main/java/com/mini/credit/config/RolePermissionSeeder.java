@@ -367,8 +367,6 @@ public class RolePermissionSeeder {
                 // Caisse (supervision)
                 PermissionCode.SESSION_CAISSE_ANOMALIE_READ,
                 PermissionCode.SESSION_CAISSE_ANOMALIE_VALIDATE,
-                PermissionCode.SESSION_CAISSE_ADMIN_CANCEL,
-                PermissionCode.SESSION_CAISSE_REOPEN_CONTROLLED,
                 PermissionCode.CAISSE_READ, PermissionCode.OPERATION_CAISSE_READ, PermissionCode.JOURNAL_CAISSE_READ, PermissionCode.DEPENSE_CAISSE_READ, PermissionCode.DASHBOARD_CAISSE_READ,
                 PermissionCode.RAPPORT_CAISSE_READ, PermissionCode.RAPPORT_CAISSE_EXPORT, PermissionCode.RAPPORT_CAISSE_AUDIT_READ,
                 // Crédit

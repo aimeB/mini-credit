@@ -44,7 +44,9 @@ class RolePermissionSeederSecurityTest {
         assertThat(responsable).doesNotContain(
             PermissionCode.SESSION_CAISSE_CONTROL_VALIDATE,
             PermissionCode.SESSION_CAISSE_FINAL_CLOSE,
-            PermissionCode.DEPENSE_CAISSE_VALIDATE
+            PermissionCode.DEPENSE_CAISSE_VALIDATE,
+            PermissionCode.SESSION_CAISSE_ADMIN_CANCEL,
+            PermissionCode.SESSION_CAISSE_REOPEN_CONTROLLED
         );
         assertThat(chefBureau).contains(
             PermissionCode.CAISSE_READ,
@@ -127,6 +129,28 @@ class RolePermissionSeederSecurityTest {
         assertThat(RoleCode.RCI).isNotEqualTo(RoleCode.CHEF_BUREAU);
     }
 
+        @Test
+        void sessionCaisseExceptionalPermissions_shouldBeAdminAndChefBureauOnlyWithoutResponsable() throws Exception {
+        Map<RoleCode, Set<PermissionCode>> matrix = buildMatrix();
+
+        assertThat(matrix.get(RoleCode.ADMIN)).contains(
+            PermissionCode.SESSION_CAISSE_ADMIN_CANCEL,
+            PermissionCode.SESSION_CAISSE_REOPEN_CONTROLLED,
+            PermissionCode.SESSION_CAISSE_OPEN_OVERRIDE
+        );
+
+        assertThat(matrix.get(RoleCode.CHEF_BUREAU)).contains(
+            PermissionCode.SESSION_CAISSE_ADMIN_CANCEL,
+            PermissionCode.SESSION_CAISSE_REOPEN_CONTROLLED
+        );
+
+        assertThat(matrix.get(RoleCode.RESPONSABLE)).doesNotContain(
+            PermissionCode.SESSION_CAISSE_ADMIN_CANCEL,
+            PermissionCode.SESSION_CAISSE_REOPEN_CONTROLLED,
+            PermissionCode.SESSION_CAISSE_OPEN_OVERRIDE
+        );
+        }
+
     @Test
     void sensitivePermissionsFreeze_shouldRemainUnchangedInRbac2bPatch() throws Exception {
         Map<RoleCode, Set<PermissionCode>> matrix = buildMatrix();
@@ -153,10 +177,13 @@ class RolePermissionSeederSecurityTest {
         );
         assertThat(matrix.get(RoleCode.RESPONSABLE)).contains(
                 PermissionCode.USER_PASSWORD_RESET,
-                PermissionCode.SESSION_CAISSE_ADMIN_CANCEL,
-                PermissionCode.SESSION_CAISSE_REOPEN_CONTROLLED,
                 PermissionCode.CREDIT_APPROVE,
                 PermissionCode.GARANTIE_VALIDATE
+        );
+        assertThat(matrix.get(RoleCode.RESPONSABLE)).doesNotContain(
+            PermissionCode.SESSION_CAISSE_ADMIN_CANCEL,
+            PermissionCode.SESSION_CAISSE_REOPEN_CONTROLLED,
+            PermissionCode.SESSION_CAISSE_OPEN_OVERRIDE
         );
 
         // ADMIN-only permissions frozen in this patch
