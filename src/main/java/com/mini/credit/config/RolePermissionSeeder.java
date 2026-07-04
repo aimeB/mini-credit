@@ -365,13 +365,11 @@ public class RolePermissionSeeder {
                 PermissionCode.EPARGNE_COMPTE_CREATE, PermissionCode.EPARGNE_COMPTE_READ,
                 PermissionCode.EPARGNE_OPERATION_CREATE, PermissionCode.EPARGNE_OPERATION_READ,
                 // Caisse (supervision)
-                PermissionCode.SESSION_CAISSE_CONTROL_VALIDATE,
-                PermissionCode.SESSION_CAISSE_FINAL_CLOSE,
                 PermissionCode.SESSION_CAISSE_ANOMALIE_READ,
                 PermissionCode.SESSION_CAISSE_ANOMALIE_VALIDATE,
                 PermissionCode.SESSION_CAISSE_ADMIN_CANCEL,
                 PermissionCode.SESSION_CAISSE_REOPEN_CONTROLLED,
-                PermissionCode.CAISSE_READ, PermissionCode.OPERATION_CAISSE_READ, PermissionCode.JOURNAL_CAISSE_READ, PermissionCode.DEPENSE_CAISSE_READ, PermissionCode.DEPENSE_CAISSE_VALIDATE, PermissionCode.DASHBOARD_CAISSE_READ,
+                PermissionCode.CAISSE_READ, PermissionCode.OPERATION_CAISSE_READ, PermissionCode.JOURNAL_CAISSE_READ, PermissionCode.DEPENSE_CAISSE_READ, PermissionCode.DASHBOARD_CAISSE_READ,
                 PermissionCode.RAPPORT_CAISSE_READ, PermissionCode.RAPPORT_CAISSE_EXPORT, PermissionCode.RAPPORT_CAISSE_AUDIT_READ,
                 // Crédit
                 PermissionCode.DEMANDE_CREDIT_CREATE, PermissionCode.DEMANDE_CREDIT_READ,
@@ -462,7 +460,7 @@ public class RolePermissionSeeder {
             PermissionCode.DEPENSE_CAISSE_CREATE, PermissionCode.DEPENSE_CAISSE_SUBMIT,
             PermissionCode.DEPENSE_CAISSE_READ, PermissionCode.DEPENSE_CAISSE_PAY,
                 PermissionCode.DASHBOARD_CAISSE_READ,
-                PermissionCode.RAPPORT_CAISSE_READ, PermissionCode.RAPPORT_CAISSE_EXPORT,
+                PermissionCode.RAPPORT_CAISSE_READ,
                 // Crédit (décaissement et remboursement)
                 PermissionCode.CREDIT_DISBURSE, PermissionCode.CREDIT_READ,
                 PermissionCode.REMBOURSEMENT_CREATE, PermissionCode.REMBOURSEMENT_READ,
@@ -529,6 +527,20 @@ public class RolePermissionSeeder {
                 PermissionCode.DASHBOARD_GLOBAL_READ,
                 PermissionCode.DASHBOARD_CONTROLE_INTERNE_READ,
                 PermissionCode.USER_PASSWORD_CHANGE
+            ));
+
+            // COO : supervision opérationnelle supérieure
+            matrix.put(RoleCode.COO, Set.of(
+                PermissionCode.AUDIT_LOG_READ,
+                PermissionCode.RAPPORT_CAISSE_AUDIT_READ,
+                PermissionCode.RAPPORT_CAISSE_EXPORT
+            ));
+
+            // GERANT_GENERAL : supervision de haut niveau
+            matrix.put(RoleCode.GERANT_GENERAL, Set.of(
+                PermissionCode.AUDIT_LOG_READ,
+                PermissionCode.RAPPORT_CAISSE_AUDIT_READ,
+                PermissionCode.RAPPORT_CAISSE_EXPORT
             ));
 
         // MEMBER : self-service uniquement

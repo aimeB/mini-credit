@@ -37,11 +37,14 @@ class RolePermissionSeederSecurityTest {
 
         assertThat(responsable).contains(
                 PermissionCode.CAISSE_READ,
-                PermissionCode.SESSION_CAISSE_CONTROL_VALIDATE,
-                PermissionCode.SESSION_CAISSE_FINAL_CLOSE,
                 PermissionCode.CREDIT_APPROVE,
             PermissionCode.AUDIT_READ,
             PermissionCode.GARANTIE_READ
+        );
+        assertThat(responsable).doesNotContain(
+            PermissionCode.SESSION_CAISSE_CONTROL_VALIDATE,
+            PermissionCode.SESSION_CAISSE_FINAL_CLOSE,
+            PermissionCode.DEPENSE_CAISSE_VALIDATE
         );
         assertThat(chefBureau).contains(
             PermissionCode.CAISSE_READ,
@@ -66,6 +69,7 @@ class RolePermissionSeederSecurityTest {
                 PermissionCode.CREDIT_DISBURSE
         );
         assertThat(perms).doesNotContain(
+            PermissionCode.RAPPORT_CAISSE_EXPORT,
                 PermissionCode.SESSION_CAISSE_CONTROL_VALIDATE,
                 PermissionCode.SESSION_CAISSE_FINAL_CLOSE,
                 PermissionCode.GARANTIE_CONTROL
@@ -121,5 +125,51 @@ class RolePermissionSeederSecurityTest {
             PermissionCode.FICHE_JOURNALIERE_DELETE
         );
         assertThat(RoleCode.RCI).isNotEqualTo(RoleCode.CHEF_BUREAU);
+    }
+
+    @Test
+    void sensitivePermissionsFreeze_shouldRemainUnchangedInRbac2bPatch() throws Exception {
+        Map<RoleCode, Set<PermissionCode>> matrix = buildMatrix();
+
+        assertThat(matrix.get(RoleCode.ADMIN)).contains(
+                PermissionCode.USER_PASSWORD_RESET,
+                PermissionCode.AUDIT_LOG_EXPORT,
+                PermissionCode.AUDIT_SECURITY_READ,
+                PermissionCode.SESSION_CAISSE_ADMIN_CANCEL,
+                PermissionCode.SESSION_CAISSE_REOPEN_CONTROLLED,
+                PermissionCode.CREDIT_APPROVE,
+                PermissionCode.GARANTIE_VALIDATE,
+                PermissionCode.DEPENSE_CAISSE_CANCEL,
+                PermissionCode.SESSION_CAISSE_OPEN_OVERRIDE,
+                PermissionCode.CREDIT_DISBURSE
+        );
+
+        assertThat(matrix.get(RoleCode.RCI)).contains(PermissionCode.AUDIT_LOG_EXPORT, PermissionCode.AUDIT_SECURITY_READ);
+        assertThat(matrix.get(RoleCode.CHEF_BUREAU)).contains(
+                PermissionCode.USER_PASSWORD_RESET,
+                PermissionCode.SESSION_CAISSE_ADMIN_CANCEL,
+                PermissionCode.SESSION_CAISSE_REOPEN_CONTROLLED,
+                PermissionCode.CREDIT_APPROVE
+        );
+        assertThat(matrix.get(RoleCode.RESPONSABLE)).contains(
+                PermissionCode.USER_PASSWORD_RESET,
+                PermissionCode.SESSION_CAISSE_ADMIN_CANCEL,
+                PermissionCode.SESSION_CAISSE_REOPEN_CONTROLLED,
+                PermissionCode.CREDIT_APPROVE,
+                PermissionCode.GARANTIE_VALIDATE
+        );
+
+        // ADMIN-only permissions frozen in this patch
+        assertThat(matrix.get(RoleCode.CHEF_BUREAU)).doesNotContain(PermissionCode.SESSION_CAISSE_OPEN_OVERRIDE);
+        assertThat(matrix.get(RoleCode.CONTROLEUR)).doesNotContain(PermissionCode.SESSION_CAISSE_OPEN_OVERRIDE);
+        assertThat(matrix.get(RoleCode.CAISSIER)).doesNotContain(PermissionCode.SESSION_CAISSE_OPEN_OVERRIDE);
+        assertThat(matrix.get(RoleCode.RCI)).doesNotContain(PermissionCode.SESSION_CAISSE_OPEN_OVERRIDE);
+
+        assertThat(matrix.get(RoleCode.CHEF_BUREAU)).doesNotContain(PermissionCode.DEPENSE_CAISSE_CANCEL);
+        assertThat(matrix.get(RoleCode.CONTROLEUR)).doesNotContain(PermissionCode.DEPENSE_CAISSE_CANCEL);
+        assertThat(matrix.get(RoleCode.CAISSIER)).doesNotContain(PermissionCode.DEPENSE_CAISSE_CANCEL);
+        assertThat(matrix.get(RoleCode.RCI)).doesNotContain(PermissionCode.DEPENSE_CAISSE_CANCEL);
+
+        assertThat(matrix.get(RoleCode.CAISSIER)).contains(PermissionCode.CREDIT_DISBURSE);
     }
 }

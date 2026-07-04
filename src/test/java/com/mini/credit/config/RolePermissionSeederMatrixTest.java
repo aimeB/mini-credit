@@ -100,6 +100,34 @@ class RolePermissionSeederMatrixTest {
     }
 
             @Test
+            void cooAndGerantGeneral_shouldHaveAuditAndReportReadExportBundle() throws Exception {
+            Map<RoleCode, Set<PermissionCode>> matrix = buildMatrix();
+
+            assertThat(matrix.get(RoleCode.COO))
+                .contains(
+                    PermissionCode.AUDIT_LOG_READ,
+                    PermissionCode.RAPPORT_CAISSE_AUDIT_READ,
+                    PermissionCode.RAPPORT_CAISSE_EXPORT
+                );
+
+            assertThat(matrix.get(RoleCode.GERANT_GENERAL))
+                .contains(
+                    PermissionCode.AUDIT_LOG_READ,
+                    PermissionCode.RAPPORT_CAISSE_AUDIT_READ,
+                    PermissionCode.RAPPORT_CAISSE_EXPORT
+                );
+            }
+
+            @Test
+            void admin_shouldKeepCreditDisburseAndSessionOpenOverride() throws Exception {
+            Map<RoleCode, Set<PermissionCode>> matrix = buildMatrix();
+
+            assertThat(matrix.get(RoleCode.ADMIN))
+                .contains(PermissionCode.CREDIT_DISBURSE)
+                .contains(PermissionCode.SESSION_CAISSE_OPEN_OVERRIDE);
+            }
+
+            @Test
             void agentTerrain_shouldOwnFicheCreate_andRciShouldBeReadOnlyOnFiche() throws Exception {
             Map<RoleCode, Set<PermissionCode>> matrix = buildMatrix();
 
