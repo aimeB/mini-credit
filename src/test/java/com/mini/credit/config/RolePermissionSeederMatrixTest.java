@@ -1,9 +1,11 @@
 package com.mini.credit.config;
 
 import com.mini.credit.entity.referentiel.Role;
+import com.mini.credit.entity.referentiel.Permission;
 import com.mini.credit.enums.security.PermissionCode;
 import com.mini.credit.enums.security.RoleCode;
 import org.junit.jupiter.api.Test;
+import com.mini.credit.repository.referentiel.PermissionRepository;
 import com.mini.credit.repository.referentiel.RoleRepository;
 
 import java.lang.reflect.Method;
@@ -51,6 +53,25 @@ class RolePermissionSeederMatrixTest {
                         RoleCode.RCI,
                         RoleCode.AGENT_BUREAU
                 );
+
+        assertThat(roles.keySet()).containsExactlyInAnyOrder(RoleCode.values());
+    }
+
+    @Test
+    void createPermissions_shouldSeedAllPermissionCodes_withoutOrphans() throws Exception {
+        RolePermissionSeeder seeder = new RolePermissionSeeder();
+        PermissionRepository permissionRepository = mock(PermissionRepository.class);
+
+        when(permissionRepository.findByCode(any(PermissionCode.class))).thenReturn(Optional.empty());
+        when(permissionRepository.save(any(Permission.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Method method = RolePermissionSeeder.class.getDeclaredMethod("createPermissions", PermissionRepository.class);
+        method.setAccessible(true);
+
+        @SuppressWarnings("unchecked")
+        Map<PermissionCode, Permission> permissions = (Map<PermissionCode, Permission>) method.invoke(seeder, permissionRepository);
+
+        assertThat(permissions.keySet()).containsExactlyInAnyOrder(PermissionCode.values());
     }
 
     @Test
@@ -77,6 +98,23 @@ class RolePermissionSeederMatrixTest {
                 .doesNotContain(PermissionCode.CONTROLEUR_SESSION_CAISSE_VALIDATE)
                 .doesNotContain(PermissionCode.CONTROLEUR_CREDITS_VALIDATE);
     }
+
+            @Test
+            void agentTerrain_shouldOwnFicheCreate_andRciShouldBeReadOnlyOnFiche() throws Exception {
+            Map<RoleCode, Set<PermissionCode>> matrix = buildMatrix();
+
+            assertThat(matrix.get(RoleCode.AGENT_TERRAIN))
+                .contains(PermissionCode.FICHE_JOURNALIERE_CREATE)
+                .contains(PermissionCode.FICHE_JOURNALIERE_READ)
+                .contains(PermissionCode.FICHE_JOURNALIERE_EDIT)
+                .doesNotContain(PermissionCode.FICHE_JOURNALIERE_DELETE);
+
+            assertThat(matrix.get(RoleCode.RCI))
+                .contains(PermissionCode.FICHE_JOURNALIERE_READ)
+                .doesNotContain(PermissionCode.FICHE_JOURNALIERE_CREATE)
+                .doesNotContain(PermissionCode.FICHE_JOURNALIERE_EDIT)
+                .doesNotContain(PermissionCode.FICHE_JOURNALIERE_DELETE);
+            }
 
     @SuppressWarnings("unchecked")
     private Map<RoleCode, Set<PermissionCode>> buildMatrix() throws Exception {

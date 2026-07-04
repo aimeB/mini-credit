@@ -244,7 +244,13 @@ public class RolePermissionSeeder {
             Permission.builder().code(PermissionCode.CONTROLEUR_RECETTES_VALIDATE).description("Valider recettes journalières (réconciliation)").isActive(true).build(),
             Permission.builder().code(PermissionCode.CONTROLEUR_RETRAITS_VALIDATE).description("Valider retraits épargne (vérif solde)").isActive(true).build(),
             Permission.builder().code(PermissionCode.CONTROLEUR_CREDITS_VALIDATE).description("Valider crédits (garanties, frais, décaissement)").isActive(true).build(),
-            Permission.builder().code(PermissionCode.CONTROLEUR_AUDIT_READ).description("Consulter audit logs antenne").isActive(true).build()
+            Permission.builder().code(PermissionCode.CONTROLEUR_AUDIT_READ).description("Consulter audit logs antenne").isActive(true).build(),
+
+            // ============ Fiches journalières terrain ============
+            Permission.builder().code(PermissionCode.FICHE_JOURNALIERE_CREATE).description("Créer une fiche journalière agent").isActive(true).build(),
+            Permission.builder().code(PermissionCode.FICHE_JOURNALIERE_READ).description("Voir les fiches journalières agent").isActive(true).build(),
+            Permission.builder().code(PermissionCode.FICHE_JOURNALIERE_EDIT).description("Modifier une fiche journalière agent (BROUILLON)").isActive(true).build(),
+            Permission.builder().code(PermissionCode.FICHE_JOURNALIERE_DELETE).description("Supprimer une fiche journalière agent (BROUILLON)").isActive(true).build()
         };
 
         for (Permission perm : permissionArray) {
@@ -403,6 +409,7 @@ public class RolePermissionSeeder {
                 PermissionCode.CREDIT_APPROVE, PermissionCode.CREDIT_READ,
                 PermissionCode.GARANTIE_READ,
                 PermissionCode.REMBOURSEMENT_CREATE, PermissionCode.REMBOURSEMENT_READ,
+                PermissionCode.FICHE_JOURNALIERE_READ,
                 // Dashboard
                 PermissionCode.DASHBOARD_GLOBAL_READ, PermissionCode.AUDIT_READ,
                 PermissionCode.DASHBOARD_CONTROLE_INTERNE_READ,
@@ -423,6 +430,7 @@ public class RolePermissionSeeder {
                 PermissionCode.CREDIT_READ,
                 PermissionCode.GARANTIE_READ,
                 PermissionCode.REMBOURSEMENT_CREATE, PermissionCode.REMBOURSEMENT_READ,
+                PermissionCode.FICHE_JOURNALIERE_READ,
                 // Dashboard
                 PermissionCode.DASHBOARD_GLOBAL_READ,
                 PermissionCode.USER_PASSWORD_CHANGE
@@ -436,6 +444,9 @@ public class RolePermissionSeeder {
                 PermissionCode.EPARGNE_COMPTE_READ,
                 // Crédit
                 PermissionCode.DEMANDE_CREDIT_CREATE, PermissionCode.DEMANDE_CREDIT_READ, PermissionCode.CREDIT_READ,
+                PermissionCode.FICHE_JOURNALIERE_CREATE,
+                PermissionCode.FICHE_JOURNALIERE_READ,
+                PermissionCode.FICHE_JOURNALIERE_EDIT,
                 // Dashboard (partiel)
                 PermissionCode.DASHBOARD_GLOBAL_READ,
                 PermissionCode.USER_PASSWORD_CHANGE
@@ -474,6 +485,7 @@ public class RolePermissionSeeder {
                 PermissionCode.CONTROLEUR_DEMANDE_CREDIT_READ,
                 PermissionCode.CONTROLEUR_DEMANDE_CREDIT_VALIDATE,
                 // Caisse (lecture et validation)
+                PermissionCode.CONTROLEUR_SESSION_CAISSE_READ,
                 PermissionCode.CONTROLEUR_SESSION_CAISSE_VALIDATE,
                 PermissionCode.SESSION_CAISSE_CONTROL_VALIDATE,
                 PermissionCode.SESSION_CAISSE_ANOMALIE_READ,
@@ -492,6 +504,7 @@ public class RolePermissionSeeder {
                 PermissionCode.CONTROLEUR_AUDIT_READ,
                 PermissionCode.AUDIT_LOG_READ,
                 PermissionCode.RAPPORT_CAISSE_AUDIT_READ,
+                PermissionCode.FICHE_JOURNALIERE_READ,
                 // Dashboard
                 PermissionCode.DASHBOARD_GLOBAL_READ,
                 PermissionCode.DASHBOARD_CONTROLE_INTERNE_READ,
@@ -512,6 +525,7 @@ public class RolePermissionSeeder {
                 PermissionCode.AUDIT_LOG_READ,
                 PermissionCode.AUDIT_LOG_EXPORT,
                 PermissionCode.AUDIT_SECURITY_READ,
+                PermissionCode.FICHE_JOURNALIERE_READ,
                 PermissionCode.DASHBOARD_GLOBAL_READ,
                 PermissionCode.DASHBOARD_CONTROLE_INTERNE_READ,
                 PermissionCode.USER_PASSWORD_CHANGE

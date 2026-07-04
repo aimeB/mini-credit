@@ -84,6 +84,7 @@ class RolePermissionSeederSecurityTest {
                 PermissionCode.CONTROLEUR_RECETTES_VALIDATE,
                 PermissionCode.CONTROLEUR_RETRAITS_VALIDATE,
                 PermissionCode.CONTROLEUR_CREDITS_VALIDATE,
+                PermissionCode.CONTROLEUR_SESSION_CAISSE_READ,
                 PermissionCode.GARANTIE_CONTROL
         );
         assertThat(perms).doesNotContain(PermissionCode.CREDIT_DISBURSE);
@@ -109,7 +110,16 @@ class RolePermissionSeederSecurityTest {
 
         Set<PermissionCode> rci = matrix.get(RoleCode.RCI);
         assertThat(rci).contains(PermissionCode.CAISSE_READ, PermissionCode.OPERATION_CAISSE_READ, PermissionCode.AUDIT_READ);
-        assertThat(rci).doesNotContain(PermissionCode.OPERATION_CAISSE_CREATE, PermissionCode.CREDIT_DISBURSE);
+        assertThat(rci).contains(PermissionCode.FICHE_JOURNALIERE_READ);
+        assertThat(rci).doesNotContain(
+            PermissionCode.OPERATION_CAISSE_CREATE,
+            PermissionCode.CREDIT_DISBURSE,
+            PermissionCode.DEPENSE_CAISSE_PAY,
+            PermissionCode.CREDIT_APPROVE,
+            PermissionCode.FICHE_JOURNALIERE_CREATE,
+            PermissionCode.FICHE_JOURNALIERE_EDIT,
+            PermissionCode.FICHE_JOURNALIERE_DELETE
+        );
         assertThat(RoleCode.RCI).isNotEqualTo(RoleCode.CHEF_BUREAU);
     }
 }
