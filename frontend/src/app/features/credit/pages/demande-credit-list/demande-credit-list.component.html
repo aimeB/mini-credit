@@ -1,0 +1,347 @@
+<div class="min-h-screen bg-gray-50">
+  <div class="mc-page-wide">
+  <section class="mc-page-hero">
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <h1 class="mc-page-title">Demandes de Crédit</h1>
+          <p class="mc-page-subtitle">Consultez et gérez toutes les demandes de crédit.</p>
+        </div>
+        <div class="mc-button-row">
+          <a routerLink="/credits/demandes/nouveau" class="mc-btn mc-btn-success">
+            ➕ Nouvelle demande
+          </a>
+          <a routerLink="/credits" class="mc-btn mc-btn-dark">
+            ← Retour
+          </a>
+        </div>
+      </div>
+  </section>
+
+  <main class="space-y-6 overflow-x-hidden">
+
+  <app-workflow-guidance-banner [guidance]="globalGuidance"></app-workflow-guidance-banner>
+
+  <div *ngIf="loading" class="mc-state mc-state-info text-center">
+    <div class="inline-block">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <p class="mt-4">Chargement des demandes...</p>
+    </div>
+  </div>
+
+  <div *ngIf="errorMessage" class="mc-state mc-state-danger">
+    <div class="flex items-start">
+      <div class="flex-shrink-0">
+        <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+        </svg>
+      </div>
+      <div class="ml-3">
+        <p class="text-sm text-red-700">{{ errorMessage }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && !errorMessage && demandes.length === 0" class="mc-state mc-state-info text-center">
+    <p class="text-base font-semibold">Aucune demande de crédit trouvée.</p>
+  </div>
+
+  <div *ngIf="!loading && !errorMessage && demandes.length > 0" class="mc-table-wrap">
+    <div class="min-w-full overflow-x-auto">
+      <table class="mc-table table-fixed text-xs leading-snug">
+        <colgroup>
+          <col class="w-[9%]">
+          <col class="w-[10%]">
+          <col class="w-[8%]">
+          <col class="w-[8%]">
+          <col class="w-[8%]">
+          <col class="w-[11%]">
+          <col class="w-[6%]">
+          <col class="w-[5%]">
+          <col class="w-[6%]">
+          <col class="w-[10%]">
+          <col class="w-[8%]">
+          <col class="w-[11%]">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>N° demande</th>
+            <th>Membre</th>
+            <th>Site</th>
+            <th>Date</th>
+            <th class="text-right">Montant</th>
+            <th>Frais</th>
+            <th>Durée</th>
+            <th class="text-right">Taux</th>
+            <th class="text-right">Priorité</th>
+            <th>Garantie</th>
+            <th class="text-center">Statut</th>
+            <th class="text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          <ng-container *ngFor="let demande of demandes; trackBy: trackByDemandeId">
+          <tr>
+            <td class="font-semibold text-gray-900 break-words">{{ demande.numeroDemande }}</td>
+            <td class="break-words">
+              <div class="font-medium">{{ demande.membreNomComplet }}</div>
+              <div class="mt-1 text-xs text-slate-500">Gage: {{ demande.gagePropose || 'Non renseigné' }}</div>
+            </td>
+            <td class="break-words">{{ demande.siteNom }}</td>
+            <td class="text-gray-600">{{ demande.dateDemande | date:'dd/MM/yy' }}</td>
+            <td class="font-medium text-gray-900 text-right break-words">{{ demande.montantDemande | number:'1.0-0' }} {{ demande.devise }}</td>
+            <td>
+              <div class="space-y-1">
+                <div class="text-xs"><span class="font-semibold">Attendus:</span> {{ demande.fraisDemande | number:'1.0-2' }} {{ demande.devise }}</div>
+                <div class="text-xs"><span class="font-semibold">Payés:</span> {{ demande.fraisDemandePayes | number:'1.0-2' }} {{ demande.devise }}</div>
+                <div class="text-xs"><span class="font-semibold">Reste:</span> {{ fraisDemandeRestant(demande) | number:'1.0-2' }} {{ demande.devise }}</div>
+                <span class="mc-badge"
+                  [ngClass]="{
+                    'bg-green-100 text-green-800': getStatutFraisBadge(demande) === 'PAYES',
+                    'bg-amber-100 text-amber-800': getStatutFraisBadge(demande) === 'INCOMPLETS'
+                  }">
+                  {{ getStatutFraisBadge(demande) === 'PAYES' ? 'Frais payés' : 'Frais incomplets' }}
+                </span>
+              </div>
+            </td>
+            <td>{{ demande.dureeValeur }} {{ demande.dureeUnite }}</td>
+            <td class="text-right">{{ demande.tauxInteret }}%</td>
+            <td class="text-right">
+              <span class="mc-badge" 
+                [ngClass]="{
+                  'bg-red-100 text-red-800': demande.depotGarantiePaye < demande.depotGarantieRequis * 0.5,
+                  'bg-yellow-100 text-yellow-800': demande.depotGarantiePaye >= demande.depotGarantieRequis * 0.5 && demande.depotGarantiePaye < demande.depotGarantieRequis,
+                  'bg-green-100 text-green-800': demande.depotGarantiePaye >= demande.depotGarantieRequis
+                }">
+                {{ (demande.depotGarantiePaye / demande.depotGarantieRequis * 100) | number:'1.0-0' }}%
+              </span>
+            </td>
+            <td>
+              <div class="space-y-1">
+                <div class="text-xs">
+                  <span class="font-semibold">Requise:</span>
+                  {{ demande.depotGarantieRequis | number:'1.0-2' }} {{ demande.devise }}
+                </div>
+                <div class="text-xs">
+                  <span class="font-semibold">Bloquée:</span>
+                  {{ (demande.montantGarantieBloque ?? 0) | number:'1.0-2' }} {{ demande.devise }}
+                </div>
+                <span class="mc-badge"
+                  [ngClass]="{
+                    'bg-green-100 text-green-800': getStatutGarantieBadge(demande) === 'BLOQUEE',
+                    'bg-red-100 text-red-800': getStatutGarantieBadge(demande) === 'NON_BLOQUEE',
+                    'bg-amber-100 text-amber-800': getStatutGarantieBadge(demande) === 'INSUFFISANTE'
+                  }">
+                  {{ getStatutGarantieBadge(demande) }}
+                </span>
+              </div>
+            </td>
+            <td class="text-center">
+              <span class="mc-badge break-all" 
+                [ngClass]="{
+                  'bg-gray-100 text-gray-800': demande.statut === 'BROUILLON',
+                  'bg-blue-100 text-blue-800': demande.statut === 'SOUMISE',
+                  'bg-orange-100 text-orange-800': demande.statut === 'EN_ANALYSE',
+                  'bg-cyan-100 text-cyan-800': demande.statut === 'ANALYSE_TERRAIN_VALIDEE',
+                  'bg-amber-100 text-amber-800': demande.statut === 'VALIDATION_CHEF',
+                  'bg-indigo-100 text-indigo-800': demande.statut === 'VALIDATION_CONTROLEUR',
+                  'bg-green-100 text-green-800': demande.statut === 'APPROUVEE',
+                  'bg-red-100 text-red-800': demande.statut === 'REJETEE',
+                  'bg-purple-100 text-purple-800': demande.statut === 'ANNULEE'
+                }">
+                {{ demande.statut }}
+              </span>
+            </td>
+            <td class="text-center">
+              <div class="flex gap-1 justify-center flex-wrap">
+                <a
+                  *ngIf="peutPayerInitial(demande)"
+                  [routerLink]="['/credits/demandes', demande.id, 'paiement-initial']"
+                  class="mc-btn mc-btn-success px-2 py-1 text-xs"
+                >
+                  Encaisser frais
+                </a>
+
+                <span
+                  *ngIf="peutAfficherMessagePaiementCaissier(demande)"
+                  class="mc-badge border border-amber-300 bg-amber-100 text-amber-900"
+                >
+                  Frais incomplets : paiement à effectuer par le Caissier.
+                </span>
+
+                <button
+                  *ngIf="peutPreAnalyser(demande)"
+                  (click)="ouvrirPreAnalyse(demande)"
+                  class="mc-btn bg-sky-600 px-2 py-1 text-xs text-white hover:bg-sky-700"
+                >
+                  Pré-analyser
+                </button>
+
+                <a
+                  *ngIf="canSeeAnalyseActions && peutAnalyser(demande)"
+                  [routerLink]="['/credits/demandes', demande.id, 'analyse']"
+                  class="mc-btn mc-btn-primary px-2 py-1 text-xs"
+                >
+                  Analyser
+                </a>
+
+                <button
+                  *ngIf="peutControlerRisque(demande)"
+                  (click)="enregistrerObservationRisque(demande)"
+                  class="mc-btn bg-teal-600 px-2 py-1 text-xs text-white hover:bg-teal-700"
+                >
+                  Obs. risque
+                </button>
+
+                <button
+                  *ngIf="peutValiderAnalyseRisque(demande)"
+                  (click)="validerAnalyseRisque(demande)"
+                  class="mc-btn bg-indigo-600 px-2 py-1 text-xs text-white hover:bg-indigo-700"
+                >
+                  Valider
+                </button>
+
+                <a
+                  *ngIf="peutControlerGarantie(demande)"
+                  [routerLink]="['/credits/demandes', demande.id, 'garantie']"
+                  class="mc-btn bg-cyan-700 px-2 py-1 text-xs text-white hover:bg-cyan-800"
+                >
+                  Garantie
+                </a>
+
+                <a
+                  *ngIf="peutVoirGarantie(demande)"
+                  [routerLink]="['/credits/demandes', demande.id, 'garantie']"
+                  class="mc-btn bg-slate-700 px-2 py-1 text-xs text-white hover:bg-slate-800"
+                >
+                  Voir garantie
+                </a>
+
+                <button
+                  *ngIf="peutApprouver(demande)"
+                  (click)="ouvrirApprobation(demande.id)"
+                  class="mc-btn bg-purple-600 px-2 py-1 text-xs text-white hover:bg-purple-700"
+                >
+                  Approuver
+                </button>
+
+                <button
+                  *ngIf="peutRejeter(demande)"
+                  (click)="rejeter(demande)"
+                  class="mc-btn bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700"
+                >
+                  Rejeter
+                </button>
+
+                <span
+                  *ngIf="peutAfficherMessageGarantieBloquee(demande)"
+                  class="mc-badge border border-amber-300 bg-amber-100 text-amber-900"
+                >
+                  Garantie non bloquée
+                </span>
+
+                <span
+                  *ngIf="canSeePaiementAction && !isFraisDemandeIntegralementPayes(demande) && ['EN_ANALYSE', 'ANALYSE_TERRAIN_VALIDEE', 'VALIDATION_CHEF', 'VALIDATION_CONTROLEUR'].includes(demande.statut)"
+                  class="mc-badge border border-amber-300 bg-amber-100 text-amber-900"
+                >
+                  Frais incomplets
+                </span>
+              </div>
+            </td>
+          </tr>
+          <tr class="bg-slate-50/60">
+            <td colspan="12" class="px-2 py-3">
+              <app-workflow-guidance-banner [guidance]="getDemandeGuidance(demande)"></app-workflow-guidance-banner>
+            </td>
+          </tr>
+          </ng-container>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  </main>
+
+  <div *ngIf="preAnalyseModalOpen && demandePreAnalyse" class="mc-modal-backdrop">
+    <div class="mc-modal-panel">
+      <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+        <h2 class="text-lg font-bold text-gray-900">Pré-analyse Gestionnaire</h2>
+        <button (click)="fermerPreAnalyse()" class="text-gray-500 hover:text-gray-700">✕</button>
+      </div>
+
+      <div class="p-6 space-y-5 text-sm text-gray-700">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div><span class="font-semibold">N° dossier:</span> {{ demandePreAnalyse.numeroDemande }}</div>
+          <div><span class="font-semibold">Membre:</span> {{ demandePreAnalyse.membreNomComplet }} (ID {{ demandePreAnalyse.membreId }})</div>
+          <div><span class="font-semibold">Site:</span> {{ demandePreAnalyse.siteNom }}</div>
+          <div><span class="font-semibold">Agent terrain:</span> {{ demandePreAnalyse.agentId || 'Non renseigné' }}</div>
+          <div><span class="font-semibold">Montant:</span> {{ demandePreAnalyse.montantDemande | number:'1.0-2' }} {{ demandePreAnalyse.devise }}</div>
+          <div><span class="font-semibold">Durée:</span> {{ demandePreAnalyse.dureeValeur }} {{ demandePreAnalyse.dureeUnite }}</div>
+          <div><span class="font-semibold">Taux:</span> {{ demandePreAnalyse.tauxInteret }}%</div>
+          <div><span class="font-semibold">Objet:</span> {{ demandePreAnalyse.objetCredit || 'Non renseigné' }}</div>
+          <div><span class="font-semibold">Gage proposé:</span> {{ demandePreAnalyse.gagePropose || 'Non renseigné' }}</div>
+          <div><span class="font-semibold">Activité:</span> {{ demandePreAnalyse.activiteFinancee || 'Non renseignée' }}</div>
+          <div><span class="font-semibold">Revenus estimés:</span> {{ demandePreAnalyse.revenusEstimes | number:'1.0-2' }}</div>
+          <div><span class="font-semibold">Charges estimées:</span> {{ demandePreAnalyse.chargesEstimees | number:'1.0-2' }}</div>
+          <div><span class="font-semibold">Garantie requise (20%):</span> {{ demandePreAnalyse.depotGarantieRequis | number:'1.0-2' }} {{ demandePreAnalyse.devise }}</div>
+          <div><span class="font-semibold">Garantie déjà payée:</span> {{ demandePreAnalyse.depotGarantiePaye | number:'1.0-2' }} {{ demandePreAnalyse.devise }}</div>
+        </div>
+
+        <div class="rounded-lg bg-amber-50 border border-amber-200 p-3 text-amber-800">
+          La transmission à l'analyse Contrôleur bloque automatiquement la garantie 20% sur l'épargne. Si le solde est insuffisant, la demande reste à compléter.
+        </div>
+
+        <fieldset>
+          <legend class="block text-sm font-semibold text-gray-800 mb-2">Décision de pré-analyse</legend>
+          <div class="grid gap-3 md:grid-cols-2">
+            <label class="flex cursor-pointer gap-3 rounded-lg border p-3 transition"
+              [ngClass]="preAnalyseAction === 'TRANSMETTRE_ANALYSE' ? 'border-blue-600 bg-blue-50' : 'border-gray-200 hover:bg-gray-50'">
+              <input
+                type="radio"
+                name="preAnalyseAction"
+                value="TRANSMETTRE_ANALYSE"
+                [(ngModel)]="preAnalyseAction"
+                class="mt-1 h-4 w-4"
+              >
+              <span>
+                <span class="block text-sm font-semibold text-gray-900">Bloquer la garantie 20% et transmettre</span>
+                <span class="mt-1 block text-xs text-gray-600">Le système réserve la garantie sur l'épargne puis envoie le dossier à l'analyse Contrôleur.</span>
+              </span>
+            </label>
+            <label class="flex cursor-pointer gap-3 rounded-lg border p-3 transition"
+              [ngClass]="preAnalyseAction === 'RETOUR_COMPLEMENT' ? 'border-amber-600 bg-amber-50' : 'border-gray-200 hover:bg-gray-50'">
+              <input
+                type="radio"
+                name="preAnalyseAction"
+                value="RETOUR_COMPLEMENT"
+                [(ngModel)]="preAnalyseAction"
+                class="mt-1 h-4 w-4"
+              >
+              <span>
+                <span class="block text-sm font-semibold text-gray-900">Retour à l'agent terrain</span>
+                <span class="mt-1 block text-xs text-gray-600">Utiliser cette option si le dossier ou l'épargne disponible doit être complété.</span>
+              </span>
+            </label>
+          </div>
+        </fieldset>
+
+        <div *ngIf="preAnalyseAction === 'TRANSMETTRE_ANALYSE'" class="flex items-center gap-2">
+          <input id="dossierComplet" type="checkbox" [(ngModel)]="preAnalyseDossierComplet" class="h-4 w-4">
+          <label for="dossierComplet">Je confirme que le dossier est complet</label>
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-800 mb-2">Observation de pré-analyse (obligatoire)</label>
+          <textarea [(ngModel)]="preAnalyseCommentaire" rows="4" class="mc-textarea" placeholder="Décrire la décision de pré-analyse, les points vérifiés et les manques éventuels..."></textarea>
+        </div>
+      </div>
+
+      <div class="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
+        <button (click)="fermerPreAnalyse()" class="mc-btn border border-gray-300 text-gray-700 hover:bg-gray-50">Annuler</button>
+        <button (click)="soumettrePreAnalyse()" class="mc-btn mc-btn-primary">
+          {{ preAnalyseAction === 'TRANSMETTRE_ANALYSE' ? 'Bloquer et transmettre' : 'Retourner pour complément' }}
+        </button>
+      </div>
+    </div>
+  </div>
+  </div>
+</div>

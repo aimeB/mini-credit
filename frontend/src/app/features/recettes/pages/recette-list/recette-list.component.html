@@ -1,0 +1,214 @@
+<main class="recettes-page">
+  <section class="page-hero">
+    <div>
+      <p class="eyebrow">Opérations terrain</p>
+      <h1>Reporting terrain & collectes</h1>
+      <p class="hero-subtitle">Suivi opérationnel des collectes terrain, des remises caisse et des écarts. Les montants affichés ici ne sont pas tous des revenus.</p>
+    </div>
+    <a class="secondary-link" routerLink="/rapports/revenus">Voir le rapport Revenus & résultat</a>
+  </section>
+
+  <section class="warning-panel">
+    <strong>Cette page suit les flux terrain.</strong>
+    <span>L’épargne collectée et les remboursements crédit ne sont pas des revenus. Pour le résultat financier, consulter le rapport Revenus & résultat.</span>
+  </section>
+
+  <app-workflow-guidance-banner [guidance]="globalGuidance"></app-workflow-guidance-banner>
+
+  <section class="mode-selector" aria-label="Mode de reporting terrain">
+    <button type="button" class="mode-card" [class.active]="activeMode === 'COLLECTE'" (click)="setMode('COLLECTE')">
+      <span class="mode-badge active-source">Collecte actif</span>
+      <strong>Collectes terrain actives</strong>
+      <small>Circuit actuel : saisie, soumission, billetage, contrôle et validation.</small>
+    </button>
+    <button type="button" class="mode-card legacy" [class.active]="activeMode === 'LEGACY'" (click)="setMode('LEGACY')">
+      <span class="mode-badge legacy-source">Legacy</span>
+      <strong>Recettes historiques legacy</strong>
+      <small>Anciennes recettes conservées pour consultation et migration progressive.</small>
+    </button>
+  </section>
+
+  <section class="mode-context" [class.legacy-context]="activeMode === 'LEGACY'">
+    <div>
+      <p class="eyebrow">{{ activeMode === 'COLLECTE' ? 'Source active' : 'Mode historique' }}</p>
+      <h2>{{ modeTitle }}</h2>
+      <p>{{ modeDescription }}</p>
+      <p *ngIf="activeMode === 'LEGACY'" class="legacy-warning">Mode historique : ces recettes ne doivent pas être mélangées avec les collectes actives.</p>
+    </div>
+    <div class="action-group">
+      <button type="button" *ngIf="canCreateLegacy" class="primary-action" (click)="onCreate()">Créer recette historique</button>
+      <button type="button" *ngIf="activeMode === 'COLLECTE'" class="tab-action" [disabled]="collectes.length === 0" (click)="onExportCollecteDetail()">Détail membres</button>
+      <button type="button" *ngIf="activeMode === 'COLLECTE'" class="tab-action" [disabled]="collectes.length === 0" (click)="onExportCollecteResume()">Résumé agent</button>
+      <button type="button" *ngIf="activeMode === 'COLLECTE'" class="tab-action" [disabled]="collectes.length === 0" (click)="onExportCollecteEcarts()">Écarts</button>
+      <button type="button" *ngIf="activeMode === 'LEGACY'" class="tab-action" [disabled]="recettes.length === 0" (click)="onExportExcel()">Export Excel</button>
+      <button type="button" *ngIf="activeMode === 'LEGACY'" class="tab-action danger" [disabled]="recettes.length === 0" (click)="onExportPdf()">Export PDF</button>
+    </div>
+  </section>
+
+  <app-recette-dashboard [mode]="activeMode"></app-recette-dashboard>
+
+  <section class="filter-panel">
+    <div class="filter-title">
+      <h2>Filtres</h2>
+      <span>{{ activeMode === 'COLLECTE' ? 'CollecteJournaliereTerrain' : 'RecetteJournaliereTerrain legacy' }}</span>
+    </div>
+    <div class="filter-grid">
+      <label>
+        <span>Statut</span>
+        <select [(ngModel)]="filterStatut" (change)="onFilterChange()">
+          <option value="">Tous les statuts</option>
+          <option value="BROUILLON">Brouillon</option>
+          <option value="SOUMISE">Soumise</option>
+          <option value="VALIDEE">Validée</option>
+          <option value="REJETEE">Rejetée</option>
+        </select>
+      </label>
+      <label>
+        <span>Date début</span>
+        <input type="date" [(ngModel)]="filterDateDebut" (change)="onFilterChange()">
+      </label>
+      <label>
+        <span>Date fin</span>
+        <input type="date" [(ngModel)]="filterDateFin" (change)="onFilterChange()">
+      </label>
+      <label>
+        <span>Taille page</span>
+        <select [(ngModel)]="pageSize" (change)="onFilterChange()">
+          <option value="5">5</option>
+          <option value="10">10</option>
+          <option value="25">25</option>
+          <option value="50">50</option>
+        </select>
+      </label>
+    </div>
+  </section>
+
+  <div *ngIf="isLoading" class="loading-panel">
+    <div class="spinner-border" role="status"><span class="visually-hidden">Chargement...</span></div>
+    <span>Chargement du suivi terrain...</span>
+  </div>
+
+  <section *ngIf="!isLoading && activeMode === 'LEGACY'" class="data-panel legacy-panel">
+    <div class="table-header">
+      <div>
+        <p class="eyebrow">Historique legacy</p>
+        <h2>Recettes historiques legacy</h2>
+        <p>Ce mode sert à consulter les anciennes recettes journalières. Le nouveau circuit officiel passe par les collectes terrain actives.</p>
+      </div>
+      <span class="count-pill">{{ totalElements }} ligne(s)</span>
+    </div>
+
+    <div *ngIf="recettes.length === 0" class="empty-state">Aucune recette legacy trouvée.</div>
+
+    <div *ngIf="recettes.length > 0" class="table-responsive">
+      <table class="table report-table">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Date</th>
+            <th>Agent</th>
+            <th>Antenne / site</th>
+            <th>Montant total</th>
+            <th>Montant remis</th>
+            <th>Écart</th>
+            <th>Statut</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let recette of recettes">
+            <td><span class="legacy-chip">LEGACY</span></td>
+            <td>{{ recette.dateRecette | date: 'dd/MM/yyyy' }}</td>
+            <td>{{ recette.agentTerrainNom }}</td>
+            <td>{{ recette.siteNom }}</td>
+            <td class="amount">{{ recette.totalCollecte | currency: 'CDF' }}</td>
+            <td class="amount">{{ recette.especesRemises | currency: 'CDF' }}</td>
+            <td class="amount" [class.negative]="legacyEcart(recette) < 0" [class.positive]="legacyEcart(recette) > 0">{{ legacyEcart(recette) | currency: 'CDF' }}</td>
+            <td><span class="status-pill" [ngClass]="'status-' + getStatusColor(recette.statut)">{{ getStatusLabel(recette.statut) }}</span></td>
+            <td>
+              <div class="row-actions">
+                <button type="button" class="inline-action" (click)="onView(recette.id)">Voir détail</button>
+                <button type="button" *ngIf="canEdit(recette)" class="inline-action warning" (click)="onEdit(recette)">Modifier</button>
+                <button type="button" *ngIf="canEdit(recette)" class="inline-action danger" (click)="onDelete(recette.id)">Supprimer</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section *ngIf="!isLoading && activeMode === 'COLLECTE'" class="data-panel">
+    <div class="table-header">
+      <div>
+        <p class="eyebrow">Circuit actif</p>
+        <h2>Collectes terrain actives</h2>
+        <p>Saisie collecte → Soumission → Billetage → Contrôle → Validation.</p>
+      </div>
+      <span class="count-pill">{{ totalElements }} collecte(s)</span>
+    </div>
+
+    <div class="export-tabs" aria-label="Exports collecte active">
+      <button type="button" [disabled]="collectes.length === 0" (click)="onExportCollecteDetail()">
+        <strong>Détail membres</strong>
+        <span>Lignes collectées par membre, type opération, montant, référence, commentaire et statut.</span>
+      </button>
+      <button type="button" [disabled]="collectes.length === 0" (click)="onExportCollecteResume()">
+        <strong>Résumé agent</strong>
+        <span>Synthèse par agent, membres visités, montants collectés, espèces remises et écarts.</span>
+      </button>
+      <button type="button" [disabled]="collectes.length === 0" (click)="onExportCollecteEcarts()">
+        <strong>Écarts</strong>
+        <span>Différence attendu/remis, statut de traitement, contrôleur, commentaire et gravité.</span>
+      </button>
+    </div>
+
+    <div *ngIf="collectes.length === 0" class="empty-state">Aucune collecte trouvée.</div>
+
+    <div *ngIf="collectes.length > 0" class="table-responsive">
+      <table class="table report-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Agent</th>
+            <th>Site</th>
+            <th>Antenne</th>
+            <th>Statut</th>
+            <th>Épargne collectée</th>
+            <th>Remboursements crédit collectés</th>
+            <th>Frais / carnets collectés</th>
+            <th>Total espèces attendues</th>
+            <th>Espèces réellement remises</th>
+            <th>Écart attendu/remis</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let collecte of collectes">
+            <td>{{ collecte.dateCollecte | date: 'dd/MM/yyyy' }}</td>
+            <td>{{ collecte.agentTerrainNom || collecte.agentTerrainId }}</td>
+            <td>{{ collecte.siteNom || collecte.siteId }}</td>
+            <td>{{ collecte.antenneId }}</td>
+            <td><span class="status-pill" [ngClass]="'status-' + getStatusColor(collecte.statut)">{{ getCollecteStatusLabel(collecte.statut) }}</span></td>
+            <td class="amount">{{ collecte.totalEpargneCalcule | currency: 'CDF' }}</td>
+            <td class="amount">{{ collecte.totalRemboursementsCalcule | currency: 'CDF' }}</td>
+            <td class="amount">{{ collecte.totalFraisCalcule | currency: 'CDF' }}</td>
+            <td class="amount strong">{{ collecte.totalGeneralCalcule | currency: 'CDF' }}</td>
+            <td class="amount">{{ collecte.especesRemises | currency: 'CDF' }}</td>
+            <td class="amount" [class.negative]="collecte.ecartTresorerie < 0" [class.positive]="collecte.ecartTresorerie > 0">{{ collecte.ecartTresorerie | currency: 'CDF' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <nav *ngIf="!isLoading && totalElements > 0" class="pagination-panel" aria-label="Pagination recettes">
+    <div>Affichage {{ currentPage * pageSize + 1 }} à {{ Math.min((currentPage + 1) * pageSize, totalElements) }} sur {{ totalElements }}</div>
+    <div class="pagination-actions">
+      <button type="button" (click)="goToFirstPage()" [disabled]="currentPage === 0">«</button>
+      <button type="button" (click)="goToPreviousPage()" [disabled]="currentPage === 0">‹</button>
+      <button type="button" *ngFor="let page of pageNumbers" [class.active]="page === currentPage" (click)="onPageChange(page)">{{ page + 1 }}</button>
+      <button type="button" (click)="goToNextPage()" [disabled]="currentPage === totalPages - 1">›</button>
+      <button type="button" (click)="goToLastPage()" [disabled]="currentPage === totalPages - 1">»</button>
+    </div>
+  </nav>
+</main>

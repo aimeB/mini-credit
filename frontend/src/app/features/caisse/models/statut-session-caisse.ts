@@ -1,0 +1,7 @@
+export type StatutSessionCaisse =
+	| 'OUVERTE'
+	| 'PRE_CLOTUREE'
+	| 'VALIDEE_CONTROLE'
+	| 'CLOTUREE'
+	| 'ANNULEE'
+	| 'ANNULEE_ADMINISTRATIVEMENT';

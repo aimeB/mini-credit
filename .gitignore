@@ -1,0 +1,38 @@
+# Build
+target/
+**/target/
+dist/
+**/dist/
+.angular/
+**/.angular/
+node_modules/
+**/node_modules/
+
+# Runtime uploads
+uploads/
+**/uploads/
+backend/uploads/
+frontend/uploads/
+
+# Temp/logs
+tmp/
+**/tmp/
+*.log
+*.tmp
+
+# IDE
+.idea/
+**/.idea/
+.vscode/
+**/.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env/secrets
+.env
+.env.*
+application-local.properties
+application-local.yml

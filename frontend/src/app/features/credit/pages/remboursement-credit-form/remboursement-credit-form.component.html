@@ -1,0 +1,199 @@
+<div class="mc-page-wide">
+  <header class="mc-page-hero">
+    <div class="flex flex-col gap-4">
+      <a [routerLink]="['/credits', creditId]" class="inline-flex w-fit items-center text-sm font-semibold text-slate-200 hover:text-white">
+        ← Retour au dossier crédit
+      </a>
+      <div>
+        <h1 class="mc-page-title">Remboursement du crédit</h1>
+        <p class="mc-page-subtitle" *ngIf="credit">
+        {{ credit.numeroCredit }} · {{ credit.membreNomComplet }}
+      </p>
+      </div>
+    </div>
+  </header>
+
+  <main class="space-y-6 overflow-x-hidden">
+    <app-workflow-guidance-banner [guidance]="globalGuidance"></app-workflow-guidance-banner>
+
+    <app-workflow-guidance-banner *ngIf="guidance" [guidance]="guidance"></app-workflow-guidance-banner>
+
+    <div *ngIf="errorMessage" class="mc-state mc-state-danger">
+      {{ errorMessage }}
+    </div>
+
+    <div *ngIf="successMessage" class="mc-state mc-state-success">
+      {{ successMessage }}
+    </div>
+
+    <section *ngIf="credit" class="mc-panel space-y-4">
+      <div>
+        <h2 class="mb-1 text-lg font-bold text-slate-900">Résumé du crédit</h2>
+      </div>
+
+      <div class="mc-kpi-grid">
+        <div class="mc-kpi-card">
+          <p class="mc-kpi-label">Principal total</p>
+          <p class="mc-kpi-value">{{ formatMontant(credit.principalTotal) }}</p>
+        </div>
+
+        <div class="mc-kpi-card">
+          <p class="mc-kpi-label">Intérêt total</p>
+          <p class="mc-kpi-value">{{ formatMontant(credit.interetTotal) }}</p>
+        </div>
+
+        <div class="mc-kpi-card">
+          <p class="mc-kpi-label">Pénalités totales</p>
+          <p class="mc-kpi-value">{{ formatMontant(credit.penaliteTotal) }}</p>
+        </div>
+
+        <div class="mc-kpi-card">
+          <p class="mc-kpi-label">Total contractuel</p>
+          <p class="mc-kpi-value">{{ formatMontant(credit.totalARembourser) }}</p>
+        </div>
+
+        <div class="mc-kpi-card mc-kpi-card-success">
+          <p class="mc-kpi-label text-emerald-700">Total déjà payé</p>
+          <p class="mc-kpi-value text-emerald-900">{{ formatMontant(totalDejaPaye) }}</p>
+        </div>
+
+        <div class="mc-kpi-card mc-kpi-card-warning">
+          <p class="mc-kpi-label text-amber-700">Reste à payer / Encours principal</p>
+          <p class="mc-kpi-value text-amber-900">{{ formatMontant(resteAPayer) }}</p>
+        </div>
+      </div>
+    </section>
+
+    <section *ngIf="credit" class="space-y-4">
+      <div class="mc-panel">
+        <h2 class="mb-0 text-lg font-bold text-slate-900">Échéances</h2>
+      </div>
+
+      <div *ngIf="echeancesErrorMessage" class="mc-state mc-state-warning">
+        {{ echeancesErrorMessage }}
+      </div>
+
+      <div *ngIf="!echeancesErrorMessage && echeances.length === 0" class="mc-state mc-state-info">
+        Aucune échéance disponible pour ce crédit.
+      </div>
+
+      <div *ngIf="!echeancesErrorMessage && echeances.length > 0" class="mc-table-wrap">
+        <table class="mc-table min-w-[1050px]">
+          <thead>
+            <tr>
+              <th>N°</th>
+              <th>Date échéance</th>
+              <th class="text-right">Principal</th>
+              <th class="text-right">Intérêt</th>
+              <th class="text-right">Pénalité</th>
+              <th class="text-right">Total dû</th>
+              <th class="text-right">Payé</th>
+              <th class="text-right">Reste</th>
+              <th class="text-center">Statut</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let echeance of echeances">
+              <td class="font-semibold text-slate-900">{{ echeance.numeroEcheance }}</td>
+              <td>{{ echeance.dateEcheance }}</td>
+              <td class="text-right">{{ formatMontant(echeance.principalPrevu) }}</td>
+              <td class="text-right">{{ formatMontant(echeance.interetPrevu) }}</td>
+              <td class="text-right">{{ formatMontant(echeance.penaliteCumulee) }}</td>
+              <td class="text-right font-semibold text-slate-900">{{ formatMontant(echeance.totalPrevu) }}</td>
+              <td class="text-right font-semibold text-emerald-700">{{ formatMontant(echeance.totalPaye) }}</td>
+              <td class="text-right font-semibold text-amber-700">{{ formatMontant(echeance.resteAPayer) }}</td>
+              <td class="text-center">
+                <span class="mc-badge" [ngClass]="getStatutEcheanceClasses(echeance.statut)">
+                  {{ echeance.statut }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section *ngIf="credit && !canSubmitRemboursement" class="mc-state mc-state-warning">
+        <h2 class="mb-1 text-lg font-bold text-slate-900">Remboursement en suivi</h2>
+        <p>
+          Votre rôle permet de consulter le crédit et ses échéances. Le remboursement direct au bureau est réservé au Caissier; les remboursements terrain passent par la collecte, le billetage et le contrôle.
+        </p>
+    </section>
+
+    <section *ngIf="credit && canSubmitRemboursement" class="mc-panel space-y-5">
+      <div>
+        <h2 class="mb-1 text-lg font-bold text-slate-900">Enregistrer un remboursement direct au bureau</h2>
+        <p class="text-sm leading-6 text-slate-600">
+          Ce formulaire est réservé aux remboursements effectués directement au bureau. Les remboursements collectés sur terrain doivent passer par la collecte, le billetage et le contrôle.
+        </p>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-6">
+        <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+          <div class="mc-field-label">
+            <label for="datePaiement">Date paiement</label>
+            <input id="datePaiement" type="datetime-local" formControlName="datePaiement" class="mc-input">
+          </div>
+
+          <div class="mc-field-label">
+            <label for="montantTotal">Montant payé</label>
+            <input id="montantTotal" type="number" step="0.01" formControlName="montantTotal" class="mc-input text-lg font-bold">
+            <p *ngIf="f.montantTotal.touched && f.montantTotal.invalid" class="text-sm text-red-700 mt-2">
+              Le montant doit être supérieur à 0.
+            </p>
+          </div>
+
+          <div class="mc-field-label">
+            <label for="modePaiement">Mode paiement</label>
+            <select id="modePaiement" formControlName="modePaiement" class="mc-select">
+              <option *ngFor="let m of modePaiementOptions" [value]="m">
+                {{ m === 'COMPTE_EPARGNE' ? 'COMPTE EPARGNE' : m }}
+              </option>
+            </select>
+          </div>
+
+          <div *ngIf="modeCompteEpargne" class="md:col-span-2 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+            <h3 class="mb-1 text-sm font-bold text-emerald-900">Compte épargne du membre</h3>
+            <p class="text-sm leading-6 text-emerald-800">
+              Seul le solde disponible peut être utilisé. Le solde bloqué en garantie reste indisponible.
+            </p>
+
+            <div *ngIf="compteEpargne" class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div>
+                <p class="text-xs font-semibold text-emerald-700">Compte</p>
+                <p class="text-sm font-bold text-emerald-950">{{ compteEpargne.numeroCompte }}</p>
+              </div>
+              <div>
+                <p class="text-xs font-semibold text-emerald-700">Solde disponible</p>
+                <p class="text-lg font-bold text-emerald-950">{{ formatMontant(compteEpargne.soldeDisponible) }}</p>
+              </div>
+              <div>
+                <p class="text-xs font-semibold text-emerald-700">Solde bloqué</p>
+                <p class="text-lg font-bold text-slate-700">{{ formatMontant(compteEpargne.soldeBloque) }}</p>
+              </div>
+            </div>
+
+            <p *ngIf="compteEpargneErrorMessage" class="text-sm text-red-700 mt-3">
+              {{ compteEpargneErrorMessage }}
+            </p>
+
+            <p *ngIf="soldeDisponibleInsuffisant" class="text-sm text-red-700 mt-3">
+              Le montant payé dépasse le solde disponible du compte épargne.
+            </p>
+          </div>
+
+          <div class="mc-field-label md:col-span-2">
+            <label for="observation">Observation</label>
+            <textarea id="observation" formControlName="observation" rows="3" class="mc-textarea"></textarea>
+          </div>
+        </div>
+
+        <div class="mc-button-row">
+          <button type="submit" [disabled]="loading || form.invalid || montantPayeInvalide || compteEpargneIndisponible || soldeDisponibleInsuffisant" class="mc-btn mc-btn-dark px-5 py-3">
+            {{ loading ? 'Validation...' : 'Valider le remboursement' }}
+          </button>
+        </div>
+      </form>
+    </section>
+  </main>
+</div>

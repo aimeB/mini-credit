@@ -1,0 +1,183 @@
+<div class="mc-page-wide">
+    <header class="mc-page-hero">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h1 class="mc-page-title">Gestion des Utilisateurs</h1>
+        <p class="mc-page-subtitle">Gérez les utilisateurs, leurs rôles, rattachements et statuts de compte.</p>
+      </div>
+      <a
+        routerLink="/utilisateurs/nouveau"
+        class="mc-btn mc-btn-primary"
+      >
+        Créer un Utilisateur
+      </a>
+    </div>
+    </header>
+
+    <!-- Loading -->
+    @if (loading) {
+      <div class="mc-state mc-state-info text-center">
+        Chargement des utilisateurs...
+      </div>
+    } @else {
+      <!-- Error Alert -->
+      @if (error) {
+        <div class="mc-state mc-state-danger">
+          {{ error }}
+        </div>
+      }
+
+      <!-- Success Alert -->
+      @if (success) {
+        <div class="mc-state mc-state-success">
+          {{ success }}
+        </div>
+      }
+
+      <!-- Table -->
+      @if (utilisateurs.length > 0) {
+        <div class="mc-table-wrap">
+            <table class="mc-table mc-table-admin w-full">
+              <colgroup>
+                <col class="w-[12%]">
+                <col class="w-[10%]">
+                <col class="w-[8%]">
+                <col class="w-[10%]">
+                <col class="w-[14%]">
+                <col class="w-[11%]">
+                <col class="w-[7%]">
+                <col class="w-[8%]">
+                <col class="w-[8%]">
+                <col class="w-[12%]">
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>Nom</th>
+                  <th>Identifiant</th>
+                  <th>Tél.</th>
+                  <th>Rôle</th>
+                  <th>Employé</th>
+                  <th>Antenne/Site</th>
+                  <th>Statut</th>
+                  <th>Création</th>
+                  <th>Modification</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200">
+                @for (utilisateur of utilisateurs; track utilisateur.id) {
+                  <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="font-medium text-gray-900 break-words leading-snug" [title]="utilisateur.nomComplet || ''">
+                      {{ utilisateur.nomComplet }}
+                    </td>
+                    <td class="text-gray-600 break-all leading-snug" [title]="utilisateur.username || ''">
+                      <span class="font-mono bg-slate-100 px-2 py-1 rounded text-[11px]">{{ utilisateur.username }}</span>
+                    </td>
+                    <td class="mc-cell-muted break-words" [title]="utilisateur.telephone || ''">
+                      {{ utilisateur.telephone || '—' }}
+                    </td>
+                    <td>
+                      <div class="flex flex-wrap gap-1">
+                        @for (role of utilisateur.roles; track role) {
+                          <span [class]="'mc-badge px-2 py-0.5 text-[10px] ' + getRoleColor(role)" [title]="role">
+                            {{ getRoleLabel(role) }}
+                          </span>
+                        }
+                      </div>
+                    </td>
+                    <td class="mc-cell-muted" [title]="utilisateur.employeNomComplet || ''">
+                      @if (utilisateur.employeId) {
+                        <div class="mc-cell-stack">
+                          <span class="mc-badge bg-green-100 text-green-800 w-fit max-w-full px-2 py-0.5 text-[10px]">
+                            {{ utilisateur.employeNomComplet || 'Employé #' + utilisateur.employeId }}
+                          </span>
+                          @if (utilisateur.employeFonction) {
+                            <span class="text-[11px] text-gray-400">{{ utilisateur.employeFonction }}</span>
+                          }
+                        </div>
+                      } @else {
+                        <span class="text-gray-400 text-xs">Aucun</span>
+                      }
+                    </td>
+                    <td class="mc-cell-muted" [title]="(utilisateur.employeAgenceNom || '—') + ' / ' + (utilisateur.employeSiteNom || '—')">
+                      <div class="break-words">{{ utilisateur.employeAgenceNom || '—' }}</div>
+                      <div class="text-[11px] text-gray-400 break-words">{{ utilisateur.employeSiteNom || '—' }}</div>
+                    </td>
+                    <td>
+                      @if (utilisateur.active) {
+                        <span class="mc-badge bg-green-100 text-green-800 px-2 py-0.5 text-[10px]">
+                          Actif
+                        </span>
+                      } @else {
+                        <span class="mc-badge bg-gray-100 text-gray-800 px-2 py-0.5 text-[10px]">
+                          Inactif
+                        </span>
+                      }
+                    </td>
+                    <td class="mc-date-short" [title]="utilisateur.dateCreation || ''">
+                      {{ utilisateur.dateCreation ? (utilisateur.dateCreation | date:'dd/MM/yyyy') : '—' }}
+                    </td>
+                    <td class="mc-date-short" [title]="utilisateur.dateModification || ''">
+                      {{ utilisateur.dateModification ? (utilisateur.dateModification | date:'dd/MM/yyyy') : '—' }}
+                    </td>
+                    <td>
+                      <div class="mc-actions-compact">
+                        @if (canResetPassword(utilisateur)) {
+                          <button
+                            type="button"
+                            (click)="resetPassword(utilisateur)"
+                            class="mc-btn bg-amber-600 text-white hover:bg-amber-700 mc-btn-compact"
+                            title="Réinitialiser mot de passe"
+                          >
+                            MDP
+                          </button>
+                        }
+                        <a
+                          [routerLink]="['/utilisateurs', utilisateur.id, 'edit']"
+                          class="mc-btn mc-btn-primary mc-btn-compact"
+                          title="Modifier"
+                        >
+                          Modif.
+                        </a>
+                        <button
+                          type="button"
+                          (click)="supprimer(utilisateur.id, utilisateur.nomComplet || utilisateur.username)"
+                          class="mc-btn bg-red-600 text-white hover:bg-red-700 mc-btn-compact"
+                          title="Supprimer"
+                        >
+                          Suppr.
+                        </button>
+                      </div>
+
+                      @if (temporaryPasswordVisibleForUserId === utilisateur.id) {
+                        <div class="mc-state mc-state-warning mt-3">
+                          <p class="text-xs text-amber-800 font-semibold mb-1">Mot de passe temporaire (affichage unique)</p>
+                          <p class="font-mono text-sm text-amber-900 break-all">{{ temporaryPasswordValue }}</p>
+                          <button
+                            type="button"
+                            (click)="masquerMotDePasseTemporaire()"
+                            class="mt-2 text-xs font-semibold text-amber-800 hover:text-amber-900"
+                          >
+                            Masquer définitivement
+                          </button>
+                        </div>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+        </div>
+      } @else {
+        <div class="mc-state mc-state-info text-center">
+          <p class="text-lg font-medium">Aucun utilisateur trouvé</p>
+          <a
+            routerLink="/utilisateurs/nouveau"
+            class="mc-btn mc-btn-primary mt-4"
+          >
+            Créer le premier utilisateur
+          </a>
+        </div>
+      }
+    }
+</div>

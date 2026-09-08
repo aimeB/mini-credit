@@ -1,0 +1,246 @@
+<main class="mc-page-wide">
+  <section class="mc-page-hero">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      <div>
+        <h1 class="mc-page-title">Garantie du crédit</h1>
+        <p class="mc-page-subtitle">Workflow 3N: garantie épargne obligatoire 20 % + garantie matérielle.</p>
+      </div>
+      <button type="button" (click)="retourListe()" class="mc-btn mc-btn-dark">
+        Retour liste demandes
+      </button>
+    </div>
+  </section>
+
+  <div *ngIf="loading" class="mc-state mc-state-info">Chargement en cours...</div>
+  <div *ngIf="errorMessage" class="mc-state mc-state-danger">{{ errorMessage }}</div>
+  <div *ngIf="successMessage" class="mc-state mc-state-success">{{ successMessage }}</div>
+
+  <section *ngIf="!loading && demande()" class="mc-panel space-y-5">
+    <app-workflow-guidance-banner [guidance]="guidance"></app-workflow-guidance-banner>
+
+    <div>
+      <h2 class="mb-1 text-lg font-bold text-slate-900">Résumé crédit</h2>
+      <p class="text-sm text-slate-600">Données de référence utilisées pour contrôler les garanties.</p>
+    </div>
+
+    <div class="grid gap-4 text-sm md:grid-cols-2 lg:grid-cols-3">
+      <div><span class="text-slate-500">N° demande</span><p class="font-semibold text-slate-900">{{ demande()?.numeroDemande }}</p></div>
+      <div><span class="text-slate-500">Membre</span><p class="font-semibold text-slate-900">{{ demande()?.membreNomComplet }}</p></div>
+      <div><span class="text-slate-500">Site/Antenne</span><p class="font-semibold text-slate-900">{{ demande()?.siteNom }}</p></div>
+      <div>
+        <span class="text-slate-500">Montant demandé</span>
+        <p class="font-semibold text-slate-900">{{ demande()?.montantDemande | number:'1.2-2' }} {{ demande()?.devise }}</p>
+      </div>
+      <div>
+        <span class="text-slate-500">Garantie épargne requise (20 %)</span>
+        <p class="font-semibold text-slate-900">{{ montantGarantieRequis() | number:'1.2-2' }} {{ demande()?.devise }}</p>
+      </div>
+      <div><span class="text-slate-500">Statut demande</span><p class="font-semibold text-slate-900">{{ demande()?.statut }}</p></div>
+      <div class="md:col-span-2 lg:col-span-3">
+        <span class="text-slate-500">Gage proposé</span>
+        <p class="font-semibold text-slate-900">{{ demande()?.gagePropose || garantie()?.gagePropose || 'Non renseigné' }}</p>
+      </div>
+    </div>
+  </section>
+
+  <section *ngIf="!loading && garantie() as g" class="mc-panel space-y-5">
+    <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+      <div>
+        <h2 class="mb-1 text-lg font-bold text-slate-900">Garantie épargne</h2>
+        <p class="text-sm text-slate-600">Contrôle du dépôt obligatoire avant validation globale.</p>
+      </div>
+      <div class="mc-button-row">
+        <button *ngIf="canVerifier()" type="button" (click)="verifierGarantie()" [disabled]="actionLoading" class="mc-btn bg-cyan-700 text-white hover:bg-cyan-800">
+          Vérifier
+        </button>
+        <span *ngIf="epargneBloquee()" class="mc-badge border border-emerald-300 bg-emerald-50 px-4 py-2 text-emerald-700">
+          Garantie épargne déjà bloquée
+        </span>
+        <button *ngIf="isControleur() && !epargneBloquee()" type="button" (click)="bloquerEpargne()" [disabled]="actionLoading || !canBloquer()" class="mc-btn mc-btn-success">
+          Bloquer 20 %
+        </button>
+      </div>
+    </div>
+
+    <div class="mc-kpi-grid">
+      <div class="mc-kpi-card"><p class="mc-kpi-label">Solde disponible</p><p class="mc-kpi-value">{{ g.soldeDisponible | number:'1.2-2' }} {{ g.devise }}</p></div>
+      <div class="mc-kpi-card"><p class="mc-kpi-label">Solde bloqué</p><p class="mc-kpi-value">{{ g.soldeBloque | number:'1.2-2' }} {{ g.devise }}</p></div>
+      <div class="mc-kpi-card"><p class="mc-kpi-label">Montant requis</p><p class="mc-kpi-value">{{ g.montantGarantieRequis | number:'1.2-2' }} {{ g.devise }}</p></div>
+      <div class="mc-kpi-card mc-kpi-card-warning"><p class="mc-kpi-label text-amber-700">Montant manquant</p><p class="mc-kpi-value text-amber-900">{{ montantManquant() | number:'1.2-2' }} {{ g.devise }}</p></div>
+      <div class="mc-kpi-card"><p class="mc-kpi-label">Statut garantie épargne</p><p class="mc-kpi-value text-base">{{ g.statutGarantieEpargne }}</p></div>
+      <div class="mc-kpi-card"><p class="mc-kpi-label">Statut global</p><p class="mc-kpi-value text-base">{{ g.statutGlobal }}</p></div>
+    </div>
+
+    <div *ngIf="montantManquant() > 0" class="mc-state mc-state-warning">
+      Dépôt complémentaire requis: {{ montantManquant() | number:'1.2-2' }} {{ g.devise }}
+    </div>
+
+    <div *ngIf="epargneBloquee()" class="mc-state mc-state-success">
+      Le blocage de la garantie épargne est déjà effectif. Vous pouvez vérifier le dossier, ajouter ou contrôler les garanties matérielles, puis valider la garantie globale.
+    </div>
+  </section>
+
+  <section *ngIf="!loading" class="mc-panel space-y-5">
+    <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+      <div>
+        <h2 class="mb-1 text-lg font-bold text-slate-900">Garantie matérielle / gage</h2>
+        <p class="text-sm text-slate-600">Minimum requis: 2 × montant demandé.</p>
+      </div>
+      <button *ngIf="isControleur() && (garantie()?.gagePropose || demande()?.gagePropose)" type="button" (click)="utiliserGagePropose()" [disabled]="actionLoading" class="mc-btn bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200 hover:bg-indigo-100">
+        Reprendre le gage proposé
+      </button>
+    </div>
+
+    <div *ngIf="garantie()?.gagePropose || demande()?.gagePropose" class="mc-state mc-state-info">
+      <span class="font-semibold">Gage proposé lors de la demande:</span>
+      {{ garantie()?.gagePropose || demande()?.gagePropose }}
+    </div>
+
+    <form *ngIf="isControleur()" [formGroup]="materielleForm" class="grid gap-4 md:grid-cols-2">
+      <label class="mc-field-label">
+        Type de bien
+        <input formControlName="typeBien" class="mc-input" />
+        <span *ngIf="materielleForm.controls.typeBien.touched && materielleForm.controls.typeBien.invalid" class="text-xs text-red-600">
+          Le type de bien est obligatoire.
+        </span>
+      </label>
+
+      <label class="mc-field-label">
+        Valeur estimée
+        <input type="number" formControlName="valeurEstimee" class="mc-input" />
+        <span *ngIf="materielleForm.controls.valeurEstimee.touched && materielleForm.controls.valeurEstimee.invalid" class="text-xs text-red-600">
+          La valeur doit être supérieure à 0.
+        </span>
+      </label>
+
+      <label class="mc-field-label md:col-span-2">
+        Description
+        <input formControlName="description" class="mc-input" />
+        <span *ngIf="materielleForm.controls.description.touched && materielleForm.controls.description.invalid" class="text-xs text-red-600">
+          La description est obligatoire.
+        </span>
+      </label>
+
+      <label class="mc-field-label">
+        Devise
+        <input formControlName="devise" class="mc-input" />
+        <span *ngIf="materielleForm.controls.devise.touched && materielleForm.controls.devise.invalid" class="text-xs text-red-600">
+          La devise est obligatoire.
+        </span>
+      </label>
+
+      <label class="mc-field-label">
+        Propriétaire déclaré
+        <input formControlName="proprietaireDeclare" class="mc-input" />
+      </label>
+
+      <label class="mc-field-label">
+        Localisation
+        <input formControlName="localisation" class="mc-input" />
+      </label>
+
+      <label class="mc-field-label">
+        Référence document
+        <input formControlName="referenceDocument" class="mc-input" />
+      </label>
+
+      <div class="md:col-span-2">
+        <button type="button" (click)="ajouterMaterielle()" [disabled]="actionLoading" class="mc-btn bg-indigo-700 text-white hover:bg-indigo-800">
+          Ajouter bien
+        </button>
+      </div>
+    </form>
+
+    <div class="mc-table-wrap">
+      <table class="mc-table min-w-[980px]">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Description</th>
+            <th class="text-right">Valeur</th>
+            <th>Devise</th>
+            <th>Statut</th>
+            <th>Commentaire</th>
+            <th class="text-center" *ngIf="isControleur()">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of materielles()">
+            <td>{{ item.typeBien }}</td>
+            <td>{{ item.description }}</td>
+            <td class="text-right">{{ item.valeurEstimee | number:'1.2-2' }}</td>
+            <td>{{ item.devise }}</td>
+            <td><span class="mc-badge bg-slate-100 text-slate-700">{{ asMaterielleStatut(item.statut) }}</span></td>
+            <td>{{ item.commentaire || '-' }}</td>
+            <td class="text-center" *ngIf="isControleur()">
+              <div class="mc-button-row justify-center">
+                <button type="button" *ngIf="isAcceptable(item)" (click)="accepterMaterielle(item)" [disabled]="actionLoading" class="mc-btn mc-btn-success px-2 py-1 text-xs">
+                  Accepter
+                </button>
+                <button type="button" *ngIf="isRefusable(item)" (click)="refuserMaterielle(item)" [disabled]="actionLoading" class="mc-btn bg-rose-600 px-2 py-1 text-xs text-white hover:bg-rose-700">
+                  Refuser
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="materielles().length === 0">
+            <td class="text-center text-slate-500" [attr.colspan]="isControleur() ? 7 : 6">
+              Aucun bien déclaré.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section *ngIf="!loading && garantie() as g" class="mc-panel space-y-5">
+    <h2 class="mb-0 text-lg font-bold text-slate-900">Synthèse garantie</h2>
+    <div class="grid gap-4 text-sm md:grid-cols-2">
+      <div><span class="text-slate-500">Épargne bloquée</span><p class="font-semibold text-slate-900">{{ epargneBloquee() ? 'Oui' : 'Non' }}</p></div>
+      <div><span class="text-slate-500">Minimum gage matériel</span><p class="font-semibold text-slate-900">{{ valeurMinimaleGageMateriel() | number:'1.2-2' }} {{ g.devise }}</p></div>
+      <div><span class="text-slate-500">Valeur matérielle déclarée</span><p class="font-semibold text-slate-900">{{ totalMateriel() | number:'1.2-2' }} {{ g.devise }}</p></div>
+      <div><span class="text-slate-500">Valeur matérielle acceptée</span><p class="font-semibold text-slate-900">{{ totalMaterielAccepte() | number:'1.2-2' }} {{ g.devise }}</p></div>
+      <div><span class="text-slate-500">Couverture matérielle</span><p class="font-semibold text-slate-900">{{ couvertureMaterielle() | number:'1.2-2' }} %</p></div>
+      <div><span class="text-slate-500">Suffisance matérielle</span><p class="font-semibold text-slate-900">{{ garantieMaterielleSuffisante() ? 'Oui' : 'Non' }}</p></div>
+      <div><span class="text-slate-500">Statut global</span><p class="font-semibold text-slate-900">{{ statutGlobalAffiche() }}</p></div>
+    </div>
+
+    <div *ngIf="!garantieMaterielleSuffisante()" class="mc-state mc-state-warning">
+      La valeur totale acceptée doit atteindre au moins 2 fois le montant demandé avant validation globale.
+    </div>
+  </section>
+
+  <section *ngIf="!loading && isControleur()" class="mc-panel space-y-5">
+    <h2 class="mb-0 text-lg font-bold text-slate-900">Décision Contrôleur</h2>
+    <form [formGroup]="decisionForm" class="space-y-4">
+      <label class="mc-field-label">
+        Commentaire (obligatoire)
+        <textarea formControlName="commentaire" rows="3" class="mc-textarea" placeholder="Saisir la décision de contrôle..."></textarea>
+      </label>
+
+      <div class="mc-button-row">
+        <button type="button" (click)="validerGarantie()" [disabled]="actionLoading" class="mc-btn mc-btn-success">
+          Valider garantie
+        </button>
+        <button type="button" (click)="rejeterGarantie()" [disabled]="actionLoading" class="mc-btn bg-rose-700 text-white hover:bg-rose-800">
+          Rejeter garantie
+        </button>
+      </div>
+    </form>
+
+    <p *ngIf="!epargneBloquee()" class="mc-state mc-state-warning">
+      Validation impossible tant que la garantie épargne n’est pas bloquée.
+    </p>
+    <p *ngIf="epargneBloquee() && !garantieMaterielleSuffisante()" class="mc-state mc-state-warning">
+      Validation impossible tant que les garanties matérielles acceptées sont inférieures à 2 fois le montant demandé.
+    </p>
+  </section>
+
+  <section *ngIf="!loading && isChefBureau()" class="mc-state mc-state-info">
+    Mode lecture CHEF_BUREAU: vous pouvez consulter la garantie mais seules les actions du contrôleur sont autorisées.
+  </section>
+
+  <section *ngIf="!loading && !isControleur() && !isChefBureau()" class="mc-state mc-state-info">
+    Mode lecture: vous pouvez consulter la garantie crédit. Les actions financières et décisions de garantie sont réservées au Contrôleur.
+  </section>
+</main>

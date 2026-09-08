@@ -1,0 +1,16 @@
+/* Recette Form Styles */
+
+.recette-page .card {
+	border: 1px solid #e5e7eb;
+	border-radius: 12px;
+}
+
+.recette-page .card-title {
+	color: #111827;
+	font-weight: 700;
+}
+
+.recette-page .form-label {
+	font-weight: 600;
+	color: #374151;
+}

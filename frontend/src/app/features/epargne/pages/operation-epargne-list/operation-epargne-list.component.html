@@ -1,0 +1,65 @@
+<div class="space-y-4">
+  <div class="mc-panel flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <h2 class="mb-1 text-lg font-bold text-slate-900">Historique des opérations</h2>
+      <p class="text-sm text-slate-600">Transactions du compte, références externes et observations.</p>
+    </div>
+    <button type="button" (click)="loadOperations()" [disabled]="loading || !compteId" class="mc-btn mc-btn-dark">
+      Actualiser
+    </button>
+  </div>
+
+  <div *ngIf="!compteId" class="mc-state mc-state-info">
+    Sélectionne d’abord un compte épargne.
+  </div>
+
+  <div *ngIf="compteId && loading" class="mc-state mc-state-info">
+    Chargement des opérations...
+  </div>
+
+  <div *ngIf="errorMessage" class="mc-state mc-state-danger">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="compteId && !loading && !errorMessage && operations.length === 0" class="mc-state mc-state-info">
+    Aucune opération trouvée pour ce compte.
+  </div>
+
+  <div *ngIf="!loading && operations.length > 0" class="mc-table-wrap">
+  <table class="mc-table min-w-[1080px]">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Date</th>
+        <th>Type opération</th>
+        <th>Sens</th>
+        <th class="text-right">Montant</th>
+        <th>Mode paiement</th>
+        <th>Référence externe</th>
+        <th>Observation</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let operation of operations">
+        <td>{{ operation.id }}</td>
+        <td>{{ operation.dateOperation | date:'dd/MM/yyyy HH:mm' }}</td>
+        <td><span class="mc-badge bg-slate-100 text-slate-700">{{ operation.typeOperation }}</span></td>
+        <td>{{ operation.sens }}</td>
+        <td class="text-right font-semibold text-slate-900">
+          <div>{{ operation.montant | number:'1.0-0' }} CDF</div>
+          <div *ngIf="hasCommissionDetails(operation) && retraitTicketsByOperation[operation.id] as ticket"
+               class="mt-1 space-y-0.5 text-xs font-normal text-slate-600">
+            <div>Débité compte : <strong>{{ ticket.montantTotalDebite | number:'1.0-0' }} CDF</strong></div>
+            <div>Remis membre : <strong>{{ ticket.montantRemisMembre | number:'1.0-0' }} CDF</strong></div>
+            <div>Commission : <strong>{{ ticket.montantCommission | number:'1.0-0' }} CDF</strong></div>
+            <div>Taux : <strong>{{ ticket.tauxCommission | number:'1.2-2' }} %</strong></div>
+          </div>
+        </td>
+        <td>{{ operation.modePaiement || '-' }}</td>
+        <td>{{ operation.referenceExterne || '-' }}</td>
+        <td class="max-w-[320px] whitespace-normal break-words">{{ operation.observation || '-' }}</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+</div>

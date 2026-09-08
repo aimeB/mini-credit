@@ -1,0 +1,294 @@
+<div class="min-h-screen bg-slate-50">
+  <div class="mx-auto max-w-[1500px] px-4 py-6 sm:px-6 lg:px-8">
+    <div class="rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 p-6 text-white shadow-xl">
+      <div class="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h2 class="text-2xl font-bold tracking-tight text-white">{{ journalTitle }}</h2>
+          <p class="mt-1 text-sm text-slate-200">
+            Consultez rapidement les mouvements et auditez le solde de votre période.
+          </p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            (click)="rechercher(0)"
+            [disabled]="loading()"
+            class="inline-flex items-center rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-60">
+            {{ loading() ? 'Chargement...' : 'Actualiser' }}
+          </button>
+          <button
+            type="button"
+            (click)="resetFilters()"
+            [disabled]="loading()"
+            class="inline-flex items-center rounded-lg bg-white/15 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/25 disabled:cursor-not-allowed disabled:opacity-60">
+            Réinitialiser
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <app-workflow-guidance-banner [guidance]="journalGuidance"></app-workflow-guidance-banner>
+
+    <div class="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div class="mb-4 flex items-center justify-between gap-3">
+        <h3 class="text-sm font-bold uppercase tracking-wide text-slate-700">Filtres de recherche</h3>
+        <span
+          class="rounded-full px-3 py-1 text-xs font-semibold"
+          [ngClass]="hasFiltresActifs() ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'">
+          {{ hasFiltresActifs() ? 'Filtres actifs' : 'Aucun filtre actif' }}
+        </span>
+      </div>
+
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div>
+          <label for="sessionCaisseId" class="mb-1 block text-xs font-semibold uppercase text-slate-600">Session</label>
+          <select id="sessionCaisseId" [(ngModel)]="sessionCaisseId" (ngModelChange)="onSessionFilterChanged()" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none">
+            <option value="">Toutes</option>
+            <option *ngFor="let session of sessions" [value]="session.id">
+              Session #{{ session.id }} - {{ session.dateComptable | date:'dd/MM/yyyy' }} - {{ session.caisseCode || ('Caisse #' + session.caisseId) }}
+            </option>
+          </select>
+        </div>
+
+        <div>
+          <label for="caisseId" class="mb-1 block text-xs font-semibold uppercase text-slate-600">Caisse</label>
+          <select id="caisseId" [(ngModel)]="caisseId" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none">
+            <option value="">Toutes</option>
+            <option *ngFor="let id of caisseOptions()" [value]="id">Caisse #{{ id }}</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="typeOperation" class="mb-1 block text-xs font-semibold uppercase text-slate-600">Type</label>
+          <select id="typeOperation" [(ngModel)]="typeOperation" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none">
+            <option value="">Tous</option>
+            <option *ngFor="let type of typeOptions" [value]="type">{{ type }}</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="source" class="mb-1 block text-xs font-semibold uppercase text-slate-600">Source</label>
+          <select id="source" [(ngModel)]="source" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none">
+            <option value="">Toutes</option>
+            <option *ngFor="let src of sourceOptions" [value]="src">{{ src }}</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="dateDebut" class="mb-1 block text-xs font-semibold uppercase text-slate-600">Date début</label>
+          <input id="dateDebut" type="date" [(ngModel)]="dateDebut" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none" />
+        </div>
+
+        <div>
+          <label for="dateFin" class="mb-1 block text-xs font-semibold uppercase text-slate-600">Date fin</label>
+          <input id="dateFin" type="date" [(ngModel)]="dateFin" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none" />
+        </div>
+
+        <div>
+          <label for="categorie" class="mb-1 block text-xs font-semibold uppercase text-slate-600">Catégorie</label>
+          <select id="categorie" [(ngModel)]="categorie" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none">
+            <option value="">Toutes</option>
+            <option *ngFor="let cat of categorieOptions" [value]="cat">{{ cat }}</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="referenceMetier" class="mb-1 block text-xs font-semibold uppercase text-slate-600">Référence métier</label>
+          <input id="referenceMetier" type="text" [(ngModel)]="referenceMetier" placeholder="RECETTE, DEPENSE, CREDIT..." class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none" />
+        </div>
+      </div>
+
+      <details class="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3">
+        <summary class="cursor-pointer text-sm font-semibold text-slate-700">Filtres avancés (IDs techniques)</summary>
+        <div class="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div>
+            <label for="siteId" class="mb-1 block text-xs font-semibold uppercase text-slate-600">Site ID</label>
+            <input id="siteId" type="number" [(ngModel)]="siteId" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none" />
+          </div>
+          <div>
+            <label for="utilisateurId" class="mb-1 block text-xs font-semibold uppercase text-slate-600">Utilisateur ID</label>
+            <input id="utilisateurId" type="number" [(ngModel)]="utilisateurId" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none" />
+          </div>
+          <div>
+            <label for="recetteId" class="mb-1 block text-xs font-semibold uppercase text-slate-600">Recette ID</label>
+            <input id="recetteId" type="number" [(ngModel)]="recetteId" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none" />
+          </div>
+          <div>
+            <label for="depenseCaisseId" class="mb-1 block text-xs font-semibold uppercase text-slate-600">Dépense ID</label>
+            <input id="depenseCaisseId" type="number" [(ngModel)]="depenseCaisseId" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none" />
+          </div>
+          <div>
+            <label for="creditId" class="mb-1 block text-xs font-semibold uppercase text-slate-600">Crédit ID</label>
+            <input id="creditId" type="number" [(ngModel)]="creditId" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none" />
+          </div>
+          <div>
+            <label for="retraitEpargneId" class="mb-1 block text-xs font-semibold uppercase text-slate-600">Retrait ID</label>
+            <input id="retraitEpargneId" type="number" [(ngModel)]="retraitEpargneId" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none" />
+          </div>
+          <div>
+            <label for="operationEpargneId" class="mb-1 block text-xs font-semibold uppercase text-slate-600">Op. épargne ID</label>
+            <input id="operationEpargneId" type="number" [(ngModel)]="operationEpargneId" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none" />
+          </div>
+        </div>
+      </details>
+
+      <div class="mt-4 flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          (click)="rechercher(0)"
+          [disabled]="loading()"
+          class="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60">
+          Lancer la recherche
+        </button>
+        <button
+          type="button"
+          (click)="resetFilters()"
+          [disabled]="loading()"
+          class="inline-flex items-center rounded-lg bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-300 disabled:cursor-not-allowed disabled:opacity-60">
+          Vider les filtres
+        </button>
+      </div>
+    </div>
+
+    <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div class="rounded-xl border border-slate-200 bg-white p-4">
+        <p class="text-xs font-semibold uppercase text-slate-600">Solde initial</p>
+        <p class="mt-2 text-xl font-bold text-slate-800">{{ formatOptionalCdf(soldeInitialSynthese) }}</p>
+        <p class="mt-1 text-xs text-slate-500">
+          {{ selectedSession ? 'Solde d’ouverture de la session' : 'Disponible après sélection d’une session' }}
+        </p>
+      </div>
+      <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+        <p class="text-xs font-semibold uppercase text-emerald-700">Total entrées</p>
+        <p class="mt-2 text-xl font-bold text-emerald-800">{{ formatCdf(montantEntreesSynthese) }}</p>
+      </div>
+      <div class="rounded-xl border border-red-200 bg-red-50 p-4">
+        <p class="text-xs font-semibold uppercase text-red-700">Total sorties</p>
+        <p class="mt-2 text-xl font-bold text-red-800">{{ formatCdf(montantSortiesSynthese) }}</p>
+      </div>
+      <div class="rounded-xl border p-4" [ngClass]="variationNetteSynthese >= 0 ? 'border-blue-200 bg-blue-50' : 'border-amber-200 bg-amber-50'">
+        <p class="text-xs font-semibold uppercase" [ngClass]="variationNetteSynthese >= 0 ? 'text-blue-700' : 'text-amber-700'">Variation nette</p>
+        <p class="mt-2 text-xl font-bold" [ngClass]="variationNetteSynthese >= 0 ? 'text-blue-800' : 'text-amber-800'">{{ formatCdf(variationNetteSynthese) }}</p>
+        <p class="mt-1 text-xs" [ngClass]="variationNetteSynthese >= 0 ? 'text-blue-700' : 'text-amber-700'">Entrées - Sorties</p>
+      </div>
+      <div class="rounded-xl border border-slate-200 bg-white p-4">
+        <p class="text-xs font-semibold uppercase text-slate-600">Solde final théorique</p>
+        <p class="mt-2 text-xl font-bold text-slate-800">{{ formatOptionalCdf(soldeFinalTheoriqueSynthese) }}</p>
+        <p class="mt-1 text-xs text-slate-500">Solde initial + Entrées - Sorties</p>
+      </div>
+    </div>
+
+    <div class="mt-4 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
+      <span *ngIf="selectedSession; else filteredTotalsNote">
+        Session #{{ selectedSession.id }} : {{ formatOptionalCdf(soldeInitialSynthese) }} + {{ formatCdf(montantEntreesSynthese) }} - {{ formatCdf(montantSortiesSynthese) }} = {{ formatOptionalCdf(soldeFinalTheoriqueSynthese) }}.
+      </span>
+      <ng-template #filteredTotalsNote>
+        Les entrées, sorties et la variation nette sont calculées sur les opérations filtrées. Sélectionnez une session pour afficher son solde initial et son solde final théorique.
+      </ng-template>
+    </div>
+
+    <div class="mt-4 rounded-xl border border-slate-200 bg-white p-4">
+      <p class="text-xs font-semibold uppercase text-slate-600">Nombre d'opérations</p>
+      <p class="mt-2 text-xl font-bold text-slate-800">{{ totalElements() }}</p>
+    </div>
+
+    <div *ngIf="errorMessage()" class="mt-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+      {{ errorMessage() }}
+    </div>
+
+    <div *ngIf="loading()" class="mt-5 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+      Chargement du journal de caisse...
+    </div>
+
+    <div *ngIf="!loading() && !errorMessage()" class="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div class="overflow-x-auto">
+        <table *ngIf="operations().length > 0; else emptyState" class="min-w-[1300px] w-full text-sm">
+          <thead class="bg-slate-100 text-slate-700">
+            <tr>
+              <th class="sticky top-0 z-10 px-3 py-3 text-left font-semibold">Date/Heure</th>
+              <th class="sticky top-0 z-10 px-3 py-3 text-left font-semibold">Type</th>
+              <th class="sticky top-0 z-10 px-3 py-3 text-left font-semibold">Montant</th>
+              <th class="sticky top-0 z-10 px-3 py-3 text-left font-semibold">Solde après</th>
+              <th class="sticky top-0 z-10 px-3 py-3 text-left font-semibold">Caisse</th>
+              <th class="sticky top-0 z-10 px-3 py-3 text-left font-semibold">Site</th>
+              <th class="sticky top-0 z-10 px-3 py-3 text-left font-semibold">Utilisateur</th>
+              <th class="sticky top-0 z-10 px-3 py-3 text-left font-semibold">Rôle</th>
+              <th class="sticky top-0 z-10 px-3 py-3 text-left font-semibold">Catégorie</th>
+              <th class="sticky top-0 z-10 px-3 py-3 text-left font-semibold">Source</th>
+              <th class="sticky top-0 z-10 px-3 py-3 text-left font-semibold">Session</th>
+              <th class="sticky top-0 z-10 px-3 py-3 text-left font-semibold">Référence</th>
+              <th class="sticky top-0 z-10 px-3 py-3 text-left font-semibold">Commentaire</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr *ngFor="let operation of operations(); trackBy: trackByOperationId" class="hover:bg-slate-50">
+              <td class="px-3 py-3 whitespace-nowrap text-slate-700">
+                <div class="font-semibold">{{ operation.dateOperation | date:'dd/MM/yyyy' }}</div>
+                <div class="text-xs text-slate-500">{{ operation.dateOperation | date:'HH:mm' }}</div>
+              </td>
+              <td class="px-3 py-3">
+                <span class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold"
+                      [ngClass]="operation.typeOperation === 'ENTREE' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'">
+                  {{ operation.typeOperation }}
+                </span>
+              </td>
+              <td class="px-3 py-3 font-semibold" [ngClass]="operation.typeOperation === 'ENTREE' ? 'text-emerald-700' : 'text-red-700'">
+                {{ formatCdf(operation.montant) }}
+              </td>
+              <td class="px-3 py-3 text-slate-700">{{ formatCdf(operation.soldeApresOperation) }}</td>
+              <td class="px-3 py-3 text-slate-700">{{ operation.caisseLibelle || ('#' + operation.caisseId) || '-' }}</td>
+              <td class="px-3 py-3 text-slate-700">{{ operation.siteLibelle || ('#' + operation.siteId) || '-' }}</td>
+              <td class="px-3 py-3 text-slate-700">{{ operation.utilisateurNom || ('#' + operation.utilisateurId) || '-' }}</td>
+              <td class="px-3 py-3">
+                <span class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold" [ngClass]="getRoleBadgeClass(operation.roleUtilisateur)">
+                  {{ operation.roleUtilisateur || '-' }}
+                </span>
+              </td>
+              <td class="px-3 py-3 text-slate-700">{{ operation.categorie }}</td>
+              <td class="px-3 py-3 text-slate-700">{{ getSourceLabel(operation) }}</td>
+              <td class="px-3 py-3">
+                <span class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold" [ngClass]="getSessionBadgeClass(operation.statutSession)">
+                  {{ operation.statutSession || '-' }}
+                </span>
+              </td>
+              <td class="px-3 py-3 font-mono text-xs text-slate-700">{{ getReferenceLabel(operation) }}</td>
+              <td class="px-3 py-3 text-slate-700" [title]="operation.commentaire || '-'">
+                {{ truncate(operation.commentaire, 52) }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div *ngIf="totalPages() > 0" class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 bg-slate-50 px-4 py-3">
+        <button
+          type="button"
+          class="rounded-lg bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+          (click)="previousPage()"
+          [disabled]="page() === 0 || loading()">
+          Précédent
+        </button>
+
+        <span class="text-sm text-slate-600">
+          Page <span class="font-semibold text-slate-800">{{ page() + 1 }}</span> / {{ totalPages() }}
+          • {{ totalElements() }} élément(s)
+        </span>
+
+        <button
+          type="button"
+          class="rounded-lg bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+          (click)="nextPage()"
+          [disabled]="page() + 1 >= totalPages() || loading()">
+          Suivant
+        </button>
+      </div>
+
+      <ng-template #emptyState>
+        <div class="px-6 py-10 text-center">
+          <p class="text-base font-semibold text-slate-700">Aucune opération trouvée</p>
+          <p class="mt-1 text-sm text-slate-500">Ajustez les filtres puis relancez la recherche.</p>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>

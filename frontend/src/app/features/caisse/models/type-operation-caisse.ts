@@ -1,0 +1,1 @@
+export type TypeOperationCaisse = 'ENTREE' | 'SORTIE';

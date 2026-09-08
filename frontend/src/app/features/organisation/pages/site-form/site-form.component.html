@@ -1,0 +1,132 @@
+﻿<div class="mc-page">
+
+    <!-- Header -->
+    <header class="mc-page-hero flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <h1 class="mc-page-title">{{ isEdit ? 'Modifier le Site' : 'Creer un Site' }}</h1>
+        <p class="mc-page-subtitle">{{ isEdit ? 'Mise a jour des informations du site' : 'Etape 2 - rattache a une agence existante' }}</p>
+      </div>
+      <a routerLink="/sites"
+         class="mc-btn bg-white/15 text-white ring-1 ring-white/30 hover:bg-white/25">
+        Retour
+      </a>
+    </header>
+
+    @if (loadingAgences) {
+      <div class="mc-state mc-state-info">
+        Chargement des agences...
+      </div>
+    }
+
+    @if (!loadingAgences && agences.length === 0 && !isEdit) {
+      <div class="mc-state mc-state-danger">
+        <p class="font-semibold">Aucune agence active trouvee</p>
+        <p class="mt-1">Vous devez d'abord creer une agence avant de creer un site.</p>
+        <a routerLink="/agences/nouveau" class="mc-btn mt-2 bg-red-600 text-white hover:bg-red-700">
+          Creer une agence maintenant
+        </a>
+      </div>
+    }
+
+    @if (error) {
+      <div class="mc-state mc-state-danger">{{ error }}</div>
+    }
+    @if (success) {
+      <div class="mc-state mc-state-success">{{ success }}</div>
+    }
+
+    <!-- Formulaire -->
+    <form [formGroup]="form" (ngSubmit)="enregistrer()" class="mc-panel space-y-6">
+
+      <app-workflow-guidance-banner [guidance]="formGuidance"></app-workflow-guidance-banner>
+
+      <p class="text-sm text-gray-500"><span class="text-red-500">*</span> Champ obligatoire</p>
+
+      <!-- Agence -->
+      <div>
+        <label class="mc-field-label">
+          Agence <span class="text-red-500">*</span>
+        </label>
+        <select formControlName="agenceId"
+          [class.border-red-500]="form.get('agenceId')?.invalid && form.get('agenceId')?.touched"
+          class="mc-select">
+          <option [value]="null">-- Selectionner une agence --</option>
+          @for (agence of agences; track agence.id) {
+            <option [value]="agence.id">{{ agence.codeAgence }} - {{ agence.nomAgence }} ({{ agence.commune }})</option>
+          }
+        </select>
+        @if (getFieldError('agenceId')) {
+          <p class="text-red-500 text-sm mt-1">{{ getFieldError('agenceId') }}</p>
+        }
+        <p class="text-xs text-gray-400 mt-1">La ville et la commune de l agence s appliquent automatiquement.</p>
+      </div>
+
+      <!-- Code Site (lecture seule en edition) -->
+      <div>
+        <label class="mc-field-label">
+          Code Site @if (!isEdit) {<span class="text-red-500">*</span>}
+        </label>
+        <input type="text" formControlName="codeSite"
+          [class.border-red-500]="form.get('codeSite')?.invalid && form.get('codeSite')?.touched"
+          [class.bg-gray-100]="isEdit"
+          class="mc-input uppercase"
+          placeholder="Ex: GOMBE01">
+        @if (getFieldError('codeSite')) {
+          <p class="text-red-500 text-sm mt-1">{{ getFieldError('codeSite') }}</p>
+        }
+        @if (isEdit) {
+          <p class="text-xs text-gray-400 mt-1">Le code site n est pas modifiable.</p>
+        }
+      </div>
+
+      <!-- Nom du Site -->
+      <div>
+        <label class="mc-field-label">
+          Nom du Site <span class="text-red-500">*</span>
+        </label>
+        <input type="text" formControlName="nomSite"
+          [class.border-red-500]="form.get('nomSite')?.invalid && form.get('nomSite')?.touched"
+          class="mc-input"
+          placeholder="Ex: Zone Place Meteo">
+        @if (getFieldError('nomSite')) {
+          <p class="text-red-500 text-sm mt-1">{{ getFieldError('nomSite') }}</p>
+        }
+      </div>
+
+      <!-- Zone (obligatoire) -->
+      <div>
+        <label class="mc-field-label">
+          Zone <span class="text-red-500">*</span>
+        </label>
+        <input type="text" formControlName="zone"
+          [class.border-red-500]="form.get('zone')?.invalid && form.get('zone')?.touched"
+          class="mc-input"
+          placeholder="Ex: De la Place Meteo jusqu a l avenue X">
+        @if (getFieldError('zone')) {
+          <p class="text-red-500 text-sm mt-1">{{ getFieldError('zone') }}</p>
+        }
+        <p class="text-xs text-gray-400 mt-1">Perimetre operationnel du site sur le terrain.</p>
+      </div>
+
+      <!-- Actif -->
+      <div>
+        <label class="flex items-center cursor-pointer gap-3">
+          <input type="checkbox" formControlName="actif"
+            class="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500">
+          <span class="text-gray-700 font-medium">Site actif</span>
+        </label>
+      </div>
+
+      <!-- Boutons -->
+      <div class="mc-button-row border-t border-gray-200 pt-4">
+        <a routerLink="/sites"
+           class="mc-btn flex-1 bg-gray-200 text-center text-gray-800 hover:bg-gray-300">
+          Annuler
+        </a>
+        <button type="submit" [disabled]="form.invalid || loading || (!isEdit && agences.length === 0)"
+          class="mc-btn mc-btn-primary flex-1 disabled:cursor-not-allowed disabled:opacity-50">
+          {{ loading ? 'Enregistrement...' : (isEdit ? 'Enregistrer' : 'Creer le Site') }}
+        </button>
+      </div>
+    </form>
+</div>

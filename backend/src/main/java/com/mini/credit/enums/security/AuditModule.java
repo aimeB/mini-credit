@@ -1,0 +1,18 @@
+package com.mini.credit.enums.security;
+
+public enum AuditModule {
+    CAISSE,
+    SESSION_CAISSE,
+    OPERATION_CAISSE,
+    DEPENSE_CAISSE,
+    JOURNAL_CAISSE,
+    RAPPORT_CAISSE,
+    RETRAIT_EPARGNE,
+    TICKET_RECU,
+    CREDIT,
+    RECETTE_TERRAIN,
+    PARAMETRAGE,
+    PERSONNEL,
+    AUTHENTIFICATION,
+    CONTROLE_INTERNE
+}

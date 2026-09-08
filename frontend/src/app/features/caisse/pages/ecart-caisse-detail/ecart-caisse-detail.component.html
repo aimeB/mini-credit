@@ -1,0 +1,198 @@
+<div class="page">
+  <div class="page-header">
+    <h2>Détail écart de caisse</h2>
+    <a routerLink="/caisses/ecarts" class="btn btn-secondary">Retour à la liste</a>
+  </div>
+
+  <app-workflow-guidance-banner [guidance]="guidance()"></app-workflow-guidance-banner>
+
+  <!-- Chargement -->
+  <div *ngIf="loading()" class="info">Chargement...</div>
+
+  <!-- Erreur chargement -->
+  <div *ngIf="errorMessage()" class="error">{{ errorMessage() }}</div>
+
+  <!-- Succès action -->
+  <div *ngIf="successMessage()" class="success">{{ successMessage() }}</div>
+
+  <!-- Détail -->
+  <div *ngIf="ecart() as e" class="space-y-4">
+
+    <!-- Carte principale -->
+    <div class="card">
+      <h3 class="font-semibold text-gray-700 mb-3">Informations</h3>
+
+      <div class="grid grid-cols-2 gap-3 text-sm">
+        <p><strong>ID :</strong> {{ e.id }}</p>
+        <p><strong>Date :</strong> {{ e.dateJour }}</p>
+        <p><strong>Session caisse :</strong> #{{ e.sessionCaisseId }}</p>
+        <p *ngIf="e.recetteId"><strong>Recette :</strong> #{{ e.recetteId }}</p>
+
+        <p><strong>Type d'écart :</strong> {{ getTypeLabel(e.typeEcart) }}</p>
+        <p>
+          <strong>Montant :</strong>
+          <span class="font-mono font-semibold text-red-700">
+            {{ e.montantEcart | number:'1.2-2' }} USD
+          </span>
+        </p>
+
+        <p>
+          <strong>Statut :</strong>
+          <span class="px-2 py-0.5 rounded text-xs font-medium ml-1"
+                [ngClass]="getStatutCss(e.statut)">
+            {{ getStatutLabel(e.statut) }}
+          </span>
+        </p>
+
+        <p>
+          <strong>Seuil dépassé :</strong>
+          <span *ngIf="e['seuilDepass\u00e9']" class="ml-1 px-2 py-0.5 rounded text-xs bg-orange-100 text-orange-800">
+            Oui — validation hiérarchique requise
+          </span>
+          <span *ngIf="!e['seuilDepass\u00e9']" class="text-gray-500 ml-1">Non</span>
+        </p>
+      </div>
+
+      <div *ngIf="e.description" class="mt-3 text-sm">
+        <strong>Description :</strong>
+        <p class="mt-1 text-gray-700 bg-gray-50 p-2 rounded">{{ e.description }}</p>
+      </div>
+    </div>
+
+    <!-- Suivi investigation -->
+    <div class="card" *ngIf="e.notesInvestigation || e.raisonResolution || e.enqueteParId">
+      <h3 class="font-semibold text-gray-700 mb-3">Suivi investigation</h3>
+      <div class="text-sm space-y-2">
+        <div *ngIf="e.notesInvestigation">
+          <strong>Notes / Justification :</strong>
+          <pre class="mt-1 bg-gray-50 p-2 rounded text-gray-700 whitespace-pre-wrap text-xs">{{ e.notesInvestigation }}</pre>
+        </div>
+        <p *ngIf="e.enqueteParId">
+          <strong>Enquête ouverte par :</strong> Utilisateur #{{ e.enqueteParId }}
+          <span *ngIf="e.dateEnquete"> — {{ e.dateEnquete }}</span>
+        </p>
+        <div *ngIf="e.raisonResolution">
+          <strong>Raison de résolution :</strong>
+          <p class="mt-1 bg-green-50 p-2 rounded text-gray-700">{{ e.raisonResolution }}</p>
+        </div>
+        <p *ngIf="e.valideParId">
+          <strong>Validé par :</strong> Utilisateur #{{ e.valideParId }}
+          <span *ngIf="e.dateValidation"> — {{ e.dateValidation }}</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- Barre d'actions -->
+    <div class="card" *ngIf="showJustifierBtn() || showOuvrirEnqueteBtn() || showResoudreBtn() || showAccepterBtn() || showRejeterBtn()">
+      <h3 class="font-semibold text-gray-700 mb-3">Actions disponibles</h3>
+
+      <div class="flex flex-wrap gap-2">
+        <button *ngIf="showJustifierBtn()"
+                (click)="openPanel('justifier')"
+                class="btn btn-primary"
+                [disabled]="actionLoading()">
+          Justifier
+        </button>
+
+        <button *ngIf="showOuvrirEnqueteBtn()"
+                (click)="openPanel('enquete')"
+                class="btn btn-secondary"
+                [disabled]="actionLoading()">
+          Ouvrir enquête
+        </button>
+
+        <button *ngIf="showResoudreBtn()"
+                (click)="openPanel('resoudre')"
+                class="btn btn-primary"
+                [disabled]="actionLoading()">
+          Résoudre
+        </button>
+
+        <button *ngIf="showAccepterBtn()"
+                (click)="doAccepter()"
+                class="btn btn-primary"
+                [disabled]="actionLoading()">
+          Accepter variance
+        </button>
+
+        <button *ngIf="showRejeterBtn()"
+                (click)="doRejeter()"
+                class="btn btn-danger"
+                [disabled]="actionLoading()">
+          Rejeter
+        </button>
+      </div>
+
+      <!-- Erreur action -->
+      <div *ngIf="actionError()" class="error mt-3">{{ actionError() }}</div>
+
+      <!-- Panel : Justifier -->
+      <div *ngIf="activePanel === 'justifier'" class="mt-4 bg-gray-50 p-4 rounded border">
+        <h4 class="font-medium text-gray-700 mb-2">Saisir une justification</h4>
+        <p class="text-xs text-gray-500 mb-2">
+          La justification doit être documentée et comporter au moins 10 caractères.
+        </p>
+        <textarea
+          [(ngModel)]="justificationInput"
+          rows="4"
+          class="w-full border rounded p-2 text-sm"
+          placeholder="Décrivez l'origine de l'écart...">
+        </textarea>
+        <div class="flex gap-2 mt-2">
+          <button (click)="submitJustifier()" [disabled]="actionLoading()" class="btn btn-primary">
+            {{ actionLoading() ? 'Envoi...' : 'Enregistrer' }}
+          </button>
+          <button (click)="closePanel()" class="btn btn-secondary">Annuler</button>
+        </div>
+      </div>
+
+      <!-- Panel : Ouvrir enquête -->
+      <div *ngIf="activePanel === 'enquete'" class="mt-4 bg-blue-50 p-4 rounded border border-blue-200">
+        <h4 class="font-medium text-blue-700 mb-2">Ouvrir une enquête formelle</h4>
+        <p class="text-xs text-gray-500 mb-2">
+          Documenter le motif d'ouverture de l'enquête (min. 10 caractères).
+        </p>
+        <textarea
+          [(ngModel)]="enqueteInput"
+          rows="4"
+          class="w-full border rounded p-2 text-sm"
+          placeholder="Motif de l'enquête...">
+        </textarea>
+        <div class="flex gap-2 mt-2">
+          <button (click)="submitEnquete()" [disabled]="actionLoading()" class="btn btn-primary">
+            {{ actionLoading() ? 'Envoi...' : 'Ouvrir enquête' }}
+          </button>
+          <button (click)="closePanel()" class="btn btn-secondary">Annuler</button>
+        </div>
+      </div>
+
+      <!-- Panel : Résoudre -->
+      <div *ngIf="activePanel === 'resoudre'" class="mt-4 bg-green-50 p-4 rounded border border-green-200">
+        <h4 class="font-medium text-green-700 mb-2">Documenter la résolution</h4>
+        <textarea
+          [(ngModel)]="raisonInput"
+          rows="4"
+          class="w-full border rounded p-2 text-sm"
+          placeholder="Raison de résolution (obligatoire)...">
+        </textarea>
+        <div class="flex gap-2 mt-2">
+          <button (click)="submitResoudre()" [disabled]="actionLoading()" class="btn btn-primary">
+            {{ actionLoading() ? 'Envoi...' : 'Marquer résolu' }}
+          </button>
+          <button (click)="closePanel()" class="btn btn-secondary">Annuler</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lien vers la session -->
+    <div class="card">
+      <a [routerLink]="['/caisses/session', e.sessionCaisseId]" class="btn btn-secondary text-sm">
+        Voir la session #{{ e.sessionCaisseId }}
+      </a>
+      <a [routerLink]="['/caisses/session', e.sessionCaisseId, 'ecarts']" class="btn btn-secondary text-sm ml-2">
+        Voir tous les écarts de cette session
+      </a>
+    </div>
+
+  </div><!-- /ecart -->
+</div>

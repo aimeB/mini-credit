@@ -1,0 +1,299 @@
+<div class="mc-page-wide">
+  @if (loading) {
+    <div class="mc-state mc-state-info text-center">Chargement de la collecte terrain...</div>
+  }
+
+  <ng-container *ngIf="!loading && collecte as c">
+    <app-workflow-guidance-banner [guidance]="globalGuidance"></app-workflow-guidance-banner>
+
+    <header class="mc-page-hero">
+      <div class="flex flex-col gap-5">
+        <div>
+          <h1 class="mc-page-title">{{ isEditionMode ? 'Edition de collecte' : 'Ma collecte du jour' }}</h1>
+          <p class="mc-page-subtitle">Saisie des opérations terrain par membre, avec traçabilité des montants, références et commentaires avant billetage et contrôle.</p>
+        </div>
+
+        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <article class="rounded-2xl border border-white/10 bg-white/10 p-4">
+            <span class="text-xs font-bold uppercase tracking-wide text-slate-200">Agent terrain</span>
+            <strong class="mt-1 block text-sm text-white">{{ c.agentTerrainNom || currentUser?.nomComplet || '-' }}</strong>
+          </article>
+          <article class="rounded-2xl border border-white/10 bg-white/10 p-4">
+            <span class="text-xs font-bold uppercase tracking-wide text-slate-200">Site/Antenne</span>
+            <strong class="mt-1 block text-sm text-white">{{ c.siteNom || '-' }}</strong>
+          </article>
+          <article class="rounded-2xl border border-white/10 bg-white/10 p-4">
+            <span class="text-xs font-bold uppercase tracking-wide text-slate-200">Date</span>
+            <strong class="mt-1 block text-sm text-white">{{ formatDate(c.dateCollecte) }}</strong>
+          </article>
+          <article class="rounded-2xl border border-white/10 bg-white/10 p-4">
+            <span class="text-xs font-bold uppercase tracking-wide text-slate-200">Statut</span>
+            <span
+              class="mc-badge mt-2"
+              [ngClass]="{
+                'bg-gray-100 text-gray-700': c.statut === 'BROUILLON',
+                'bg-blue-100 text-blue-700': c.statut === 'SOUMISE',
+                'bg-green-100 text-green-700': c.statut === 'VALIDEE',
+                'bg-red-100 text-red-700': c.statut === 'REJETEE'
+              }"
+            >
+              {{ c.statut }}
+            </span>
+          </article>
+        </div>
+      </div>
+    </header>
+
+    <div class="mc-state mc-state-warning" *ngIf="isEditionMode && showEditionPastDateWarning">
+      Vous modifiez une collecte brouillon du {{ formatDate(c.dateCollecte) }}.
+    </div>
+
+    <div class="mc-state mc-state-warning" *ngIf="!isBrouillon">
+      Cette collecte n'est plus modifiable.
+    </div>
+
+    <div class="mc-state mc-state-danger" *ngIf="backendError">{{ backendError }}</div>
+
+    <section class="mc-panel space-y-4">
+      <div>
+        <h2 class="mb-1 text-lg font-bold text-slate-900">1. Sélectionner le membre visité</h2>
+        <p class="text-sm leading-6 text-slate-600">La recherche conserve visibles le code membre, le nom, le téléphone et l’action de sélection.</p>
+      </div>
+
+      <input
+        type="text"
+        class="mc-input"
+        [formControl]="searchControl"
+        placeholder="Rechercher par code membre, nom, téléphone ou carnet"
+      />
+
+      <div class="mc-table-wrap" *ngIf="filteredMembres.length > 0; else noMemberFound">
+        <table class="mc-table min-w-[720px]">
+          <thead>
+            <tr>
+              <th>Code membre</th>
+              <th>Nom</th>
+              <th>Téléphone</th>
+              <th class="text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let m of filteredMembres">
+              <td class="font-semibold text-slate-900">{{ m.codeMembre }}</td>
+              <td>{{ m.nomComplet || (m.nom + ' ' + (m.prenom || '')) }}</td>
+              <td>{{ m.telephonePrincipal || '-' }}</td>
+              <td class="text-center">
+                <button type="button" class="mc-btn mc-btn-primary" (click)="chooseMembre(m)">Sélectionner</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ng-template #noMemberFound>
+        <p class="mc-state mc-state-info">Aucun résultat ne correspond aux filtres actuels.</p>
+      </ng-template>
+
+      <article class="rounded-2xl border border-blue-200 bg-blue-50 p-4" *ngIf="selectedMembre as sm">
+        <h3 class="mb-3 text-base font-bold text-slate-900">Membre sélectionné</h3>
+        <div class="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+          <p><span class="block text-slate-500">Code</span><strong class="text-slate-900">{{ sm.codeMembre }}</strong></p>
+          <p><span class="block text-slate-500">Nom</span><strong class="text-slate-900">{{ sm.nomComplet || sm.nom }}</strong></p>
+          <p><span class="block text-slate-500">Téléphone</span><strong class="text-slate-900">{{ sm.telephonePrincipal || '-' }}</strong></p>
+          <p><span class="block text-slate-500">Crédit actif</span><strong class="text-slate-900">{{ activeCreditCount === 1 ? 'Oui' : 'Non' }}</strong></p>
+          <p><span class="block text-slate-500">Compte épargne</span><strong class="text-slate-900">{{ hasActiveCompteEpargne ? 'Récupéré automatiquement' : 'Aucun compte actif' }}</strong></p>
+          <p><span class="block text-slate-500">Crédit actif</span><strong class="text-slate-900">{{ activeCreditCount === 1 ? 'Récupéré automatiquement' : (activeCreditCount > 1 ? 'Plusieurs crédits actifs' : 'Aucun crédit en cours') }}</strong></p>
+          <p><span class="block text-slate-500">Carnet</span><strong class="text-slate-900">1 carnet, {{ formatCdf(carnetPrix) }}</strong></p>
+        </div>
+      </article>
+    </section>
+
+    <section class="mc-panel space-y-4">
+      <div>
+        <h2 class="mb-1 text-lg font-bold text-slate-900">2. Ajouter une opération pour ce membre</h2>
+        <p class="text-sm leading-6 text-slate-600">Les champs varient selon le type d’opération; l’épargne collectée et les remboursements restent distingués des frais.</p>
+      </div>
+
+      <form class="grid gap-4 md:grid-cols-2" [formGroup]="lineForm">
+        <label class="mc-field-label">
+          Type d'opération
+          <select formControlName="typeLigne" [disabled]="!isDraft" class="mc-select">
+            <option *ngFor="let t of availableTypeOptions" [value]="t" [disabled]="t === 'REMBOURSEMENT_CREDIT' && activeCreditCount !== 1">
+              {{ getTypeLabel(t) }}
+            </option>
+          </select>
+        </label>
+
+        <label class="mc-field-label" *ngIf="selectedType === 'EPARGNE' || selectedType === 'REMBOURSEMENT_CREDIT'">
+          Montant (CDF)
+          <input type="number" formControlName="montant" min="0" step="1" placeholder="Ex: 50000" [readonly]="!isDraft" class="mc-input" />
+        </label>
+
+        <label class="mc-field-label" *ngIf="selectedType === 'CARNET'">
+          Quantite
+          <input type="text" value="1" readonly class="mc-input" />
+        </label>
+
+        <label class="mc-field-label" *ngIf="selectedType === 'CARNET'">
+          Montant carnet (FC)
+          <input type="text" [value]="formatCdf(carnetPrix)" readonly class="mc-input" />
+        </label>
+
+        <label class="mc-field-label">
+          Référence
+          <input type="text" formControlName="reference" placeholder="Numéro carnet, dossier, etc." [readonly]="!isDraft" class="mc-input" />
+        </label>
+
+        <label class="mc-field-label" *ngIf="selectedType === 'DEMANDE_CREDIT'">
+          Montant demandé (CDF)
+          <input type="number" formControlName="montantSouhaite" min="1" step="1" placeholder="Ex: 250000" [readonly]="!isDraft" class="mc-input" />
+        </label>
+
+        <label class="mc-field-label" *ngIf="selectedType === 'DEMANDE_CREDIT'">
+          Frais de demande prévus (CDF)
+          <input type="number" formControlName="montant" min="0" step="1" placeholder="Montant manuel, optionnel" [readonly]="!isDraft" class="mc-input" />
+        </label>
+
+        <label class="mc-field-label" *ngIf="selectedType === 'DEMANDE_CREDIT'">
+          Objet du crédit
+          <input type="text" formControlName="objetCredit" placeholder="Ex: Renforcement stock commerce" [readonly]="!isDraft" class="mc-input" />
+        </label>
+
+        <label class="mc-field-label" *ngIf="selectedType === 'DEMANDE_CREDIT'">
+          Gage proposé
+          <input type="text" formControlName="gagePropose" placeholder="Ex: Matériel d'activité" [readonly]="!isDraft" class="mc-input" />
+        </label>
+
+        <label class="mc-field-label" *ngIf="selectedType === 'DEMANDE_CREDIT'">
+          Durée du crédit
+          <input type="number" formControlName="dureeValeur" min="1" max="60" step="1" placeholder="Ex: 6" [readonly]="!isDraft" class="mc-input" />
+        </label>
+
+        <label class="mc-field-label" *ngIf="selectedType === 'DEMANDE_CREDIT'">
+          Unité de durée
+          <select formControlName="dureeUnite" [disabled]="!isDraft" class="mc-select">
+            <option *ngFor="let option of dureeUniteOptions" [value]="option">{{ option }}</option>
+          </select>
+        </label>
+
+        <label class="mc-field-label" *ngIf="selectedType === 'DEMANDE_CREDIT'">
+          Modalité remboursement
+          <select formControlName="modaliteRemboursement" [disabled]="!isDraft" class="mc-select">
+            <option value="JOURNALIERE">JOURNALIERE</option>
+            <option value="HEBDOMADAIRE">HEBDOMADAIRE</option>
+            <option value="MENSUELLE">MENSUELLE</option>
+          </select>
+        </label>
+
+        <label class="mc-field-label md:col-span-2">
+          Commentaire
+          <textarea formControlName="commentaire" rows="2" [readonly]="!isDraft" class="mc-textarea"></textarea>
+        </label>
+
+        <p class="mc-state mc-state-info md:col-span-2" *ngIf="operationHint">{{ operationHint }}</p>
+
+        <div class="md:col-span-2">
+          <button type="button" class="mc-btn mc-btn-primary" (click)="addLigne()" [disabled]="!canAddLine">
+            {{ addingLine ? 'Ajout en cours...' : 'Ajouter à la collecte' }}
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <section class="space-y-4">
+      <div class="mc-panel">
+        <h2 class="mb-1 text-lg font-bold text-slate-900">3. Opérations encodées</h2>
+        <p class="text-sm leading-6 text-slate-600">Chaque ligne conserve le membre, le type, la référence, le commentaire et l’impact caisse.</p>
+      </div>
+
+      <div class="mc-table-wrap">
+        <table class="mc-table min-w-[1120px]">
+          <thead>
+            <tr>
+              <th>Membre</th>
+              <th>Type</th>
+              <th class="text-right">Montant saisi</th>
+              <th class="text-center">Qté</th>
+              <th>Durée</th>
+              <th>Référence</th>
+              <th>Commentaire</th>
+              <th class="text-right">Impact caisse</th>
+              <th class="text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let l of c.lignes">
+              <td>{{ l.membreCode || '-' }} {{ l.membreNom || '-' }}</td>
+              <td>{{ getTypeLabel(l.typeLigne) }}</td>
+              <td class="text-right">
+                <ng-container *ngIf="l.typeLigne === 'DEMANDE_CREDIT'; else standardAmount">
+                  {{ formatCdf(getDisplayedMontant(l)) }}
+                  <div class="text-xs text-slate-500">Montant demandé</div>
+                </ng-container>
+                <ng-template #standardAmount>
+                  {{ formatCdf(getDisplayedMontant(l)) }}
+                </ng-template>
+              </td>
+              <td class="text-center">{{ l.quantite || '-' }}</td>
+              <td>{{ l.typeLigne === 'DEMANDE_CREDIT' ? ((l.dureeValeur || 1) + ' ' + (l.dureeUnite || 'MOIS')) : '-' }}</td>
+              <td>{{ l.reference || '-' }}</td>
+              <td class="max-w-[260px] whitespace-normal break-words">{{ l.commentaire || '-' }}</td>
+              <td class="text-right font-semibold text-slate-900">{{ formatCdf(getImpactCaisse(l)) }}</td>
+              <td class="text-center">
+                <button type="button" class="mc-btn bg-rose-600 px-2 py-1 text-xs text-white hover:bg-rose-700" (click)="removeLigne(l.id)" [disabled]="!isDraft">Supprimer</button>
+              </td>
+            </tr>
+            <tr *ngIf="!c.lignes.length">
+              <td colspan="9" class="text-center text-slate-500">Aucune opération encodée pour l'instant.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="mc-panel space-y-5">
+      <div>
+        <h2 class="mb-1 text-lg font-bold text-slate-900">4. Résumé calculé</h2>
+        <p class="text-sm leading-6 text-slate-600">Les totaux distinguent épargne, remboursements et frais avant remise des espèces.</p>
+      </div>
+
+      <div class="mc-kpi-grid">
+        <article class="mc-kpi-card"><span class="mc-kpi-label">Membres visités</span><strong class="mc-kpi-value block">{{ recap?.membresVisites ?? membresVisitesCount }}</strong></article>
+        <article class="mc-kpi-card"><span class="mc-kpi-label">Total épargne</span><strong class="mc-kpi-value block">{{ formatCdf(c.totalEpargneCalcule) }}</strong></article>
+        <article class="mc-kpi-card"><span class="mc-kpi-label">Total remboursements</span><strong class="mc-kpi-value block">{{ formatCdf(c.totalRemboursementsCalcule) }}</strong></article>
+        <article class="mc-kpi-card mc-kpi-card-success"><span class="mc-kpi-label text-emerald-700">Total carnets/frais</span><strong class="mc-kpi-value block text-emerald-900">{{ formatCdf(totalCarnetsFraisResume) }}</strong></article>
+        <article class="mc-kpi-card"><span class="mc-kpi-label">Total général attendu</span><strong class="mc-kpi-value block">{{ formatCdf(totalGeneralAttenduResume) }}</strong></article>
+        <article class="mc-kpi-card"><span class="mc-kpi-label">Espèces déclarées (Agent)</span><strong class="mc-kpi-value block">{{ formatCdf(remiseForm.get('especesRemises')?.value) }}</strong></article>
+        <article class="mc-kpi-card" [ngClass]="ecartTresorerieCalcule !== 0 ? 'mc-kpi-card-warning' : ''">
+          <span class="mc-kpi-label" [ngClass]="ecartTresorerieCalcule !== 0 ? 'text-amber-700' : ''">Écart trésorerie</span>
+          <strong class="mc-kpi-value block" [ngClass]="ecartTresorerieCalcule !== 0 ? 'text-amber-900' : ''">{{ formatCdf(ecartTresorerieCalcule) }}</strong>
+        </article>
+      </div>
+
+      <form class="grid gap-4 md:grid-cols-2" [formGroup]="remiseForm">
+        <label class="mc-field-label">
+          Espèces déclarées (Agent)
+          <input type="number" formControlName="especesRemises" min="0" step="1" [readonly]="!isDraft" class="mc-input" />
+        </label>
+        <label class="mc-field-label md:col-span-2">
+          Observations
+          <textarea formControlName="observations" rows="2" [readonly]="!isDraft" [attr.placeholder]="isObservationRequired ? 'Obligatoire si écart != 0' : 'Optionnel'" class="mc-textarea"></textarea>
+        </label>
+      </form>
+
+      <div class="mc-state mc-state-warning" *ngIf="ecartTresorerieCalcule !== 0">
+        Attention: l'écart de trésorerie est non nul. L'observation est obligatoire.
+      </div>
+    </section>
+
+    <footer class="mc-button-row">
+      <button type="button" class="mc-btn mc-btn-dark" (click)="saveBrouillon()" [disabled]="savingDraft || !isDraft || isEditionMode">
+        {{ savingDraft ? 'Enregistrement...' : 'Enregistrer brouillon' }}
+      </button>
+      <button type="button" class="mc-btn mc-btn-primary" (click)="soumettre()" [disabled]="!canSubmit">
+        {{ submitting ? 'Soumission...' : 'Soumettre au contrôle' }}
+      </button>
+      <button type="button" class="mc-btn bg-rose-600 text-white hover:bg-rose-700" (click)="annuler()">Annuler</button>
+    </footer>
+  </ng-container>
+</div>

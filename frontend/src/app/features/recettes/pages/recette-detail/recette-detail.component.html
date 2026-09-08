@@ -1,0 +1,206 @@
+<div class="container-fluid p-4">
+  <div class="mb-4">
+    <button class="btn btn-secondary" (click)="onBack()">
+      <i class="fas fa-arrow-left"></i> Retour
+    </button>
+  </div>
+
+  <div *ngIf="isLoading" class="text-center">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Chargement...</span>
+    </div>
+  </div>
+
+  <div *ngIf="!isLoading && recette" class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <div>
+        <h3 class="mb-1">Recette #{{ recette.id }}</h3>
+        <p class="text-muted mb-0">
+          {{ recette.dateRecette | date: 'dd/MM/yyyy' }} | 
+          {{ recette.agentTerrainNom }} | 
+          {{ recette.siteNom }}
+        </p>
+      </div>
+      <span class="badge" [ngClass]="'bg-' + getStatusColor(recette.statut)" 
+            style="font-size: 1em; padding: 0.5em 1em;">
+        {{ getStatusLabel(recette.statut) }}
+      </span>
+    </div>
+
+    <div class="card-body">
+      <app-workflow-guidance-banner [guidance]="guidance"></app-workflow-guidance-banner>
+
+      <!-- Synthèse -->
+      <div class="row mb-4">
+        <div class="col-md-3">
+          <div class="card bg-light">
+            <div class="card-body">
+              <small class="text-muted">Épargne Collectée</small>
+              <h4>{{ recette.epargneCollectee | currency: 'CDF' }}</h4>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card bg-light">
+            <div class="card-body">
+              <small class="text-muted">Remboursements</small>
+              <h4>{{ recette.remboursementsCreditCollectes | currency: 'CDF' }}</h4>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card bg-light">
+            <div class="card-body">
+              <small class="text-muted">Frais</small>
+              <h4>{{ recette.fraisCollectes | currency: 'CDF' }}</h4>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card bg-light">
+            <div class="card-body">
+              <small class="text-muted">Total Collecté</small>
+              <h4 class="text-success">{{ recette.totalCollecte | currency: 'CDF' }}</h4>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Détails terrain -->
+      <div class="row mb-4">
+        <div class="col-md-6">
+          <h5>Opérations Terrain</h5>
+          <p><strong>Membres visités:</strong> {{ recette.membresVisites }}</p>
+          <p><strong>Nouveaux membres:</strong> {{ recette.nouveauxMembres }}</p>
+          <p><strong>Carnets distribués:</strong> {{ recette.carnetDistribues }}</p>
+          <p><strong>Demandes crédit reçues:</strong> {{ recette.demandesCreditRecueillies }}</p>
+        </div>
+        <div class="col-md-6">
+          <h5>Épargne</h5>
+          <p><strong>Source:</strong> {{ recette.epargneSourceType }}</p>
+          <p><strong>Crédit IDs traités:</strong> {{ recette.creditIdsTraites || 'N/A' }}</p>
+          <p><strong>Demande Crédit IDs:</strong> {{ recette.demandesCreditIds || 'N/A' }}</p>
+        </div>
+      </div>
+
+      <!-- Trésorerie -->
+      <div class="mb-4">
+        <h5>Écarts Trésorerie</h5>
+        <div class="alert" [ngClass]="recette.excedent > 0 ? 'alert-success' : (recette.manquant > 0 ? 'alert-warning' : 'alert-info')">
+          <p><strong>Espèces remises:</strong> {{ recette.especesRemises | currency: 'CDF' }}</p>
+          <p><strong>Espèces émises:</strong> {{ recette.especesEmises | currency: 'CDF' }}</p>
+          <p *ngIf="recette.excedent > 0">
+            <span class="badge bg-success">Excédent: {{ recette.excedent | currency: 'CDF' }}</span>
+          </p>
+          <p *ngIf="recette.manquant > 0">
+            <span class="badge bg-danger">Manquant: {{ recette.manquant | currency: 'CDF' }}</span>
+          </p>
+          <p *ngIf="recette.excedent === 0 && recette.manquant === 0">
+            <span class="badge bg-info">Équilibré</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Observations -->
+      <div class="mb-4" *ngIf="recette.observations">
+        <h5>Observations</h5>
+        <p class="text-muted">{{ recette.observations }}</p>
+      </div>
+
+      <!-- Motif rejet si rejetée -->
+      <div class="mb-4" *ngIf="recette.motifRejet">
+        <h5>Motif Rejet</h5>
+        <p class="text-danger">{{ recette.motifRejet }}</p>
+      </div>
+
+      <!-- PHASE 6B.2: Statut de génération des opérations -->
+      <div class="mb-4 border-top pt-3" *ngIf="recette.statut === 'VALIDEE'">
+        <h5>
+          <i class="fas fa-cog"></i> Génération des Opérations Financières
+        </h5>
+        <div class="row mb-3">
+          <div class="col-md-12">
+            <p>
+              <strong>Statut:</strong>
+              <span class="badge" [ngClass]="'bg-' + getGenerationStatusColor(recette.operationGenerationStatus)">
+                {{ getGenerationStatusLabel(recette.operationGenerationStatus) }}
+              </span>
+            </p>
+          </div>
+        </div>
+        <div class="row mb-3" *ngIf="recette.operationGenerationStatus !== 'NON_GENEREE'">
+          <div class="col-md-6">
+            <p><strong>Opérations Épargne:</strong> {{ recette.operationEpargneCount || 0 }}</p>
+          </div>
+          <div class="col-md-6">
+            <p><strong>Opérations Caisse:</strong> {{ recette.operationCaisseCount || 0 }}</p>
+          </div>
+        </div>
+        <div class="alert alert-danger" *ngIf="recette.operationGenerationErrorMessage">
+          <strong>Erreur:</strong> {{ recette.operationGenerationErrorMessage }}
+        </div>
+        <div class="alert alert-info" *ngIf="recette.operationGenerationStatus === 'NON_GENEREE'">
+          <i class="fas fa-info-circle"></i> Les opérations seront générées automatiquement ou manuellement via le bouton ci-dessous.
+        </div>
+      </div>
+
+      <!-- Audit trail -->
+      <div class="mb-4 border-top pt-3">
+        <h5>Audit</h5>
+        <p *ngIf="recette.valideParNom">
+          <strong>Validée par:</strong> {{ recette.valideParNom }}
+        </p>
+        <p *ngIf="recette.dateValidation">
+          <strong>Date validation:</strong> {{ recette.dateValidation | date: 'dd/MM/yyyy HH:mm' }}
+        </p>
+        <p>
+          <strong>Créée le:</strong> {{ recette.dateCreation | date: 'dd/MM/yyyy HH:mm' }}
+        </p>
+        <p *ngIf="recette.modifiePar">
+          <strong>Dernière modification:</strong> {{ recette.dateModification | date: 'dd/MM/yyyy HH:mm' }} 
+          par {{ recette.modifiePar }}
+        </p>
+      </div>
+    </div>
+
+    <div class="card-footer d-flex gap-2 flex-wrap">
+      <button 
+        *ngIf="canEdit()"
+        class="btn btn-warning"
+        (click)="onEdit()">
+        <i class="fas fa-edit"></i> Modifier
+      </button>
+      <button 
+        *ngIf="canEdit()"
+        class="btn btn-danger"
+        (click)="onDelete()">
+        <i class="fas fa-trash"></i> Supprimer
+      </button>
+      <button 
+        *ngIf="recette.statut === 'BROUILLON' && currentUserRole === 'ADMIN'"
+        class="btn btn-success"
+        (click)="onSoumettre()">
+        <i class="fas fa-paper-plane"></i> Soumettre
+      </button>
+      <button 
+        *ngIf="canValidate()"
+        class="btn btn-primary"
+        (click)="onValidate()">
+        <i class="fas fa-check-circle"></i> Valider/Rejeter
+      </button>
+      <!-- PHASE 6B.2: Bouton génération d'opérations -->
+      <button 
+        *ngIf="canGenerateOperations()"
+        class="btn btn-success"
+        (click)="onGenerateOperations()"
+        [disabled]="isGeneratingOperations">
+        <span *ngIf="!isGeneratingOperations">
+          <i class="fas fa-magic"></i> Générer les Opérations
+        </span>
+        <span *ngIf="isGeneratingOperations">
+          <span class="spinner-border spinner-border-sm me-2"></span> Génération en cours...
+        </span>
+      </button>
+    </div>
+  </div>
+</div>

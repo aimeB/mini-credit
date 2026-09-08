@@ -1,0 +1,134 @@
+﻿<div class="mc-page-wide">
+
+    <!-- Fil d'Ariane -->
+    <div class="flex items-center gap-2 text-sm text-gray-500">
+      <a routerLink="/dashboard" class="hover:text-gray-700">Dashboard</a>
+      <span>/</span>
+      <a routerLink="/organisation" class="hover:text-gray-700">Organisation</a>
+      <span>/</span>
+      <span class="text-gray-800 font-medium">Agences</span>
+    </div>
+
+    <!-- Header -->
+    <header class="mc-page-hero">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h1 class="mc-page-title">Agences</h1>
+        <p class="mc-page-subtitle">Structure organisationnelle et points d'attache des sites.</p>
+      </div>
+      <div class="mc-button-row">
+        <a routerLink="/organisation"
+           class="mc-btn bg-white/15 text-white ring-1 ring-white/30 hover:bg-white/25">
+          Organisation
+        </a>
+        <a routerLink="/sites"
+           class="mc-btn mc-btn-success">
+          Voir les sites
+        </a>
+        <a routerLink="/agences/nouveau"
+           class="mc-btn mc-btn-primary">
+          Créer une agence
+        </a>
+      </div>
+    </div>
+    </header>
+
+    @if (successMessage) {
+      <div class="mc-state mc-state-success">{{ successMessage }}</div>
+    }
+
+    <div class="mb-6">
+      <app-workflow-guidance-banner [guidance]="globalGuidance"></app-workflow-guidance-banner>
+    </div>
+
+    @if (error) {
+      <div class="mc-state mc-state-danger">{{ error }}</div>
+    }
+
+    @if (loading) {
+      <div class="mc-state mc-state-info text-center">Chargement...</div>
+    } @else if (agences.length === 0) {
+      <div class="mc-state mc-state-info text-center">
+        <h3 class="text-xl font-bold text-gray-900 mb-2">Aucune agence</h3>
+        <p class="text-gray-600 mb-6">Creez votre premiere agence pour commencer.</p>
+        <a routerLink="/agences/nouveau"
+           class="mc-btn mc-btn-primary">
+          Creer une agence
+        </a>
+      </div>
+    } @else {
+      <div class="mc-table-wrap">
+        <table class="mc-table mc-table-admin w-full">
+          <colgroup>
+            <col class="w-[10%]">
+            <col class="w-[22%]">
+            <col class="w-[12%]">
+            <col class="w-[12%]">
+            <col class="w-[12%]">
+            <col class="w-[12%]">
+            <col class="w-[8%]">
+            <col class="w-[12%]">
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Nom Agence</th>
+              <th>Ville</th>
+              <th>Commune</th>
+              <th>Quartier</th>
+              <th>Telephone</th>
+              <th>Statut</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (agence of agences; track agence.id) {
+              <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                <td>
+                  <span class="font-mono bg-slate-100 px-2 py-1 rounded text-xs font-bold">{{ agence.codeAgence }}</span>
+                </td>
+                <td class="font-semibold text-gray-900 break-words" [title]="agence.nomAgence">{{ agence.nomAgence }}</td>
+                <td class="mc-cell-muted break-words">{{ agence.ville || '-' }}</td>
+                <td class="mc-cell-muted break-words">{{ agence.commune || '-' }}</td>
+                <td class="mc-cell-muted break-words">{{ agence.quartier || '-' }}</td>
+                <td class="mc-cell-muted break-words">{{ agence.telephone || '-' }}</td>
+                <td>
+                  @if (agence.actif) {
+                    <span class="mc-badge bg-green-100 text-green-800 px-2 py-0.5 text-[10px]">Actif</span>
+                  } @else {
+                    <span class="mc-badge bg-red-100 text-red-800 px-2 py-0.5 text-[10px]">Inactif</span>
+                  }
+                </td>
+                <td>
+                  <div class="mc-actions-compact">
+                    <a [routerLink]="['/agences', agence.id]"
+                       class="mc-btn bg-blue-50 text-blue-700 hover:bg-blue-100 mc-btn-compact">
+                      Voir
+                    </a>
+                    <a [routerLink]="['/agences', agence.id, 'modifier']"
+                       class="mc-btn bg-amber-50 text-amber-700 hover:bg-amber-100 mc-btn-compact">
+                      Modif.
+                    </a>
+                    @if (agence.actif) {
+                      <button (click)="desactiver(agence)"
+                        class="mc-btn bg-red-50 text-red-700 hover:bg-red-100 mc-btn-compact"
+                        title="Désactiver">
+                        Désact.
+                      </button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mt-6 flex justify-end">
+        <a routerLink="/sites/nouveau"
+           class="mc-btn mc-btn-success">
+          Etape suivante : Creer un Site
+        </a>
+      </div>
+    }
+</div>

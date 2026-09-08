@@ -1,0 +1,263 @@
+<div class="mc-list-page">
+  <!-- En-tête -->
+  <header class="mc-page-hero">
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <h1 class="mc-page-title">Gestion des Caisses</h1>
+          <p class="mc-page-subtitle">Suivi des caisses, sessions et mouvements</p>
+        </div>
+        <div class="mc-button-row">
+          <a *ngIf="canOpenSession" routerLink="/caisses/session/ouverture"
+            class="mc-btn mc-btn-primary">
+            Ouvrir une session
+          </a>
+          <a routerLink="/caisses/depenses"
+            class="mc-btn mc-btn-success">
+            Dépense caisse
+          </a>
+          <a *ngIf="canCreateCaisse" routerLink="/caisses/nouveau"
+            class="mc-btn mc-btn-success">
+            + Nouvelle caisse
+          </a>
+          <a routerLink="/caisses/journal"
+            class="mc-btn bg-indigo-600 text-white hover:bg-indigo-700">
+            Journal de caisse
+          </a>
+          <a routerLink="/caisses/sessions"
+            class="mc-btn mc-btn-dark">
+            Sessions de caisse
+          </a>
+          <a *ngIf="canAccessRapportsCaisse" routerLink="/caisses/rapports/journalier"
+            class="mc-btn bg-cyan-600 text-white hover:bg-cyan-700">
+            Rapports caisse
+          </a>
+          <a *ngIf="canAccessControle" routerLink="/caisses/controle"
+            class="mc-btn bg-indigo-600 text-white hover:bg-indigo-700">
+            Contrôle caisse
+          </a>
+        </div>
+      </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="space-y-6 overflow-x-hidden">
+
+    <app-workflow-guidance-banner [guidance]="globalGuidance"></app-workflow-guidance-banner>
+
+    <div *ngIf="sessionsAnciennesOuvertes.length > 0" class="mc-state mc-state-danger">
+      <p class="text-sm font-semibold text-red-800">Session ancienne ouverte détectée</p>
+      <p class="text-sm text-red-700 mt-1">
+        {{ sessionsAnciennesOuvertes.length }} session(s) de date comptable antérieure sont encore ouvertes et bloquent le travail du jour.
+      </p>
+    </div>
+
+    <!-- Statistiques -->
+    <div class="mc-kpi-grid">
+      <div class="mc-kpi-card">
+        <div>
+          <p class="mc-kpi-label">Nombre de caisses</p>
+          <p class="mc-kpi-value">{{ nbCaisses }}</p>
+        </div>
+      </div>
+      <div class="mc-kpi-card mc-kpi-card-success">
+        <div>
+          <p class="mc-kpi-label text-emerald-700">Sessions ouvertes</p>
+          <p class="mc-kpi-value text-emerald-900">{{ nbSessionsOuvertes }}</p>
+          <p *ngIf="nbSessionsEnAttenteCloture > 0" class="text-xs font-semibold text-amber-700 mt-1">
+            {{ nbSessionsEnAttenteCloture }} à clôturer
+          </p>
+        </div>
+      </div>
+      <div class="mc-kpi-card">
+        <div>
+          <p class="mc-kpi-label">Solde théorique total</p>
+          <p class="mc-kpi-value text-blue-700">{{ formatCdf(soldeTotalTheorique) }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="mc-state mc-state-info text-center">
+      Chargement des caisses...
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error" class="mc-state mc-state-danger">
+      {{ error }}
+    </div>
+
+    <div *ngIf="successMessage" class="mc-state mc-state-success">
+      {{ successMessage }}
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading && !error && caisses.length === 0" class="mc-state mc-state-info text-center">
+      <p class="text-gray-700 text-lg font-semibold mb-2">Aucune caisse trouvée</p>
+      <p class="text-gray-600 text-sm">{{ isCaissier ? 'Initialisez votre caisse pour commencer.' : 'Commencez par créer une caisse pour une agence.' }}</p>
+      <button *ngIf="canInitializeMyCaisse" type="button"
+        (click)="onInitializeMyCaisse()"
+        class="mc-btn mc-btn-success mt-4">
+        Initialiser ma caisse
+      </button>
+      <a *ngIf="!isCaissier && canCreateCaisse" routerLink="/caisses/nouveau"
+        class="mc-btn mc-btn-success mt-4">
+        + Créer une caisse
+      </a>
+    </div>
+
+    <!-- Table of Caisses -->
+    <section *ngIf="!loading && !error && caisses.length > 0" class="space-y-4">
+      <div class="mc-panel">
+        <h2 class="mb-1 text-lg font-bold text-slate-900">Liste des caisses</h2>
+        <p class="text-sm leading-6 text-slate-600">{{ nbCaisses }} caisse(s) enregistrée(s)</p>
+      </div>
+
+      <div class="mc-table-responsive">
+        <table class="mc-table mc-table-dense w-full">
+          <colgroup>
+            <col class="w-[9%]">
+            <col class="w-[14%]">
+            <col class="w-[15%]">
+            <col class="w-[12%]">
+            <col class="w-[6%]">
+            <col class="mc-col-status">
+            <col class="w-[15%]">
+            <col class="mc-col-money">
+            <col class="mc-col-actions">
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Libellé</th>
+              <th>Agence / Site</th>
+              <th>Caissier affecté</th>
+              <th>Devise</th>
+              <th>Statut</th>
+              <th>Session</th>
+              <th class="text-right">Solde théorique</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let caisse of caisses; trackBy: trackByCaisseId">
+              <td class="font-mono text-[11px] font-semibold text-blue-700 break-all" [title]="caisse.codeCaisse">{{ caisse.codeCaisse }}</td>
+              <td class="font-semibold text-slate-900 break-words" [title]="caisse.libelle">{{ caisse.libelle }}</td>
+              <td>
+                <div class="mc-cell-stack" [title]="(caisse.agenceNom || caisse.antenneNom || 'Agence non renseignée') + ' / ' + (caisse.siteNom || 'Non associé')">
+                  <span class="font-medium text-gray-800 break-words">{{ caisse.agenceNom || caisse.antenneNom || 'Agence non renseignée' }}</span>
+                  <span class="mc-cell-sub break-words">{{ caisse.siteNom || 'Non associé' }}</span>
+                </div>
+              </td>
+              <td class="break-words" [title]="caisse.caissierAffecteNom || caisse.caissierResponsableNom || ''">
+                <span *ngIf="(caisse.caissierAffecteNom || caisse.caissierResponsableNom); else sansCaissier">{{ caisse.caissierAffecteNom || caisse.caissierResponsableNom }}</span>
+                <ng-template #sansCaissier>
+                  <span class="mc-cell-sub">Non affecté</span>
+                </ng-template>
+              </td>
+              <td>
+                <span class="mc-badge bg-blue-100 text-blue-800 px-2 py-0.5 text-[10px] whitespace-nowrap">
+                  {{ caisse.devise }}
+                </span>
+              </td>
+              <td>
+                <span class="mc-badge px-2 py-0.5 text-[10px] whitespace-nowrap"
+                  [ngClass]="{
+                    'bg-green-100 text-green-800': caisse.actif,
+                    'bg-gray-100 text-gray-800': !caisse.actif
+                  }">
+                  {{ caisse.actif ? 'Actif' : 'Inactif' }}
+                </span>
+              </td>
+              <td>
+                <div *ngIf="getSessionOuverteDuJour(caisse.id) as sessionDuJour" class="mc-cell-stack" [title]="'Session #' + sessionDuJour.id + ' - ' + sessionDuJour.statut + ' - ' + formatDateTime(sessionDuJour.dateOuverture) + ' - ' + getSessionDisplayUser(sessionDuJour)">
+                  <span class="mc-badge bg-emerald-100 text-emerald-800 w-fit max-w-full px-2 py-0.5 text-[10px]">
+                    {{ getSessionStatusChipLabel(sessionDuJour) }}
+                  </span>
+                  <div class="mc-cell-sub">
+                    <div>#{{ sessionDuJour.id }} · {{ sessionDuJour.statut }}</div>
+                    <div class="mc-date-short">{{ formatDateShort(sessionDuJour.dateComptable) }}</div>
+                  </div>
+                </div>
+                <div *ngIf="!getSessionOuverteDuJour(caisse.id) && getSessionAncienneOuverte(caisse.id) as sessionAncienne" class="mc-cell-stack" [title]="'Session #' + sessionAncienne.id + ' - ' + sessionAncienne.statut + ' - ' + formatDateTime(sessionAncienne.dateOuverture) + ' - ' + getSessionDisplayUser(sessionAncienne)">
+                  <span class="mc-badge bg-red-100 text-red-800 w-fit max-w-full px-2 py-0.5 text-[10px]">
+                    Session active ancienne
+                  </span>
+                  <div class="mc-cell-sub">
+                    <div>#{{ sessionAncienne.id }} · {{ sessionAncienne.statut }}</div>
+                    <div class="mc-date-short">{{ formatDateShort(sessionAncienne.dateComptable) }}</div>
+                  </div>
+                </div>
+                <div *ngIf="!getSessionOuverteDuJour(caisse.id) && !getSessionAncienneOuverte(caisse.id) && getSessionEnCoursAffichage(caisse) as sessionActive" class="mc-cell-stack" [title]="'Session #' + sessionActive.id + ' - ' + sessionActive.statut + ' - ' + formatDateTime(sessionActive.dateOuverture) + ' - ' + getSessionDisplayUser(sessionActive)">
+                  <span class="mc-badge bg-amber-100 text-amber-800 w-fit max-w-full px-2 py-0.5 text-[10px]">
+                    {{ getSessionStatusChipLabel(sessionActive) }}
+                  </span>
+                  <div class="mc-cell-sub">
+                    <div>#{{ sessionActive.id }} · {{ sessionActive.statut }}</div>
+                    <div class="mc-date-short">{{ formatDateShort(sessionActive.dateComptable) }}</div>
+                  </div>
+                </div>
+                <div *ngIf="!getSessionOuverteDuJour(caisse.id) && !getSessionAncienneOuverte(caisse.id) && caisse.statutSession === 'CLOTUREE'" class="mc-cell-stack">
+                  <span class="mc-badge bg-blue-100 text-blue-800 w-fit max-w-full px-2 py-0.5 text-[10px]">
+                    Dernière session clôturée
+                  </span>
+                  <div *ngIf="getDerniereSessionCloturee(caisse.id) as lastSession" class="mc-cell-sub" [title]="'Session #' + lastSession.id + ' - ' + lastSession.statut + ' - ' + formatDateTime(lastSession.dateOuverture) + ' - ' + getSessionDisplayUser(lastSession)">
+                    <div>#{{ lastSession.id }} · {{ lastSession.statut }}</div>
+                    <div class="mc-date-short">{{ formatDateShort(lastSession.dateComptable) }}</div>
+                    <div class="pt-1">
+                      <a *ngIf="getSessionLink(lastSession) as sessionLink"
+                        [routerLink]="sessionLink"
+                        class="mc-action-btn mc-btn-primary">
+                        Voir session
+                      </a>
+                    </div>
+                  </div>
+                </div>
+                <div *ngIf="!getSessionOuverteDuJour(caisse.id) && !getSessionAncienneOuverte(caisse.id) && getDerniereSessionCloturee(caisse.id) as lastSession" class="space-y-2">
+                  <span *ngIf="lastSession.statut === 'ANNULEE' || lastSession.statut === 'ANNULEE_ADMINISTRATIVEMENT'"
+                    class="mc-badge bg-amber-100 text-amber-800 px-2 py-0.5 text-[10px]">
+                    Session annulée (historique)
+                  </span>
+                </div>
+                <span *ngIf="!getSessionOuverteDuJour(caisse.id) && !getSessionAncienneOuverte(caisse.id) && !getSessionEnCoursAffichage(caisse) && caisse.statutSession !== 'CLOTUREE'"
+                  class="mc-badge bg-gray-100 text-gray-500 px-2 py-0.5 text-[10px] whitespace-nowrap">
+                  Aucune
+                </span>
+              </td>
+              <td class="text-right font-semibold text-slate-900 mc-money-nowrap">
+                {{ formatCdf(getSoldeAffiche(caisse)) }}
+              </td>
+              <td>
+                <div class="mc-actions-compact">
+                  <a *ngIf="getSessionOuverteDuJour(caisse.id) || getSessionAncienneOuverte(caisse.id) as session"
+                    [routerLink]="['/caisses/session', session.id]"
+                    class="mc-action-btn bg-orange-600 text-white hover:bg-orange-700">
+                    Session
+                  </a>
+                  <button *ngIf="canFinalCloseCaisseSession(caisse)"
+                    type="button"
+                    (click)="onFinalCloseCaisseSession(caisse)"
+                    [disabled]="!!findSessionToFinalClose(caisse)?.id && isFinalClosing(findSessionToFinalClose(caisse)!.id)"
+                    class="mc-action-btn mc-btn-dark"
+                    title="Clôturer définitivement">
+                    {{ !!findSessionToFinalClose(caisse)?.id && isFinalClosing(findSessionToFinalClose(caisse)!.id) ? 'Clôture finale...' : 'Clôturer définitivement' }}
+                  </button>
+                  <a *ngIf="canOpenSession && !getSessionOuverte(caisse.id)"
+                    [routerLink]="['/caisses/session/ouverture']"
+                    [queryParams]="{ caisseId: caisse.id }"
+                    class="mc-action-btn mc-btn-primary">
+                    Ouvrir
+                  </a>
+                  <a routerLink="/caisses/journal"
+                    class="mc-action-btn bg-gray-200 text-gray-700 hover:bg-gray-300">
+                    Journal
+                  </a>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+</div>

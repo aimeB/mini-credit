@@ -1,0 +1,146 @@
+<div class="mc-page-wide">
+  <div>
+    <!-- Header -->
+    <header class="mc-page-hero flex justify-between items-center gap-4 flex-wrap">
+      <div>
+        <h1 class="mc-page-title flex items-center gap-3">
+          Gestion du Personnel
+        </h1>
+        <p class="mc-page-subtitle">Gérez les employés, affectations agence, salaires et données de paie</p>
+      </div>
+      <a 
+        routerLink="/employes/nouveau"
+        class="mc-btn mc-btn-primary"
+      >
+        Ajouter un Employé
+      </a>
+    </header>
+
+    <!-- Error Message -->
+    <div *ngIf="error" class="mc-state mc-state-danger">
+      {{ error }}
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="loading" class="mc-state mc-state-info text-center">
+      Chargement en cours...
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading && employes.length === 0" class="mc-state mc-state-info text-center">
+      <p class="text-gray-500 mb-4">Aucun employé enregistré</p>
+      <a routerLink="/employes/nouveau" class="mc-btn mc-btn-primary">
+        Ajouter le premier employé
+      </a>
+    </div>
+
+    <!-- Table -->
+    <div *ngIf="!loading && employes.length > 0" class="mc-table-wrap">
+      <table class="mc-table mc-table-admin w-full">
+        <colgroup>
+          <col class="w-[8%]">
+          <col class="w-[11%]">
+          <col class="w-[10%]">
+          <col class="w-[8%]">
+          <col class="w-[11%]">
+          <col class="w-[8%]">
+          <col class="w-[9%]">
+          <col class="w-[7%]">
+          <col class="w-[8%]">
+          <col class="w-[8%]">
+          <col class="w-[12%]">
+        </colgroup>
+        <!-- Header -->
+        <thead>
+          <tr>
+            <th>Matricule</th>
+            <th>Nom</th>
+            <th>Fonction</th>
+            <th>Tél.</th>
+            <th>Affectation</th>
+            <th class="text-right">Salaire</th>
+            <th class="text-right">Total</th>
+            <th>Statut</th>
+            <th>Création</th>
+            <th>Modification</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <!-- Body -->
+        <tbody>
+          <tr *ngFor="let employe of employes">
+            <td class="font-mono text-[11px] font-semibold text-blue-600 break-all" [title]="employe.matricule">
+              <a [routerLink]="['/employes', employe.id]" class="hover:underline" title="Consulter la fiche employé">
+                {{ employe.matricule }}
+              </a>
+            </td>
+            <td class="font-medium text-slate-900 break-words" [title]="employe.prenom + ' ' + employe.nom">
+              <a [routerLink]="['/employes', employe.id]" class="text-blue-700 hover:underline" title="Consulter la fiche employé">
+                {{ employe.prenom }} {{ employe.nom }}
+              </a>
+            </td>
+            <td>
+              <span [ngClass]="'mc-badge px-2 py-0.5 text-[10px] ' + getFonctionBadgeColor(employe.fonction || '')" [title]="employe.fonction || ''">
+                {{ getFonctionLabel(employe.fonction || '') }}
+              </span>
+            </td>
+            <td class="mc-cell-muted break-words" [title]="employe.telephone">{{ employe.telephone }}</td>
+            <td class="mc-cell-muted" [title]="getAffectationTitle(employe)">
+              <div class="mc-cell-stack">
+                <span class="break-words">{{ getAffectationLabel(employe) }}</span>
+                <span *ngIf="isAgentTerrain(employe)" class="text-[11px] text-gray-400 break-words">Site : {{ employe.nomSite || '—' }}</span>
+              </div>
+            </td>
+            <td class="text-right font-semibold mc-money-nowrap">
+              {{ employe.salaireBase | number: '1.2-2' }} $
+            </td>
+            <td class="text-right font-bold text-green-600 mc-money-nowrap">
+              {{ employe.totalRemuneration | number: '1.2-2' }} $
+            </td>
+            <td>
+              <span [ngClass]="'mc-badge px-2 py-0.5 text-[10px] ' + (employe.actif ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800')">
+                {{ getStatusLabel(employe.actif) }}
+              </span>
+            </td>
+            <td class="mc-date-short" [title]="employe.dateCreation || ''">{{ employe.dateCreation ? (employe.dateCreation | date: 'dd/MM/yyyy') : '—' }}</td>
+            <td class="mc-date-short" [title]="employe.dateModification || ''">{{ employe.dateModification ? (employe.dateModification | date: 'dd/MM/yyyy') : '—' }}</td>
+            <td>
+              <div class="mc-actions-compact">
+                <button 
+                  (click)="openPaymentModal(employe)"
+                  class="mc-btn mc-btn-success mc-btn-compact"
+                  title="Payer cet employé"
+                >
+                  Payer
+                </button>
+                <a 
+                  [routerLink]="['/employes', employe.id, 'edit']"
+                  class="mc-btn mc-btn-primary mc-btn-compact"
+                  title="Éditer"
+                >
+                  Éditer
+                </a>
+                <button 
+                  (click)="deleteEmploye(employe.id, employe.prenom + ' ' + employe.nom)"
+                  class="mc-btn bg-red-600 text-white hover:bg-red-700 mc-btn-compact"
+                  title="Supprimer"
+                >
+                  Suppr.
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Payment Modal -->
+<app-paiement-modal
+  [isOpen]="paymentModalOpen"
+  [employee]="selectedEmploye"
+  (close)="closePaymentModal()"
+  (success)="onPaymentSuccess($event)"
+></app-paiement-modal>

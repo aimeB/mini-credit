@@ -1,0 +1,291 @@
+<div class="mc-page-wide">
+  <header class="mc-page-hero">
+    <div>
+      <h1 class="mc-page-title">Nouvelle dépense caisse</h1>
+      <p class="mc-page-subtitle">Enregistrez une dépense sur la caisse active, puis soumettez-la à validation si nécessaire.</p>
+    </div>
+    <button type="button" class="mc-btn bg-white/15 text-white ring-1 ring-white/30 hover:bg-white/25" (click)="cancel()">Retour aux dépenses</button>
+  </header>
+
+  <app-workflow-guidance-banner [guidance]="creationGuidance"></app-workflow-guidance-banner>
+
+  <div *ngIf="loadingContext" class="mc-state mc-state-info">Chargement du contexte...</div>
+  <div *ngIf="error" class="mc-state mc-state-danger">{{ error }}</div>
+
+  <section *ngIf="!loadingContext" class="mc-kpi-grid">
+    <div class="mc-kpi-card">
+      <span class="mc-kpi-label">Caisse</span>
+      <span class="text-base font-semibold text-slate-900">{{ caisseCodeDisplay }} — {{ caisseLibelleDisplay }}</span>
+    </div>
+    <div class="mc-kpi-card">
+      <span class="mc-kpi-label">Agence</span>
+      <span class="text-base font-semibold text-slate-900">{{ agenceDisplay }}</span>
+    </div>
+    <div class="mc-kpi-card">
+      <span class="mc-kpi-label">Site</span>
+      <span class="text-base font-semibold text-slate-900">{{ siteDisplay }}</span>
+    </div>
+    <div class="mc-kpi-card">
+      <span class="mc-kpi-label">Devise</span>
+      <span class="mc-kpi-value">{{ deviseDisplay }}</span>
+    </div>
+    <div class="mc-kpi-card" *ngIf="session">
+      <span class="mc-kpi-label">Session</span>
+      <span class="text-base font-semibold text-slate-900">#{{ session.id }} — {{ session.statut }}</span>
+    </div>
+    <div class="mc-kpi-card" *ngIf="session">
+      <span class="mc-kpi-label">Solde théorique</span>
+      <span class="mc-kpi-value">{{ formatMoney(soldeActuel) }}</span>
+    </div>
+  </section>
+
+  <div class="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]" *ngIf="!loadingContext">
+    <form [formGroup]="form" class="mc-panel space-y-6">
+      <section class="space-y-4">
+        <h2 class="text-lg font-bold text-slate-900">Contexte de la dépense</h2>
+
+        <div *ngIf="!session">
+          <label class="mc-field-label">Caisse <span class="required">*</span></label>
+          <select formControlName="caisseId" class="mc-select">
+            <option [ngValue]="null">-- Choisir --</option>
+            <option *ngFor="let caisse of caisses" [ngValue]="caisse.id">
+              {{ caisse.codeCaisse }} - {{ caisse.libelle }}
+            </option>
+          </select>
+        </div>
+
+        <div *ngIf="session">
+          <label class="mc-field-label">Caisse</label>
+          <div class="mc-badge bg-slate-100 text-slate-700">{{ caisseCodeDisplay }}</div>
+        </div>
+
+        <div>
+          <label class="mc-field-label">Devise</label>
+          <div class="mc-badge bg-blue-50 text-blue-700">{{ deviseDisplay }}</div>
+        </div>
+      </section>
+
+      <section class="space-y-4">
+        <h2 class="text-lg font-bold text-slate-900">Détails de la dépense</h2>
+
+        <div>
+          <label class="mc-field-label">Catégorie <span class="required">*</span></label>
+          <select formControlName="categorie" class="mc-select">
+            <option *ngFor="let categorie of categorieOptions" [ngValue]="categorie.value">{{ categorie.label }}</option>
+          </select>
+        </div>
+
+        <div *ngIf="isSalaireCategorie">
+          <label class="mc-field-label">Période de paie <span class="required">*</span></label>
+          <input formControlName="periodePaie" type="month" class="mc-input" />
+        </div>
+
+        <div *ngIf="isTransportCategorie">
+          <label class="mc-field-label">Agent Terrain concerné</label>
+          <select formControlName="beneficiaireId" class="mc-select" [disabled]="loadingBeneficiaires || !form.get('caisseId')?.value">
+            <option [ngValue]="null">-- Transport non rattaché à un Agent Terrain --</option>
+            <option *ngFor="let beneficiaire of beneficiairesAgentTerrain" [ngValue]="beneficiaire.id">
+              {{ beneficiaire.affichage }}
+            </option>
+          </select>
+          <span *ngIf="loadingBeneficiaires" class="helper-text">Chargement des Agents Terrain...</span>
+          <span class="helper-text">Si le transport concerne un Agent Terrain, sélectionnez-le pour proposer le montant journalier du site.</span>
+        </div>
+
+        <div class="mc-state mc-state-info" *ngIf="isTransportCategorie && transportParametreSite">
+          Montant transport journalier par Agent Terrain pour {{ siteDisplay }} : {{ formatMoney(transportJournalierPropose) }}.
+          Si le formulaire ne couvre qu’une seule date, le montant proposé est le montant journalier. Aucun paiement n’est créé automatiquement.
+        </div>
+
+        <div class="mc-state mc-state-warning" *ngIf="isTransportCategorie && !transportParametreSite">
+          Aucun montant transport journalier par Agent Terrain n’est configuré pour {{ siteDisplay }}. Aucun montant par défaut n’est inventé.
+        </div>
+
+        <div *ngIf="isSalaireCategorie">
+          <label class="mc-field-label">Type paiement personnel <span class="required">*</span></label>
+          <select formControlName="typePaiementPersonnel" class="mc-select">
+            <option *ngFor="let option of typePaiementOptions" [ngValue]="option.value">{{ option.label }}</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="mc-field-label">Montant ({{ deviseDisplay }}) <span class="required">*</span></label>
+          <input formControlName="montant" type="number" min="0.01" step="0.01" class="mc-input" placeholder="Exemple : 50 000" />
+          <span *ngIf="isSalaireCategorie && paiePreview" class="success-badge">Montant basé sur la paie calculée</span>
+        </div>
+
+        <div>
+          <label class="mc-field-label">Motif <span class="required">*</span></label>
+          <textarea formControlName="motif" class="mc-textarea" rows="3" placeholder="Exemple : Achat de fournitures bureau"></textarea>
+        </div>
+
+        <div>
+          <label class="mc-field-label">{{ isSalaireCategorie ? 'Employé concerné' : 'Bénéficiaire' }} <span *ngIf="isSalaireCategorie" class="required">*</span></label>
+          <ng-container *ngIf="isSalaireCategorie; else beneficiaireLibre">
+            <select formControlName="beneficiaireId" class="mc-select" [disabled]="loadingBeneficiaires || !form.get('caisseId')?.value">
+              <option [ngValue]="null">-- Choisir un employé actif --</option>
+              <option *ngFor="let beneficiaire of beneficiairesSalaire" [ngValue]="beneficiaire.id">
+                {{ beneficiaire.affichage }}
+              </option>
+            </select>
+            <span *ngIf="loadingBeneficiaires" class="helper-text">Chargement des bénéficiaires...</span>
+            <span *ngIf="!loadingBeneficiaires && form.get('caisseId')?.value && beneficiairesSalaire.length === 0" class="helper-text">
+              Aucun bénéficiaire salaire disponible pour cette caisse.
+            </span>
+          </ng-container>
+          <ng-template #beneficiaireLibre>
+            <input formControlName="beneficiaire" type="text" class="mc-input" placeholder="Nom du fournisseur ou du bénéficiaire" />
+          </ng-template>
+        </div>
+
+        <section *ngIf="isSalaireCategorie && selectedBeneficiaireSalaire as employe" class="mc-panel space-y-4 border-emerald-200 bg-emerald-50/40">
+          <div class="salary-header">
+            <div>
+              <span class="label">Paie de la période</span>
+              <strong>{{ employe.nom }}</strong>
+            </div>
+            <span class="readonly-pill">{{ employe.matricule || 'Matricule non renseigné' }}</span>
+          </div>
+
+          <div *ngIf="loadingPaiePreview" class="mc-state mc-state-info">Calcul de la paie en cours...</div>
+
+          <ng-container *ngIf="paiePreview as paie">
+            <div class="salary-mode-row">
+              <span class="success-badge" *ngIf="isAgentTerrainPaie">Calcul automatique Agent Terrain</span>
+              <span class="manual-badge" *ngIf="isPersonnelBureauPaie">Prime de motivation saisie manuellement</span>
+            </div>
+
+            <div class="salary-grid" *ngIf="isAgentTerrainPaie">
+              <div><span>Poste</span><strong>{{ employe.role }}</strong></div>
+              <div><span>Salaire de base</span><strong>{{ formatMoney(paie.salaireBase) }}</strong></div>
+              <div><span>Épargne collectée validée</span><strong>{{ formatMoney(paie.epargneCollecteeValidee) }}</strong></div>
+              <div><span>Prime épargne 1 %</span><strong>{{ formatMoney(paie.primeMobilisationEpargne) }}</strong></div>
+              <div><span>Remboursements crédit validés</span><strong>{{ formatMoney(paie.remboursementCreditCollecteValide) }}</strong></div>
+              <div><span>Prime remboursement 2 %</span><strong>{{ formatMoney(paie.primeMobilisationRemboursement) }}</strong></div>
+              <div><span>Carnets vendus</span><strong>{{ paie.nombreCarnetsVendus || 0 }}</strong></div>
+              <div><span>Bonus carnet 200 CDF × quantité</span><strong>{{ formatMoney(paie.bonusCarnets) }}</strong></div>
+              <div class="total"><span>Total à payer</span><strong>{{ formatMoney(paie.totalAPayer) }}</strong></div>
+              <div class="total" [class.warning-text]="hasRemunerationEcart"><span>Écart éventuel</span><strong>{{ formatMoney(remunerationEcart) }}</strong></div>
+            </div>
+
+            <div *ngIf="isPersonnelBureauPaie" class="mc-state mc-state-info">
+              Ce poste n’a pas de bonus automatique carnet. Aucune prime n’est calculée sur les collectes terrain.
+            </div>
+
+            <div class="salary-grid" *ngIf="isPersonnelBureauPaie">
+              <div><span>Poste</span><strong>{{ employe.role }}</strong></div>
+              <div><span>Salaire de base</span><strong>{{ formatMoney(paie.salaireBase) }}</strong></div>
+              <div><span>Prime de motivation saisie manuellement</span><strong>{{ formatMoney(primeMotivationValue) }}</strong></div>
+              <div class="total"><span>Total à payer</span><strong>{{ formatMoney(paieTotalPreview) }}</strong></div>
+              <div class="total" [class.warning-text]="hasRemunerationEcart"><span>Écart éventuel</span><strong>{{ formatMoney(remunerationEcart) }}</strong></div>
+            </div>
+
+            <div *ngIf="isPersonnelBureauPaie && paie.primeMotivationManuelleAutorisee">
+              <label class="mc-field-label">Prime motivation manuelle</label>
+              <input formControlName="primeMotivationManuelle" type="number" min="0" step="0.01" class="mc-input" placeholder="0" />
+            </div>
+
+            <div *ngIf="isPersonnelBureauPaie && primeMotivationValue > 0">
+              <label class="mc-field-label">Motif prime motivation <span class="required">*</span></label>
+              <textarea formControlName="motifPrimeMotivationManuelle" class="mc-textarea" rows="2" placeholder="Objectif atteint, performance, responsabilité temporaire..."></textarea>
+            </div>
+          </ng-container>
+
+          <div class="salary-grid" *ngIf="!paiePreview">
+            <div><span>Poste</span><strong>{{ employe.role }}</strong></div>
+            <div><span>Salaire de base</span><strong>{{ formatMoney(employe.salaireBase || 0) }}</strong></div>
+            <div><span>Prime fixe</span><strong>{{ formatMoney(employe.primeFixe || 0) }}</strong></div>
+            <div><span>Bonus / commission</span><strong>{{ formatMoney(employe.bonusVariable || 0) }}</strong></div>
+            <div class="total"><span>Total rémunération</span><strong>{{ formatMoney(employe.totalRemuneration || 0) }}</strong></div>
+            <div class="total" [class.warning-text]="hasRemunerationEcart"><span>Écart éventuel</span><strong>{{ formatMoney(remunerationEcart) }}</strong></div>
+          </div>
+          <div *ngIf="hasRemunerationEcart" class="mc-state mc-state-warning">
+            <ng-container *ngIf="isUnderpaidSalary">
+              Le montant payé est inférieur à la rémunération prévue. Veuillez préciser s’il s’agit d’un paiement partiel, d’une avance ou d’une retenue.
+            </ng-container>
+            <ng-container *ngIf="isOverpaidSalary">
+              Le montant payé dépasse la rémunération prévue. Veuillez préciser s’il s’agit d’une prime, commission, régularisation ou autre.
+            </ng-container>
+          </div>
+          <div class="mc-state mc-state-info" *ngIf="isSalaireCategorie && selectedPaymentType === 'SALAIRE_PARTIEL'">
+            Reste à payer estimé : {{ formatMoney(expectedRemainingAfterPayment) }}.
+          </div>
+          <div class="mc-state mc-state-info" *ngIf="isSalaireCategorie && selectedPaymentType === 'AVANCE_SALAIRE'">
+            Avance à régulariser. Elle reste une sortie caisse et devra être imputée ou régularisée manuellement.
+          </div>
+          <div class="mc-state mc-state-info" *ngIf="isSalaireCategorie && selectedPaymentType === 'RETENUE_SALAIRE'">
+            Retenue estimée : {{ formatMoney(expectedRemainingAfterPayment) }}.
+          </div>
+          <div *ngIf="hasRemunerationEcart">
+            <label class="mc-field-label">Motif écart rémunération <span class="required">*</span></label>
+            <textarea formControlName="motifEcartRemuneration" class="mc-textarea" rows="2" placeholder="Expliquez pourquoi le montant diffère de la rémunération enregistrée"></textarea>
+          </div>
+          <div *ngIf="selectedPaymentType === 'SALAIRE_PARTIEL'">
+            <label class="mc-field-label">Motif paiement partiel <span class="required">*</span></label>
+            <textarea formControlName="motifPaiementPartiel" class="mc-textarea" rows="2" placeholder="Paiement partiel du salaire de la période"></textarea>
+          </div>
+          <div *ngIf="selectedPaymentType === 'RETENUE_SALAIRE'">
+            <label class="mc-field-label">Motif retenue <span class="required">*</span></label>
+            <textarea formControlName="motifRetenue" class="mc-textarea" rows="2" placeholder="Absence, avance régularisée, correction validée..."></textarea>
+          </div>
+          <label class="checkbox-row" *ngIf="selectedPaymentType === 'RETENUE_SALAIRE'">
+            <input type="checkbox" formControlName="retenueDefinitive" />
+            <span>Retenue définitive : le reste à payer devient zéro</span>
+          </label>
+          <div *ngIf="isSalaireCategorie">
+            <label class="mc-field-label">Commentaire paie</label>
+            <textarea formControlName="commentairePaie" class="mc-textarea" rows="2" placeholder="Commentaire de qualification paie"></textarea>
+          </div>
+        </section>
+
+        <div>
+          <label class="mc-field-label">Justificatif URL</label>
+          <input formControlName="justificatifUrl" type="text" class="mc-input" placeholder="Lien justificatif optionnel" />
+        </div>
+      </section>
+
+      <div *ngIf="hasInsufficientBalance" class="mc-state mc-state-warning">
+        Le montant dépasse le solde théorique disponible sur cette session.
+      </div>
+
+      <div class="mc-button-row">
+        <button type="button" class="mc-btn bg-gray-200 text-gray-700 hover:bg-gray-300" [disabled]="loading || !canSubmitForm" (click)="submit('brouillon')">
+          {{ loading ? 'Enregistrement...' : 'Enregistrer brouillon' }}
+        </button>
+        <button type="button" class="mc-btn mc-btn-success" [disabled]="loading || !canSubmitForm" (click)="submit('soumettre')">
+          {{ loading ? 'Enregistrement...' : 'Enregistrer et soumettre' }}
+        </button>
+      </div>
+
+      <p *ngIf="!canSubmitForm" class="helper-text">{{ submitHelpText }}</p>
+    </form>
+
+    <aside class="mc-panel h-fit space-y-4">
+      <h2 class="text-lg font-bold text-slate-900">Résumé d’impact</h2>
+      <div class="flex items-center justify-between gap-3 text-sm" *ngIf="session">
+        <span>Solde actuel</span>
+        <strong>{{ formatMoney(soldeActuel) }}</strong>
+      </div>
+      <div class="flex items-center justify-between gap-3 text-sm">
+        <span>Montant de la dépense</span>
+        <strong class="negative">-{{ formatMoney(montantValue) }}</strong>
+      </div>
+      <div class="flex items-center justify-between gap-3 border-t border-slate-200 pt-4 text-sm" *ngIf="session">
+        <span>Solde après dépense</span>
+        <strong [class.negative]="hasInsufficientBalance">{{ formatMoney(soldeApresDepense) }}</strong>
+      </div>
+      <div class="flex items-center justify-between gap-3 text-sm">
+        <span>Catégorie</span>
+        <strong>{{ selectedCategorieLabel }}</strong>
+      </div>
+      <div class="flex items-center justify-between gap-3 text-sm">
+        <span>Statut à la création</span>
+        <strong>Brouillon</strong>
+      </div>
+
+      <div class="mc-state mc-state-info">
+        Cette page améliore uniquement l’ergonomie de saisie. Les validations métier et le workflow existant restent inchangés.
+      </div>
+    </aside>
+  </div>
+</div>

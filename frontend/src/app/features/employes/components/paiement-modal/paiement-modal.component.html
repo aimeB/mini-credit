@@ -1,0 +1,121 @@
+<!-- Modal Backdrop -->
+<div *ngIf="isOpen" class="mc-modal-backdrop" (click)="closeModal()"></div>
+
+<!-- Modal -->
+<div *ngIf="isOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+  <div class="mc-modal-panel max-w-md w-full">
+    <!-- Header -->
+    <div class="mb-5 flex justify-between items-center gap-4 border-b border-slate-200 pb-4">
+      <h2 class="text-xl font-bold text-slate-900">
+        Enregistrer un Paiement
+      </h2>
+      <button type="button" (click)="closeModal()" class="mc-btn bg-gray-100 px-3 py-1 text-slate-700 hover:bg-gray-200">
+        Fermer
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div>
+      <!-- Error Alert -->
+      <div *ngIf="error" class="mc-state mc-state-danger mb-4">
+        <strong>Erreur !</strong> {{ error }}
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
+        <!-- Employee Info (Read-only) -->
+        <div>
+          <label class="mc-field-label">Matricule</label>
+          <input type="text" class="mc-input bg-gray-100" 
+            formControlName="employeMatricule" readonly>
+        </div>
+
+        <div>
+          <label class="mc-field-label">Nom</label>
+          <input type="text" class="mc-input bg-gray-100" 
+            formControlName="employeNom" readonly>
+        </div>
+
+        <div>
+          <label class="mc-field-label">Rémunération Totale</label>
+          <div class="flex items-center overflow-hidden rounded-lg border border-gray-300">
+            <input type="number" class="flex-1 px-3 py-2 bg-gray-100 border-0" 
+              formControlName="montantTotal" readonly>
+            <span class="px-3 py-2 bg-gray-100 text-gray-600 font-semibold">$</span>
+          </div>
+        </div>
+
+        <div class="border-t border-gray-200 my-4"></div>
+
+        <!-- Payment Details -->
+        <div>
+          <label class="mc-field-label">Date de Paiement</label>
+          <input type="date" class="mc-input" 
+            formControlName="datePaiement" 
+            [class.border-red-500]="submitted && f['datePaiement'].invalid"
+            [class.border-gray-300]="!submitted || !f['datePaiement'].invalid">
+          <div *ngIf="submitted && f['datePaiement'].invalid" class="text-red-600 text-sm mt-1">
+            La date est requise
+          </div>
+        </div>
+
+        <div>
+          <label class="mc-field-label">Montant à Payer</label>
+          <div class="flex items-center overflow-hidden rounded-lg border"
+            [class.border-red-500]="submitted && f['montant'].invalid"
+            [class.border-gray-300]="!submitted || !f['montant'].invalid">
+            <input type="number" class="flex-1 px-3 py-2" 
+              formControlName="montant" step="0.01" placeholder="0.00">
+            <span class="px-3 py-2 bg-gray-50 text-gray-600 font-semibold">$</span>
+          </div>
+          <div *ngIf="submitted && f['montant'].invalid" class="text-red-600 text-sm mt-1">
+            <span *ngIf="f['montant'].errors?.['required']">Le montant est requis</span>
+            <span *ngIf="f['montant'].errors?.['min']">Le montant doit être positif</span>
+          </div>
+        </div>
+
+        <div>
+          <label class="mc-field-label">Mode de Paiement</label>
+          <select class="mc-select" 
+            formControlName="modePaiement"
+            [class.border-red-500]="submitted && f['modePaiement'].invalid"
+            [class.border-gray-300]="!submitted || !f['modePaiement'].invalid">
+            <option *ngFor="let mode of modePaiementOptions" [value]="mode.value">
+              {{ mode.label }}
+            </option>
+          </select>
+          <div *ngIf="submitted && f['modePaiement'].invalid" class="text-red-600 text-sm mt-1">
+            Le mode de paiement est requis
+          </div>
+        </div>
+
+        <div>
+          <label class="mc-field-label">Référence Externe (Optionnel)</label>
+          <input type="text" class="mc-input" 
+            formControlName="referenceExterne" 
+            placeholder="Ex: N° de transaction, chèque, etc.">
+        </div>
+
+        <div>
+          <label class="mc-field-label">Notes (Optionnel)</label>
+          <textarea class="mc-textarea" 
+            formControlName="notes" rows="3"
+            placeholder="Remarques sur ce paiement..."></textarea>
+        </div>
+
+        <!-- Submit Buttons -->
+        <div class="mc-button-row justify-end pt-4 border-t border-gray-200">
+          <button type="button" 
+            (click)="closeModal()"
+            class="mc-btn bg-gray-200 text-gray-700 hover:bg-gray-300">
+            Annuler
+          </button>
+          <button type="submit" 
+            [disabled]="loading"
+            class="mc-btn mc-btn-success">
+            {{ loading ? 'Traitement...' : 'Confirmer le Paiement' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

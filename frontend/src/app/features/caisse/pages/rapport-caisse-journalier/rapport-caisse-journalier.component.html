@@ -1,0 +1,155 @@
+<div class="mc-page-wide">
+  <header class="mc-page-hero">
+    <h1 class="mc-page-title">Rapport Caisse - Journalier</h1>
+    <p class="mc-page-subtitle">Synthèse journalière, contrôle 3N et détail des transactions caisse.</p>
+  </header>
+
+  <div class="mc-filter-panel mc-filter-grid">
+    <div>
+      <label class="mc-field-label">Date</label>
+      <input class="mc-input" type="date" [(ngModel)]="date" />
+    </div>
+    <div>
+      <label class="mc-field-label">Caisse ID</label>
+      <input class="mc-input" type="number" [(ngModel)]="caisseId" />
+    </div>
+    <div>
+      <label class="mc-field-label">Site ID</label>
+      <input class="mc-input" type="number" [(ngModel)]="siteId" />
+    </div>
+    <button class="mc-btn mc-btn-primary" (click)="rechercher()">Rechercher</button>
+    <button class="mc-btn bg-gray-200 text-gray-700 hover:bg-gray-300" (click)="reinitialiser()">Réinitialiser</button>
+    <button class="mc-btn mc-btn-success" (click)="exportCsv()">Export CSV</button>
+  </div>
+
+  <div class="flex flex-wrap gap-2" *ngIf="rapport">
+    <a
+      class="mc-btn bg-indigo-600 text-white hover:bg-indigo-700"
+      routerLink="/caisses/journal"
+      [queryParams]="journalQueryParams">
+      Voir dans le journal
+    </a>
+  </div>
+
+  <p *ngIf="loading" class="mc-state mc-state-info">Chargement de la synthèse...</p>
+  <p *ngIf="loadingTransactions && rapport" class="mc-state mc-state-info">Chargement des transactions...</p>
+  <p *ngIf="error" class="mc-state mc-state-danger">{{ error }}</p>
+  <p *ngIf="transactionsError" class="mc-state mc-state-danger">{{ transactionsError }}</p>
+
+  <div *ngIf="rapport" class="space-y-4">
+    <h3 class="text-lg font-semibold text-gray-900">Synthèse journalière</h3>
+
+    <div class="mc-panel grid grid-cols-1 gap-4 text-sm md:grid-cols-2 xl:grid-cols-3">
+      <div><strong>Date:</strong> {{ rapport.date }}</div>
+      <div><strong>Sessions:</strong> {{ rapport.nombreSessions }}</div>
+      <div><strong>Nb opérations:</strong> {{ rapport.nombreOperations ?? transactions.length }}</div>
+      <div><strong>Sessions non clôturées:</strong> {{ rapport.nombreSessionsNonCloturees }}</div>
+      <div><strong>Total entrées:</strong> {{ formatCdf(rapport.totalEntrees) }}</div>
+      <div><strong>Total sorties:</strong> {{ formatCdf(rapport.totalSorties) }}</div>
+      <div><strong>Solde théorique:</strong> {{ formatCdf(rapport.soldeTheoriqueTotal) }}</div>
+      <div><strong>Solde physique:</strong> {{ formatCdf(rapport.soldePhysiqueTotal) }}</div>
+      <div><strong>Écart total:</strong> {{ formatCdf(rapport.ecartTotal) }}</div>
+      <div><strong>Nb dépenses:</strong> {{ rapport.nombreDepenses }}</div>
+      <div><strong>Montant dépenses:</strong> {{ formatCdf(rapport.montantDepenses) }}</div>
+      <div><strong>Nb écarts:</strong> {{ rapport.nombreEcarts }}</div>
+      <div><strong>Montant écarts:</strong> {{ formatCdf(rapport.montantEcarts) }}</div>
+    </div>
+
+    <div class="mc-state mc-state-info space-y-1">
+      <div>
+        <strong>Contrôle 3N - Somme ENTRÉE (transactions):</strong>
+        {{ formatCdf(totalEntreesTransactions) }}
+        <span [class]="ecartEntrees === 0 ? 'text-emerald-700 font-semibold' : 'text-red-700 font-semibold'">
+          (écart: {{ formatCdf(ecartEntrees) }})
+        </span>
+      </div>
+      <div>
+        <strong>Contrôle 3N - Somme SORTIE (transactions):</strong>
+        {{ formatCdf(totalSortiesTransactions) }}
+        <span [class]="ecartSorties === 0 ? 'text-emerald-700 font-semibold' : 'text-red-700 font-semibold'">
+          (écart: {{ formatCdf(ecartSorties) }})
+        </span>
+      </div>
+    </div>
+
+    <div class="mc-panel">
+      <h3 class="text-lg font-semibold text-gray-900 mb-3">Contrôles caisse</h3>
+      <div class="grid grid-cols-1 gap-3 text-sm md:grid-cols-2 xl:grid-cols-3">
+        <div>
+          <strong>Continuité de caisse:</strong>
+          <span [class]="continuiteCaisseAssuree ? 'text-emerald-700 font-semibold' : 'text-red-700 font-semibold'">
+            {{ continuiteCaisseAssuree ? 'OK' : 'ALERTE' }}
+          </span>
+        </div>
+        <div>
+          <strong>Traçabilité:</strong>
+          <span [class]="tracabiliteComplete ? 'text-emerald-700 font-semibold' : 'text-red-700 font-semibold'">
+            {{ tracabiliteComplete ? 'OK' : 'ALERTE' }}
+          </span>
+        </div>
+        <div>
+          <strong>Contrôle interne:</strong>
+          <span [class]="controleInterneSousAlerte ? 'text-red-700 font-semibold' : 'text-emerald-700 font-semibold'">
+            {{ controleInterneSousAlerte ? 'ALERTE' : 'OK' }}
+          </span>
+        </div>
+        <div><strong>Audit:</strong> Journal détaillé et export CSV disponibles</div>
+        <div><strong>Responsabilité du Caissier:</strong> {{ caissiersResponsables }}</div>
+        <div>
+          <strong>Exactitude du solde disponible:</strong>
+          <span [class]="soldeExact ? 'text-emerald-700 font-semibold' : 'text-red-700 font-semibold'">
+            {{ soldeExact ? 'OK' : 'ALERTE' }}
+          </span>
+          <span>({{ formatCdf(soldeDisponibleControle) }})</span>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="text-lg font-semibold text-gray-900 pt-2">Détail des transactions</h3>
+
+    <div *ngIf="!loadingTransactions && transactions.length === 0" class="mc-state mc-state-info">
+      Aucune transaction trouvée pour cette journée.
+    </div>
+
+    <div *ngIf="transactions.length > 0" class="mc-table-wrap">
+      <table class="mc-table min-w-[1500px]">
+        <thead>
+          <tr>
+            <th class="px-3 py-2 text-left">Date / Heure</th>
+            <th class="px-3 py-2 text-left">Caisse</th>
+            <th class="px-3 py-2 text-left">Session</th>
+            <th class="px-3 py-2 text-left">Type</th>
+            <th class="px-3 py-2 text-left">Catégorie</th>
+            <th class="px-3 py-2 text-left">Source</th>
+            <th class="px-3 py-2 text-right">Montant</th>
+            <th class="px-3 py-2 text-right">Solde après</th>
+            <th class="px-3 py-2 text-left">Utilisateur</th>
+            <th class="px-3 py-2 text-left">Rôle</th>
+            <th class="px-3 py-2 text-left">Site / Antenne</th>
+            <th class="px-3 py-2 text-left">Référence métier</th>
+            <th class="px-3 py-2 text-left">Commentaire</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let tx of transactions" class="border-t border-slate-100">
+            <td class="px-3 py-2 whitespace-nowrap">
+              {{ formatDate(tx.dateOperation) }} {{ formatTime(tx.dateOperation) }}
+            </td>
+            <td class="px-3 py-2">{{ tx.caisseLibelle || ('Caisse #' + tx.caisseId) || '-' }}</td>
+            <td class="px-3 py-2">{{ tx.sessionCaisseId ? ('Session #' + tx.sessionCaisseId) : '-' }}</td>
+            <td class="px-3 py-2">{{ tx.typeOperation || '-' }}</td>
+            <td class="px-3 py-2">{{ tx.categorie || '-' }}</td>
+            <td class="px-3 py-2">{{ getSourceLabel(tx) || '-' }}</td>
+            <td class="px-3 py-2 text-right">{{ formatCdf(tx.montant) }}</td>
+            <td class="px-3 py-2 text-right">{{ formatCdf(tx.soldeApresOperation) }}</td>
+            <td class="px-3 py-2">{{ tx.utilisateurNom || ('Utilisateur #' + tx.utilisateurId) || '-' }}</td>
+            <td class="px-3 py-2">{{ tx.roleUtilisateur || '-' }}</td>
+            <td class="px-3 py-2">{{ tx.siteLibelle || ('Site #' + tx.siteId) || '-' }}</td>
+            <td class="px-3 py-2">{{ getReferenceLabel(tx) || '-' }}</td>
+            <td class="px-3 py-2">{{ tx.commentaire || '-' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

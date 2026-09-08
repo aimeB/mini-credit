@@ -1,0 +1,9 @@
+/* Tailwind CSS styles are applied directly via template classes */
+/* This file is here for component-specific styles if needed */
+
+/* Custom animations and utilities can be added here */
+@layer components {
+  .table-responsive {
+    @apply overflow-x-auto;
+  }
+}

@@ -1,0 +1,107 @@
+<div class="mc-page-wide">
+  <header class="mc-page-hero">
+    <div>
+      <h1 class="mc-page-title">Opérations de caisse</h1>
+      <p class="mc-page-subtitle">{{ sessionSubtitle }}</p>
+    </div>
+
+    <div class="mc-button-row">
+      <a [routerLink]="['/caisses/session', sessionId]" class="mc-btn bg-white/15 text-white ring-1 ring-white/30 hover:bg-white/25">Retour à la session</a>
+      <a *ngIf="canCreateOperation" [routerLink]="['/caisses/session', sessionId, 'operations', 'nouveau']" class="mc-btn mc-btn-primary">
+        Nouvelle opération
+      </a>
+    </div>
+  </header>
+
+  <section class="mc-panel flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" *ngIf="session">
+    <div>
+      <div class="text-lg font-bold text-slate-900">{{ session.caisseCode }}</div>
+      <div class="text-sm text-slate-600">Session #{{ session.id }}</div>
+    </div>
+    <span class="mc-badge" [ngClass]="typeBadgeClass">{{ session.statut }}</span>
+  </section>
+
+  <div *ngIf="loading || loadingSession" class="mc-state mc-state-info">Chargement des opérations...</div>
+  <div *ngIf="error" class="mc-state mc-state-danger">{{ error }}</div>
+
+  <section *ngIf="session && !loadingSession" class="mc-kpi-grid">
+    <article class="mc-kpi-card">
+      <span class="mc-kpi-label">Nombre d’opérations</span>
+      <strong class="mc-kpi-value">{{ operationCount }}</strong>
+    </article>
+    <article class="mc-kpi-card mc-kpi-card-success">
+      <span class="mc-kpi-label text-emerald-700">Total entrées</span>
+      <strong class="mc-kpi-value text-emerald-900">{{ formatMoney(totalEntrees) }}</strong>
+    </article>
+    <article class="mc-kpi-card mc-kpi-card-warning">
+      <span class="mc-kpi-label text-amber-700">Total sorties</span>
+      <strong class="mc-kpi-value text-amber-900">{{ formatMoney(totalSorties) }}</strong>
+    </article>
+    <article class="mc-kpi-card">
+      <span class="mc-kpi-label">Solde théorique</span>
+      <strong class="mc-kpi-value">{{ formatMoney(soldeTheorique) }}</strong>
+    </article>
+    <article class="mc-kpi-card">
+      <span class="mc-kpi-label">Devise</span>
+      <strong class="mc-kpi-value">{{ devise }}</strong>
+    </article>
+  </section>
+
+  <section *ngIf="!loading && operations.length > 0" class="space-y-4">
+    <div class="mc-panel">
+      <div>
+        <h2 class="mb-1 text-lg font-bold text-slate-900">Liste des opérations</h2>
+        <p class="text-sm leading-6 text-slate-600">Toutes les opérations enregistrées sur la session sélectionnée.</p>
+      </div>
+    </div>
+
+    <div class="mc-table-wrap">
+      <table class="mc-table min-w-[1200px]">
+        <thead>
+          <tr>
+            <th>Pièce</th>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Catégorie</th>
+            <th>Source</th>
+            <th>Référence</th>
+            <th class="text-right">Montant</th>
+            <th>Auteur</th>
+            <th>Description / Observation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let op of operations">
+            <td class="piece-cell">{{ op.numeroPiece }}</td>
+            <td>{{ formatDate(op.dateOperation) }}</td>
+            <td>
+              <span class="mc-badge" [ngClass]="op.typeOperation === 'ENTREE' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'">
+                {{ formatLabel(op.typeOperation) }}
+              </span>
+            </td>
+            <td>
+              <span class="mc-badge bg-slate-100 text-slate-700">{{ formatLabel(op.categorieOperation) }}</span>
+            </td>
+            <td>
+              <span class="mc-badge bg-blue-50 text-blue-700">{{ getSourceLabel(op) }}</span>
+            </td>
+            <td>{{ op.referenceExterne || '—' }}</td>
+            <td class="amount-cell" [class.amount-positive]="op.typeOperation === 'ENTREE'" [class.amount-negative]="op.typeOperation === 'SORTIE'">
+              {{ formatMoney(op.montant, true, op.typeOperation) }}
+            </td>
+            <td>{{ getAuthorLabel(op) }}</td>
+            <td class="description-cell">{{ getOperationNarrative(op) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section *ngIf="!loading && !error && operations.length === 0" class="mc-state mc-state-info text-center">
+    <h2 class="text-lg font-bold text-slate-900">Aucune opération enregistrée pour cette session.</h2>
+    <p class="mt-2 text-sm text-slate-600">La session est prête à recevoir sa première entrée ou sortie manuelle.</p>
+    <a *ngIf="canCreateOperation" [routerLink]="['/caisses/session', sessionId, 'operations', 'nouveau']" class="mc-btn mc-btn-primary mt-4">
+      Nouvelle opération
+    </a>
+  </section>
+</div>

@@ -1,0 +1,183 @@
+<div class="mc-page-wide">
+  <div>
+    <!-- Header -->
+    <header class="mc-page-hero flex justify-between items-center gap-4 flex-wrap">
+      <div>
+        <h1 class="mc-page-title flex items-center gap-3">
+          Rapports & Analytics
+        </h1>
+        <p class="mc-page-subtitle">Tableaux de bord, KPIs et analyses financières</p>
+      </div>
+    </header>
+
+    <!-- Date Filter -->
+    <app-workflow-guidance-banner [guidance]="roleGuidance"></app-workflow-guidance-banner>
+
+    <div *ngIf="canAccessRevenusReport()" class="mc-panel border-emerald-100">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+        <div>
+          <div>
+            <h2 class="text-xl font-bold text-gray-900">Rapport des revenus</h2>
+            <p class="text-gray-600 mt-1">Analyse des revenus réels par antenne, période et catégorie.</p>
+          </div>
+        </div>
+        <a routerLink="/rapports/revenus"
+          class="mc-btn mc-btn-success">
+          Voir le rapport des revenus
+        </a>
+      </div>
+    </div>
+
+    <div class="mc-filter-panel">
+      <div class="grid gap-4 md:grid-cols-[1fr_1fr_auto] md:items-end">
+        <div>
+          <label class="mc-field-label">Date Début</label>
+          <input type="date" [(ngModel)]="dateDebut" class="mc-input">
+        </div>
+        <div>
+          <label class="mc-field-label">Date Fin</label>
+          <input type="date" [(ngModel)]="dateFin" class="mc-input">
+        </div>
+        <button 
+          (click)="loadDashboard()"
+          class="mc-btn mc-btn-primary">
+          Filtrer
+        </button>
+      </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div *ngIf="kpi" class="mc-kpi-grid">
+      <!-- Total Clients -->
+      <div class="mc-kpi-card">
+        <div>
+          <div>
+            <p class="mc-kpi-label">Total Clients</p>
+            <p class="mc-kpi-value">{{ kpi.totalClients }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Crédits Actifs -->
+      <div class="mc-kpi-card mc-kpi-card-success">
+        <div>
+          <div>
+            <p class="mc-kpi-label text-emerald-700">Crédits Actifs</p>
+            <p class="mc-kpi-value text-emerald-900">{{ kpi.totalCreditActifs }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Portefeuille -->
+      <div class="mc-kpi-card">
+        <div>
+          <div>
+            <p class="mc-kpi-label">Portefeuille Total</p>
+            <p class="mc-kpi-value">{{ kpi.totalPortefeuilleActual | number: '1.2-2' }} $</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Taux Défaut -->
+      <div class="mc-kpi-card mc-kpi-card-warning">
+        <div>
+          <div>
+            <p class="mc-kpi-label text-amber-700">Taux Défaut</p>
+            <p class="mc-kpi-value text-amber-900">{{ kpi.tauxDefautPortefeuille }}%</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Revenus 30j -->
+      <div class="mc-kpi-card mc-kpi-card-success">
+        <div>
+          <div>
+            <p class="mc-kpi-label text-emerald-700">Revenus (30j)</p>
+            <p class="mc-kpi-value text-emerald-900">{{ kpi.revenus30Jours | number: '1.2-2' }} $</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dépenses 30j -->
+      <div class="mc-kpi-card mc-kpi-card-warning">
+        <div>
+          <div>
+            <p class="mc-kpi-label text-amber-700">Dépenses (30j)</p>
+            <p class="mc-kpi-value text-amber-900">{{ kpi.depenses30Jours | number: '1.2-2' }} $</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bénéfice 30j -->
+      <div class="mc-kpi-card" [ngClass]="kpi.benefice30Jours >= 0 ? 'mc-kpi-card-success' : 'mc-kpi-card-warning'">
+        <div>
+          <div>
+            <p class="mc-kpi-label">Bénéfice (30j)</p>
+            <p class="mc-kpi-value">{{ kpi.benefice30Jours | number: '1.2-2' }} $</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Épargne Collectée -->
+      <div class="mc-kpi-card">
+        <div>
+          <div>
+            <p class="mc-kpi-label">Épargne Collectée</p>
+            <p class="mc-kpi-value">{{ kpi.epargneCollectee | number: '1.2-2' }} $</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Export Section -->
+    <div class="mc-panel">
+      <h3 class="text-xl font-bold text-gray-900 mb-4">Export Rapports</h3>
+      <div class="mc-button-row">
+        <button 
+          (click)="exportPDF('financier')"
+          class="mc-btn bg-red-600 text-white hover:bg-red-700">
+          Export PDF Financier
+        </button>
+        <button 
+          (click)="exportExcel('financier')"
+          class="mc-btn mc-btn-success">
+          Export Excel Financier
+        </button>
+        <button 
+          (click)="exportPDF('risque')"
+          class="mc-btn bg-orange-600 text-white hover:bg-orange-700">
+          Export PDF Risque
+        </button>
+      </div>
+    </div>
+
+    <!-- Risques -->
+    <div class="mc-panel">
+      <div class="mb-4 border-b border-gray-200 pb-4">
+        <h3 class="text-xl font-bold text-gray-900">Alertes Risque</h3>
+      </div>
+      
+      <div *ngIf="risques.length > 0" class="divide-y divide-gray-200">
+        <div *ngFor="let risque of risques" class="p-6 hover:bg-gray-50 transition">
+          <div class="flex justify-between items-start">
+            <div class="flex-1">
+              <p class="font-semibold text-gray-900">{{ risque.membreNom }}</p>
+              <p class="text-sm text-gray-600">Crédit: {{ risque.numeroCredit }}</p>
+              <p class="text-sm text-gray-600 mt-2">{{ risque.raisons.join(', ') }}</p>
+            </div>
+            <div class="text-right">
+              <span [ngClass]="'mc-badge ' + getNiveauRisqueColor(risque.niveauRisque)">
+                {{ risque.niveauRisque }}
+              </span>
+              <p class="text-sm text-gray-600 mt-2">{{ risque.joursEnRetard }} jours en retard</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="risques.length === 0" class="mc-state mc-state-info text-center">
+        Aucune alerte de risque
+      </div>
+    </div>
+  </div>
+</div>

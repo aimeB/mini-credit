@@ -1,0 +1,381 @@
+<div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-8 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+      <div>
+        <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
+          {{ isEditMode ? "Modifier l'Utilisateur" : 'Cr\u00e9er un Compte Utilisateur' }}
+        </h1>
+        <p class="text-gray-600">
+          {{ isEditMode ? "Mettre \u00e0 jour le compte utilisateur" : "Compte de connexion li\u00e9 \u00e0 une fiche employ\u00e9" }}
+        </p>
+      </div>
+      <a routerLink="/utilisateurs"
+        class="inline-flex items-center justify-center px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors font-medium">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        Retour
+      </a>
+    </div>
+
+    @if (loadingData) {
+      <div class="flex flex-col items-center justify-center py-16">
+        <div class="relative w-16 h-16 mb-4">
+          <div class="absolute inset-0 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full animate-spin"></div>
+          <div class="absolute inset-1 bg-white rounded-full"></div>
+        </div>
+        <p class="text-gray-600 font-medium">Chargement...</p>
+      </div>
+    } @else {
+      @if (error) {
+        <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg">
+          <div class="flex items-start">
+            <svg class="w-6 h-6 text-red-500 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <h3 class="text-red-800 font-semibold">Erreur</h3>
+              <p class="text-red-700 text-sm">{{ error }}</p>
+            </div>
+          </div>
+        </div>
+      }
+
+      @if (success) {
+        <div class="mb-6 p-4 bg-emerald-50 border-l-4 border-emerald-500 rounded-lg">
+          <div class="flex items-start">
+            <svg class="w-6 h-6 text-emerald-500 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <h3 class="text-emerald-800 font-semibold">Succ\u00e8s</h3>
+              <p class="text-emerald-700 text-sm">{{ success }}</p>
+            </div>
+          </div>
+        </div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="enregistrer()" class="space-y-8">
+
+        <!-- ══════════════════════════════════════════════
+             SECTION 1 — EMPLOYE LIE (en tête de formulaire)
+             ══════════════════════════════════════════════ -->
+        <div class="bg-white rounded-xl shadow-md p-6 sm:p-8">
+          <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+            <svg class="w-6 h-6 mr-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            Employ\u00e9 li\u00e9
+            @if (!isEditMode && isOperationalRole) {
+              <span class="ml-2 text-red-500 font-normal text-sm">* obligatoire pour ce r\u00f4le</span>
+            }
+          </h2>
+
+          <!-- Aide contextuelle -->
+          @if (!isEditMode) {
+            <div class="mb-5 p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
+              <p class="font-semibold mb-1">Parcours recommand\u00e9</p>
+              <p>Pour les r\u00f4les op\u00e9rationnels (Agent Terrain, Gestionnaire, Caissier, Contr\u00f4leur, Chef de Bureau, RCI),
+              cr\u00e9ez d'abord la <strong>fiche Employ\u00e9</strong>, puis revenez cr\u00e9er le compte ici.
+              L'identit\u00e9 (nom, t\u00e9l\u00e9phone) sera automatiquement reprise de la fiche employ\u00e9.</p>
+              <p class="mt-1">L'<strong>ADMIN</strong> peut \u00eatre cr\u00e9\u00e9 sans fiche employ\u00e9.</p>
+            </div>
+          }
+
+          @if (!isEditMode) {
+            <div>
+              <label class="block text-sm font-semibold text-gray-900 mb-2">
+                S\u00e9lectionner l'employ\u00e9
+                @if (isOperationalRole) { <span class="text-red-500">*</span> }
+              </label>
+              <select
+                formControlName="employeId"
+                (change)="onEmployeChange($event)"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
+              >
+                <option [ngValue]="null">
+                  @if (isOperationalRole) {
+                    -- S\u00e9lectionner un employ\u00e9 (obligatoire) --
+                  } @else {
+                    -- Aucun employ\u00e9 li\u00e9 (ADMIN ou compte syst\u00e8me) --
+                  }
+                </option>
+                @for (emp of employes; track emp.id) {
+                  <option [ngValue]="emp.id">
+                    {{ emp.matricule }} &mdash; {{ emp.nomComplet }}
+                    @if (emp.fonction) { &mdash; {{ getFonctionLabel(emp.fonction) }} }
+                    @if (emp.telephone) { &mdash; {{ emp.telephone }} }
+                  </option>
+                }
+              </select>
+              @if (loadingEmployes) {
+                <p class="text-gray-400 text-xs mt-1">Chargement des employ\u00e9s disponibles...</p>
+              }
+              @if (employes.length === 0 && !loadingEmployes) {
+                <p class="text-amber-700 text-xs mt-1">
+                  Aucun employ\u00e9 disponible sans compte.
+                  <a routerLink="/employes/nouveau" class="underline font-semibold">Cr\u00e9er un employ\u00e9</a>
+                </p>
+              }
+            </div>
+          }
+
+          <!-- Avertissement ADMIN -->
+          @if (isAdminRole && !isEditMode) {
+            <div class="mt-4 p-4 bg-amber-50 border border-amber-300 rounded-lg text-sm text-amber-800">
+              <p class="font-semibold">&#9888; R\u00e9serv\u00e9 aux comptes techniques ou administrateurs syst\u00e8me.</p>
+              <p class="mt-1">Un ADMIN peut \u00eatre cr\u00e9\u00e9 sans fiche employ\u00e9. Assurez-vous que ce compte est n\u00e9cessaire.</p>
+            </div>
+          }
+
+          <!-- Bloc résumé employé (après sélection) -->
+          @if (selectedEmploye) {
+            <div class="mt-5 p-5 bg-green-50 border border-green-300 rounded-xl">
+              <h3 class="text-sm font-bold text-green-800 mb-3 flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Employ\u00e9 s\u00e9lectionn\u00e9 — identit\u00e9 reprise automatiquement
+              </h3>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                @if (selectedEmploye.matricule) {
+                  <div>
+                    <span class="text-gray-500">Matricule</span>
+                    <p class="font-mono font-semibold text-gray-900">{{ selectedEmploye.matricule }}</p>
+                  </div>
+                }
+                <div>
+                  <span class="text-gray-500">Nom complet</span>
+                  <p class="font-semibold text-gray-900">{{ selectedEmploye.nomComplet }}</p>
+                </div>
+                @if (selectedEmploye.telephone) {
+                  <div>
+                    <span class="text-gray-500">T\u00e9l\u00e9phone</span>
+                    <p class="font-semibold text-gray-900">{{ selectedEmploye.telephone }}</p>
+                  </div>
+                }
+                @if (selectedEmploye.fonction) {
+                  <div>
+                    <span class="text-gray-500">Fonction</span>
+                    <p class="font-semibold text-gray-900">{{ getFonctionLabel(selectedEmploye.fonction) }}</p>
+                  </div>
+                }
+                @if (selectedEmploye.nomAgence) {
+                  <div>
+                    <span class="text-gray-500">Agence</span>
+                    <p class="font-semibold text-gray-900">{{ selectedEmploye.nomAgence }}</p>
+                  </div>
+                }
+                @if (selectedEmploye.nomSite) {
+                  <div>
+                    <span class="text-gray-500">Site</span>
+                    <p class="font-semibold text-gray-900">{{ selectedEmploye.nomSite }}</p>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- ══════════════════════════════════════════════
+             SECTION 2 — ROLES ET PERMISSIONS
+             ══════════════════════════════════════════════ -->
+        <div class="bg-white rounded-xl shadow-md p-6 sm:p-8">
+          <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+            <svg class="w-6 h-6 mr-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            R\u00f4le et Permissions <span class="text-red-500 ml-1">*</span>
+          </h2>
+          <p class="text-sm text-gray-600 mb-4">S\u00e9lectionnez un r\u00f4le pour ce compte</p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            @for (role of roles; track role) {
+              <div
+                (click)="toggleRole(role)"
+                [class.ring-2]="isRoleSelected(role)"
+                [class.ring-blue-500]="isRoleSelected(role)"
+                [class.bg-blue-50]="isRoleSelected(role)"
+                class="p-4 border-2 border-gray-200 rounded-lg cursor-pointer transition-all hover:border-blue-400 hover:bg-blue-50">
+                <div class="flex items-start">
+                  <div
+                    [class.bg-blue-600]="isRoleSelected(role)"
+                    [class.border-blue-600]="isRoleSelected(role)"
+                    class="w-5 h-5 border-2 border-gray-300 rounded flex items-center justify-center mt-1 flex-shrink-0">
+                    @if (isRoleSelected(role)) {
+                      <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                      </svg>
+                    }
+                  </div>
+                  <div class="ml-3 min-w-0">
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <p class="font-semibold text-gray-900">{{ roleLabels[role] }}</p>
+                      <span class="text-xs text-gray-400 font-mono bg-gray-100 px-1.5 py-0.5 rounded">{{ role }}</span>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-1">{{ roleDescriptions[role] }}</p>
+                    @if (roleModules[role]) {
+                      <div class="mt-2 flex flex-wrap gap-1">
+                        @for (module of roleModules[role]; track module) {
+                          <span class="inline-block text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{{ module }}</span>
+                        }
+                      </div>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+          @if (form.get('roles')?.invalid && form.get('roles')?.touched) {
+            <p class="text-red-500 text-sm mt-4">Veuillez s\u00e9lectionner un r\u00f4le</p>
+          }
+        </div>
+
+        <!-- ══════════════════════════════════════════════
+             SECTION 3 — IDENTIFIANTS DE CONNEXION
+             ══════════════════════════════════════════════ -->
+        <div class="bg-white rounded-xl shadow-md p-6 sm:p-8">
+          <h2 class="text-xl font-bold text-gray-900 mb-6 flex items-center">
+            <svg class="w-6 h-6 mr-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+            </svg>
+            Identifiants de Connexion
+          </h2>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Username -->
+            <div class="md:col-span-2">
+              <label class="block text-sm font-semibold text-gray-900 mb-2">
+                Username <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                formControlName="username"
+                [attr.disabled]="isEditMode ? '' : null"
+                [class.border-red-500]="form.get('username')?.invalid && form.get('username')?.touched"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white text-gray-900 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                placeholder="Entrez le username (ex: jean.dupont)"
+              >
+              @if (getFieldError('username')) {
+                <p class="text-red-500 text-sm mt-1">{{ getFieldError('username') }}</p>
+              }
+            </div>
+
+            <!-- Mot de passe -->
+            @if (!isEditMode) {
+              <div>
+                <label class="block text-sm font-semibold text-gray-900 mb-2">
+                  Mot de passe <span class="text-red-500">*</span>
+                </label>
+                <div class="relative">
+                  <input
+                    [type]="showPassword ? 'text' : 'password'"
+                    formControlName="password"
+                    [class.border-red-500]="form.get('password')?.invalid && form.get('password')?.touched"
+                    class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white text-gray-900"
+                    placeholder="Minimum 6 caract\u00e8res"
+                  >
+                  <button type="button" (click)="showPassword = !showPassword"
+                    class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-700">
+                    @if (showPassword) {
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                      </svg>
+                    } @else {
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    }
+                  </button>
+                </div>
+                @if (getFieldError('password')) {
+                  <p class="text-red-500 text-sm mt-1">{{ getFieldError('password') }}</p>
+                }
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-gray-900 mb-2">
+                  Confirmer le mot de passe <span class="text-red-500">*</span>
+                </label>
+                <div class="relative">
+                  <input
+                    [type]="showConfirmPassword ? 'text' : 'password'"
+                    formControlName="confirmPassword"
+                    [class.border-red-500]="showPasswordMismatch"
+                    class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white text-gray-900"
+                    placeholder="R\u00e9p\u00e9tez le mot de passe"
+                  >
+                  <button type="button" (click)="showConfirmPassword = !showConfirmPassword"
+                    class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-700">
+                    @if (showConfirmPassword) {
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                      </svg>
+                    } @else {
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    }
+                  </button>
+                </div>
+                @if (showPasswordMismatch) {
+                  <p class="text-red-500 text-sm mt-1">Les mots de passe ne correspondent pas</p>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════
+             SECTION 4 — STATUT
+             ══════════════════════════════════════════════ -->
+        <div class="bg-white rounded-xl shadow-md p-6 sm:p-8">
+          <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+            <svg class="w-6 h-6 mr-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Statut
+          </h2>
+          <label class="flex items-center cursor-pointer">
+            <input type="checkbox" formControlName="active"
+              class="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500">
+            <span class="ml-3 text-gray-700 font-medium">Compte actif</span>
+          </label>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex flex-col sm:flex-row gap-4">
+          <a routerLink="/utilisateurs"
+            class="flex-1 inline-flex items-center justify-center px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors font-semibold">
+            Annuler
+          </a>
+          <button
+            type="submit"
+            [disabled]="loading || loadingData || form.invalid"
+            [class.opacity-50]="loading || loadingData || form.invalid"
+            [class.cursor-not-allowed]="loading || loadingData || form.invalid"
+            class="flex-1 inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all font-semibold shadow-lg disabled:hover:shadow-lg">
+            @if (loading) {
+              <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              {{ isEditMode ? 'Mise \u00e0 jour...' : 'Cr\u00e9ation...' }}
+            } @else {
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              {{ isEditMode ? 'Mettre \u00e0 jour' : "Cr\u00e9er le Compte" }}
+            }
+          </button>
+        </div>
+      </form>
+    }
+  </div>
+</div>

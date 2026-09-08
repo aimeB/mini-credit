@@ -1,0 +1,1 @@
+export type StatutEcheance = 'A_PAYER' | 'PARTIEL' | 'PAYE' | 'EN_RETARD';

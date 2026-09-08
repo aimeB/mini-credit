@@ -1,0 +1,97 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h2>Encaisser les frais de demande crédit</h2>
+      <p class="subtitle">Le Caissier confirme uniquement le mode de paiement, le montant à encaisser et une observation éventuelle.</p>
+    </div>
+
+    <div class="actions">
+      <a [routerLink]="returnUrl" class="btn btn-secondary">
+        Retour
+      </a>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="info-box">
+    Chargement de la demande...
+  </div>
+
+  <div *ngIf="errorMessage" class="error-box">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="sessionErrorMessage" class="error-box">
+    {{ sessionErrorMessage }}
+  </div>
+
+  <div *ngIf="demande && !loading" class="info-card">
+    <app-workflow-guidance-banner [guidance]="guidance"></app-workflow-guidance-banner>
+
+    <p><strong>N° demande :</strong> {{ demande.numeroDemande }}</p>
+    <p><strong>Membre :</strong> {{ demande.membreNomComplet }}</p>
+    <p><strong>Montant demandé :</strong> {{ demande.montantDemande | number:'1.0-2' }} {{ demande.devise }}</p>
+    <p><strong>Frais de demande :</strong> {{ demande.fraisDemande | number:'1.0-2' }} {{ demande.devise }}</p>
+    <p><strong>Frais déjà payés :</strong> {{ demande.fraisDemandePayes | number:'1.0-2' }} {{ demande.devise }}</p>
+    <p><strong>Reste frais à payer :</strong> {{ fraisDemandeRestant | number:'1.0-2' }} {{ demande.devise }}</p>
+    <p><strong>Statut :</strong> {{ demande.statut }}</p>
+    <p class="subtitle">Le dépôt de garantie n’est pas concerné par cet écran et reste traité dans le workflow garantie/crédit.</p>
+  </div>
+
+  <div *ngIf="demande && !loading" class="info-card">
+    <h3>Session caisse utilisée</h3>
+
+    <div *ngIf="loadingSession" class="info-box">
+      Recherche de la session caisse ouverte...
+    </div>
+
+    <ng-container *ngIf="sessionActive">
+      <p><strong>Caissier connecté :</strong> {{ currentUserName }}</p>
+      <p><strong>Caisse active :</strong> {{ sessionActive.caisseCode }}</p>
+      <p><strong>Session caisse active :</strong> #{{ sessionActive.id }}</p>
+      <p><strong>Antenne :</strong> {{ sessionActive.antenneNom || '-' }}</p>
+      <p><strong>Date/heure :</strong> {{ currentDateTime | date:'short' }}</p>
+    </ng-container>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="form-card" *ngIf="demande && !loading">
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Mode de paiement *</label>
+        <select formControlName="modePaiement">
+          <option [ngValue]="null">-- Sélectionner --</option>
+          <option *ngFor="let option of modePaiementOptions" [ngValue]="option">
+            {{ option }}
+          </option>
+        </select>
+        <small *ngIf="f.modePaiement.touched && f.modePaiement.invalid" class="error-text">
+          Le mode de paiement est obligatoire.
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label>Montant à encaisser - frais de demande</label>
+        <input type="number" step="0.01" formControlName="fraisPayes" />
+        <small class="subtitle">Reste frais à payer : {{ fraisDemandeRestant | number:'1.0-2' }} {{ demande.devise }}</small>
+      </div>
+
+      <div class="form-group form-group-full">
+        <label>Observation</label>
+        <textarea rows="3" formControlName="observation"></textarea>
+      </div>
+    </div>
+
+    <div *ngIf="successMessage" class="success-box">
+      {{ successMessage }}
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary" [disabled]="!canSubmit">
+        {{ submitting ? 'Enregistrement...' : 'Encaisser les frais' }}
+      </button>
+
+      <a [routerLink]="returnUrl" class="btn btn-secondary">
+        Annuler
+      </a>
+    </div>
+  </form>
+</div>

@@ -1,0 +1,185 @@
+<div class="mc-page-wide">
+  <header class="mc-page-hero flex items-center justify-between gap-3 flex-wrap">
+    <div>
+      <h1 class="mc-page-title">Dépenses caisse</h1>
+      <p class="mc-page-subtitle">Suivi des dépenses d'exploitation, validation et paiement.</p>
+    </div>
+    <a *ngIf="canCreate" routerLink="/caisses/depenses/nouvelle" class="mc-btn bg-white/15 text-white ring-1 ring-white/30 hover:bg-white/25">Nouvelle dépense</a>
+  </header>
+
+  <app-workflow-guidance-banner [guidance]="globalGuidance()"></app-workflow-guidance-banner>
+
+  <app-workflow-guidance-banner *ngIf="statusGuidance()" [guidance]="statusGuidance()"></app-workflow-guidance-banner>
+
+  <div *ngIf="error()" class="mc-state mc-state-danger">{{ error() }}</div>
+
+  <div class="mc-filter-panel mc-filter-grid">
+    <select class="mc-select" [ngModel]="filtres().statut" (ngModelChange)="setFiltre('statut', $event)">
+      <option value="">Tous statuts</option>
+      <option value="BROUILLON">Brouillon</option>
+      <option value="EN_ATTENTE_VALIDATION">En attente</option>
+      <option value="VALIDEE">Validée</option>
+      <option value="PAYEE">Payée</option>
+      <option value="REJETEE">Rejetée</option>
+      <option value="ANNULEE">Annulée</option>
+    </select>
+    <input class="mc-input" placeholder="Caisse ID" [ngModel]="filtres().caisseId" (ngModelChange)="setFiltre('caisseId', $event)" />
+    <input class="mc-input" placeholder="Site ID" [ngModel]="filtres().siteId" (ngModelChange)="setFiltre('siteId', $event)" />
+    <input class="mc-input" placeholder="Session ID" [ngModel]="filtres().sessionCaisseId" (ngModelChange)="setFiltre('sessionCaisseId', $event)" />
+    <input type="date" class="mc-input" [ngModel]="filtres().dateDebut" (ngModelChange)="setFiltre('dateDebut', $event)" />
+    <input type="date" class="mc-input" [ngModel]="filtres().dateFin" (ngModelChange)="setFiltre('dateFin', $event)" />
+    <button type="button" class="mc-btn mc-btn-success md:col-span-6" (click)="applyFilters()">Filtrer</button>
+  </div>
+
+  <div *ngIf="loading()" class="mc-state mc-state-info">Chargement des dépenses...</div>
+
+  <div class="mc-table-wrap" *ngIf="!loading() && filteredDepenses().length > 0; else emptyState">
+    <table class="mc-table min-w-[1200px]">
+      <thead>
+        <tr>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Date</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Caisse</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Catégorie</th>
+          <th class="px-4 py-3 text-right text-sm font-semibold text-gray-700">Montant</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Statut</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Demandeur</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Validateur</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Payeur</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let depense of filteredDepenses(); trackBy: trackById">
+          <td class="px-4 py-3 text-sm text-gray-700">{{ depense.dateDemande | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td class="px-4 py-3 text-sm text-gray-700">{{ depense.caisseCode || depense.caisseId }}</td>
+          <td class="px-4 py-3 text-sm text-gray-700">{{ depense.categorie }}</td>
+          <td class="px-4 py-3 text-sm text-right font-semibold text-gray-900">{{ formatCdf(depense.montant) }}</td>
+          <td class="px-4 py-3 text-sm text-gray-700">{{ depense.statut }}</td>
+          <td class="px-4 py-3 text-sm text-gray-700">{{ depense.demandeParNom || '-' }}</td>
+          <td class="px-4 py-3 text-sm text-gray-700">{{ depense.valideParNom || '-' }}</td>
+          <td class="px-4 py-3 text-sm text-gray-700">{{ depense.payeParNom || '-' }}</td>
+          <td class="px-4 py-3 text-sm text-gray-700">
+            <a
+              *ngIf="canValidateDepense(depense)"
+              [routerLink]="['/caisses/depenses', depense.id]"
+              class="mc-btn bg-indigo-600 px-3 py-1.5 text-xs text-white hover:bg-indigo-700"
+            >
+              Valider
+            </a>
+
+            <a
+              *ngIf="!canValidateDepense(depense) && canPayDepense(depense)"
+              [routerLink]="['/caisses/depenses', depense.id]"
+              class="mc-btn mc-btn-success px-3 py-1.5 text-xs"
+            >
+              Payer
+            </a>
+
+            <a
+              *ngIf="!canOpenDetail(depense)"
+              [routerLink]="['/caisses/depenses', depense.id]"
+              class="mc-btn bg-white px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50"
+            >
+              Voir
+            </a>
+            <button
+              *ngIf="canAttachPayroll(depense)"
+              type="button"
+              class="mc-btn ml-2 bg-amber-600 px-3 py-1.5 text-xs text-white hover:bg-amber-700"
+              (click)="openRattachement(depense)"
+            >
+              Rattacher paie
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <ng-template #emptyState>
+    <div class="mc-state mc-state-info text-center">Aucune dépense caisse trouvée.</div>
+  </ng-template>
+
+  <div *ngIf="rattachementTarget" class="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4">
+    <form class="mc-modal-panel w-full max-w-3xl" (ngSubmit)="submitRattachement()">
+      <div class="mb-4 flex items-start justify-between gap-4">
+        <div>
+          <p class="text-xs font-bold uppercase text-amber-700">Rattachement paie historique</p>
+          <h3 class="text-xl font-bold text-gray-900">Qualifier la dépense salaire</h3>
+        </div>
+        <button type="button" class="mc-btn bg-white px-3 py-1 text-sm text-slate-700 hover:bg-slate-50" (click)="closeRattachement()">Fermer</button>
+      </div>
+
+      <div class="mb-4 grid grid-cols-1 gap-3 rounded-lg bg-gray-50 p-4 md:grid-cols-4">
+        <div><span class="text-xs font-semibold text-gray-500">Dépense</span><strong class="block">DEPENSE-{{ rattachementTarget.id }}</strong></div>
+        <div><span class="text-xs font-semibold text-gray-500">Montant payé</span><strong class="block">{{ formatCdf(rattachementTarget.montant) }}</strong></div>
+        <div><span class="text-xs font-semibold text-gray-500">Statut</span><strong class="block">{{ rattachementTarget.statut }}</strong></div>
+        <div><span class="text-xs font-semibold text-gray-500">Date paiement</span><strong class="block">{{ rattachementTarget.datePaiement | date:'dd/MM/yyyy' }}</strong></div>
+      </div>
+
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <label class="grid gap-1 text-sm font-semibold text-gray-700">
+          Employé
+          <select class="mc-select" name="employeId" [(ngModel)]="rattachementForm.employeId" (ngModelChange)="refreshRattachementPreview()" required>
+            <option [ngValue]="null">Choisir un employé</option>
+            <option *ngFor="let employe of rattachementBeneficiaires" [ngValue]="employe.employeId || employe.id">{{ employe.affichage }}</option>
+          </select>
+        </label>
+        <label class="grid gap-1 text-sm font-semibold text-gray-700">
+          Période paie
+          <input class="mc-input" type="month" name="periodePaie" [(ngModel)]="rattachementForm.periodePaie" (ngModelChange)="refreshRattachementPreview()" required>
+        </label>
+        <label class="grid gap-1 text-sm font-semibold text-gray-700">
+          Nature du paiement
+          <select class="mc-select" name="typePaiementPersonnel" [(ngModel)]="rattachementForm.typePaiementPersonnel" required>
+            <option *ngFor="let option of typePaiementOptions" [ngValue]="option.value">{{ option.label }}</option>
+          </select>
+        </label>
+        <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm" *ngIf="rattachementPreview">
+          <div class="flex justify-between"><span>Salaire prévu</span><strong>{{ formatCdf(rattachementPreview.totalAPayer) }}</strong></div>
+          <div class="flex justify-between"><span>Différence</span><strong>{{ formatCdf(rattachementDifference()) }}</strong></div>
+          <div class="flex justify-between"><span>Reste estimé</span><strong>{{ formatCdf(rattachementReste()) }}</strong></div>
+        </div>
+      </div>
+
+      <div class="mc-state mc-state-warning mt-4" *ngIf="rattachementPreview && rattachementDifference() < 0">
+        Le montant payé est inférieur à la rémunération prévue. Veuillez préciser s’il s’agit d’un paiement partiel, d’une avance ou d’une retenue.
+      </div>
+      <div class="mc-state mc-state-warning mt-4" *ngIf="rattachementPreview && rattachementDifference() > 0">
+        Le montant payé dépasse la rémunération prévue. Un motif est obligatoire pour prime, commission, régularisation ou autre.
+      </div>
+
+      <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+        <label class="grid gap-1 text-sm font-semibold text-gray-700">
+          Motif général
+          <textarea class="mc-textarea" name="motif" rows="2" [(ngModel)]="rattachementForm.motif"></textarea>
+        </label>
+        <label class="grid gap-1 text-sm font-semibold text-gray-700" *ngIf="rattachementForm.typePaiementPersonnel === 'SALAIRE_PARTIEL'">
+          Motif paiement partiel
+          <textarea class="mc-textarea" name="motifPaiementPartiel" rows="2" [(ngModel)]="rattachementForm.motifPaiementPartiel" required></textarea>
+        </label>
+        <label class="grid gap-1 text-sm font-semibold text-gray-700" *ngIf="rattachementForm.typePaiementPersonnel === 'RETENUE_SALAIRE'">
+          Motif retenue
+          <textarea class="mc-textarea" name="motifRetenue" rows="2" [(ngModel)]="rattachementForm.motifRetenue" required></textarea>
+        </label>
+        <label class="flex items-center gap-2 text-sm font-semibold text-gray-700" *ngIf="rattachementForm.typePaiementPersonnel === 'RETENUE_SALAIRE'">
+          <input type="checkbox" name="retenueDefinitive" [(ngModel)]="rattachementForm.retenueDefinitive">
+          Retenue définitive
+        </label>
+        <label class="grid gap-1 text-sm font-semibold text-gray-700 md:col-span-2">
+          Commentaire correction
+          <textarea class="mc-textarea" name="commentaireCorrection" rows="2" [(ngModel)]="rattachementForm.commentaireCorrection" required placeholder="Régularisation historique"></textarea>
+        </label>
+      </div>
+
+      <div *ngIf="rattachementForm.typePaiementPersonnel === 'AVANCE_SALAIRE'" class="mc-state mc-state-info mt-4">
+        Avance à régulariser. Aucun solde caisse n’est recalculé par ce rattachement.
+      </div>
+      <div *ngIf="rattachementError" class="mc-state mc-state-danger mt-4">{{ rattachementError }}</div>
+      <div class="mt-5 flex justify-end gap-3">
+        <button type="button" class="mc-btn bg-white text-slate-700 hover:bg-slate-50" (click)="closeRattachement()">Annuler</button>
+        <button type="submit" class="mc-btn mc-btn-success" [disabled]="rattachementSaving">{{ rattachementSaving ? 'Enregistrement...' : 'Rattacher sans modifier le montant' }}</button>
+      </div>
+    </form>
+  </div>
+</div>

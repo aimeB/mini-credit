@@ -1,0 +1,182 @@
+<div class="container-fluid p-4 recette-page">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <button class="btn btn-outline-secondary" (click)="onCancel()">Retour</button>
+    <span class="badge bg-secondary">Statut: {{ statusAffichage }}</span>
+  </div>
+
+  <h2 class="mb-4">{{ isEditMode ? 'Modifier' : 'Nouvelle' }} Recette Journalière Terrain</h2>
+
+  <app-workflow-guidance-banner [guidance]="globalGuidance"></app-workflow-guidance-banner>
+
+  <div *ngIf="!isLoading" class="alert alert-light border mb-3">
+    Les champs marqués par * sont obligatoires.
+  </div>
+
+  <div *ngIf="hasNoAssignedSite" class="alert alert-danger">
+    Aucun site n'est affecté à votre compte. Veuillez contacter le gestionnaire ou l'administrateur.
+  </div>
+
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border" role="status"><span class="visually-hidden">Chargement...</span></div>
+  </div>
+
+  <form *ngIf="!isLoading" [formGroup]="form" class="d-grid gap-3">
+    <!-- 1) En-tête recette -->
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title mb-3">1) En-tête recette</h5>
+        <div class="row g-3">
+          <div class="col-12 col-lg-6">
+            <label class="form-label">Agent connecté</label>
+            <div class="form-control bg-light">{{ connectedAgentLabel }}</div>
+          </div>
+          <div class="col-12 col-lg-6">
+            <label class="form-label">Site affecté</label>
+            <div *ngIf="!canChooseSite && !showSiteSelectForNonAgent" class="form-control bg-light">{{ currentSiteLabel }}</div>
+            <select *ngIf="canChooseSite" class="form-select" formControlName="siteId">
+              <option value="">-- Sélectionner un site autorisé --</option>
+              <option *ngFor="let site of connectedAgentSites" [value]="site.id">{{ site.nomSite }}</option>
+            </select>
+            <select *ngIf="showSiteSelectForNonAgent" class="form-select" formControlName="siteId">
+              <option value="">-- Sélectionner --</option>
+              <option *ngFor="let site of sites" [value]="site.id">{{ site.nomSite }}</option>
+            </select>
+          </div>
+          <div class="col-12 col-lg-6">
+            <label class="form-label">Date recette *</label>
+            <input type="date" class="form-control" formControlName="dateRecette">
+          </div>
+          <div class="col-12 col-lg-6">
+            <label class="form-label">Statut</label>
+            <div class="form-control bg-light">{{ statusAffichage }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2) Informations terrain -->
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title mb-3">2) Informations terrain</h5>
+        <div class="row g-3">
+          <div class="col-12 col-lg-6" *ngIf="!isAgentTerrainUser">
+            <label class="form-label">Agent Terrain *</label>
+            <select class="form-select" formControlName="agentTerrainId">
+              <option value="">-- Sélectionner --</option>
+              <option *ngFor="let agent of agents" [value]="agent.id">
+                {{ agent.nomCompletUtilisateur || agent.nomComplet || agent.username }}
+              </option>
+            </select>
+          </div>
+          <div class="col-12 col-lg-6">
+            <label class="form-label">Membres visités *</label>
+            <input type="number" class="form-control" formControlName="membresVisites" min="0">
+          </div>
+          <div class="col-12 col-lg-6">
+            <label class="form-label">Nouveaux membres *</label>
+            <input type="number" class="form-control" formControlName="nouveauxMembres" min="0">
+          </div>
+          <div class="col-12 col-lg-6">
+            <label class="form-label">Carnets distribués *</label>
+            <input type="number" class="form-control" formControlName="carnetDistribues" min="0">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3) Collectes financières -->
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title mb-3">3) Collectes financières</h5>
+        <div class="row g-3">
+          <div class="col-12 col-lg-6">
+            <label class="form-label">Épargne collectée *</label>
+            <input type="number" class="form-control" formControlName="epargneCollectee" min="0" step="0.01">
+          </div>
+          <div class="col-12 col-lg-6">
+            <label class="form-label">Remboursements collectés *</label>
+            <input type="number" class="form-control" formControlName="remboursementsCreditCollectes" min="0" step="0.01">
+          </div>
+          <div class="col-12 col-lg-6">
+            <label class="form-label">Frais collectés *</label>
+            <input type="number" class="form-control" formControlName="fraisCollectes" min="0" step="0.01">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4) Crédits et demandes -->
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title mb-3">4) Crédits et demandes</h5>
+        <div class="row g-3">
+          <div class="col-12 col-lg-6">
+            <label class="form-label">Demandes crédit recueillies</label>
+            <input type="number" class="form-control" formControlName="demandesCreditRecueillies" min="0">
+          </div>
+          <div class="col-12 col-lg-6">
+            <label class="form-label">IDs crédits traités</label>
+            <input type="text" class="form-control" formControlName="creditIdsTraites" placeholder="ex: [1001,1002]">
+          </div>
+          <div class="col-12 col-lg-6">
+            <label class="form-label">IDs demandes crédit</label>
+            <input type="text" class="form-control" formControlName="demandesCreditIds" placeholder="ex: [501,502]">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5) Trésorerie / billetage -->
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title mb-3">5) Trésorerie / billetage</h5>
+        <div class="row g-3">
+          <div class="col-12 col-lg-6">
+            <label class="form-label">Espèces remises *</label>
+            <input type="number" class="form-control" formControlName="especesRemises" min="0" step="0.01">
+          </div>
+          <div class="col-12 col-lg-6">
+            <label class="form-label">Espèces émises</label>
+            <input type="number" class="form-control" formControlName="especesEmises" min="0" step="0.01">
+          </div>
+        </div>
+        <div class="alert alert-info mt-3 mb-0">
+          <div><strong>Total collecté:</strong> {{ totalCollecte | number:'1.2-2' }}</div>
+          <div><strong>Écart trésorerie:</strong>
+            <span [class.text-success]="ecartTresorerie === 0" [class.text-danger]="ecartTresorerie !== 0">
+              {{ ecartTresorerie | number:'1.2-2' }}
+            </span>
+          </div>
+        </div>
+        <div *ngIf="ecartTresorerie !== 0" class="alert alert-warning mt-2 mb-0">
+          Écart trésorerie détecté: une observation est obligatoire.
+        </div>
+      </div>
+    </div>
+
+    <!-- 6) Observations -->
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title mb-3">6) Observations</h5>
+        <textarea class="form-control" rows="3" formControlName="observations" placeholder="Remarques opérationnelles..."></textarea>
+        <small class="text-danger" *ngIf="isObservationRequired">Observation obligatoire si écart ≠ 0.</small>
+      </div>
+    </div>
+
+    <!-- 7) Actions -->
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title mb-3">7) Actions</h5>
+        <div class="d-flex flex-wrap gap-2">
+          <button type="button" class="btn btn-primary" [disabled]="isLoading || !form.valid" (click)="onSubmit('BROUILLON')">
+            Enregistrer brouillon
+          </button>
+          <button type="button" class="btn btn-warning" [disabled]="isLoading || !form.valid" (click)="onSubmit('SOUMISE')">
+            Soumettre au contrôle
+          </button>
+          <button type="button" class="btn btn-outline-secondary" (click)="onCancel()">Annuler</button>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>

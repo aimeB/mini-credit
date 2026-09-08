@@ -1,0 +1,101 @@
+<div class="min-h-screen bg-gray-50 p-6">
+  <div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
+          <span class="text-2xl">🔒</span>
+          Garanties crédit
+        </h1>
+        <p class="text-gray-600 mt-2">Historique / consultation des garanties. La garantie crédit 3N se traite depuis la demande de crédit.</p>
+      </div>
+      <a 
+        routerLink="/credits/demandes"
+        class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg flex items-center gap-2 transition"
+      >
+        Gérer depuis les demandes de crédit
+      </a>
+    </div>
+
+    <div class="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+      La création libre par ID crédit est désactivée. La garantie obligatoire est calculée à 20 % du montant demandé, puis contrôlée dans le workflow GarantieCredit.
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="error" class="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+      {{ error }}
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="loading" class="text-center py-12">
+      <p class="text-gray-500">Chargement en cours...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading && garanties.length === 0" class="text-center py-12">
+      <p class="text-gray-500 mb-4">Aucune garantie enregistrée</p>
+      <a routerLink="/credits/demandes" class="text-blue-600 hover:underline">
+        Voir les demandes de crédit à traiter
+      </a>
+    </div>
+
+    <!-- Table -->
+    <div *ngIf="!loading && garanties.length > 0" class="bg-white rounded-lg shadow overflow-hidden">
+      <table class="w-full">
+        <thead class="bg-gray-800 text-white">
+          <tr>
+            <th class="px-6 py-4 text-left font-semibold">Crédit</th>
+            <th class="px-6 py-4 text-left font-semibold">Membre</th>
+            <th class="px-6 py-4 text-left font-semibold">Type</th>
+            <th class="px-6 py-4 text-left font-semibold">Description</th>
+            <th class="px-6 py-4 text-right font-semibold">Valeur Estimée</th>
+            <th class="px-6 py-4 text-center font-semibold">Taux</th>
+            <th class="px-6 py-4 text-left font-semibold">Statut</th>
+            <th class="px-6 py-4 text-center font-semibold">Workflow 3N</th>
+          </tr>
+        </thead>
+
+        <tbody class="divide-y divide-gray-200">
+          <tr *ngFor="let garantie of garanties" class="hover:bg-gray-50 transition">
+            <td class="px-6 py-4 font-semibold text-blue-600">{{ garantie.creditNumero || ('ID ' + (garantie.creditId || '-')) }}</td>
+            <td class="px-6 py-4">{{ garantie.membreNom || ('ID ' + (garantie.membreId || '-')) }}</td>
+            <td class="px-6 py-4">
+              <span class="px-3 py-1 rounded text-sm font-medium bg-purple-100 text-purple-800">
+                {{ getTypeLabel(garantie.typeGarantie) }}
+              </span>
+            </td>
+            <td class="px-6 py-4 text-gray-600">{{ garantie.description }}</td>
+            <td class="px-6 py-4 text-right font-semibold">
+              {{ garantie.valeurEstimee | number: '1.2-2' }} $
+            </td>
+            <td class="px-6 py-4 text-center font-semibold">{{ garantie.taux ?? '-' }}<span *ngIf="garantie.taux != null">%</span></td>
+            <td class="px-6 py-4">
+              <span [ngClass]="'px-3 py-1 rounded text-sm font-medium ' + getStatutBadgeColor(garantie.statut)">
+                {{ garantie.statut }}
+              </span>
+            </td>
+            <td class="px-6 py-4 text-center">
+              <div class="flex justify-center gap-2">
+                <a
+                  *ngIf="garantie.demandeCreditId"
+                  [routerLink]="['/credits/demandes', garantie.demandeCreditId, 'garantie']"
+                  class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-3 rounded transition"
+                >
+                  Gérer la garantie depuis la demande de crédit
+                </a>
+                <button
+                  *ngIf="!garantie.demandeCreditId"
+                  type="button"
+                  disabled
+                  class="bg-gray-200 text-gray-500 font-semibold py-2 px-3 rounded"
+                >
+                  Historique sans demande liée
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

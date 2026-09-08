@@ -1,0 +1,42 @@
+<div class="space-y-4">
+  <div *ngIf="events.length === 0" class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
+    Aucune trace d'audit disponible pour cette session.
+  </div>
+
+  <ol *ngIf="events.length > 0" class="relative border-s border-gray-200">
+    <li *ngFor="let event of events" class="mb-6 ms-6">
+      <span class="absolute -start-2.5 mt-1 h-4 w-4 rounded-full border border-white"
+            [ngClass]="event.success ? 'bg-emerald-500' : 'bg-red-500'">
+      </span>
+
+      <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+          <span class="text-xs font-semibold text-gray-500">{{ formatDate(event.date) }}</span>
+          <span class="inline-flex rounded-full px-2 py-1 text-xs font-semibold"
+                [ngClass]="event.success ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'">
+            {{ event.success ? 'SUCCÈS' : 'ÉCHEC' }}
+          </span>
+        </div>
+
+        <p class="text-sm font-semibold text-gray-900">{{ event.actionLabel }}</p>
+
+        <p class="text-sm text-gray-700 mt-1">
+          {{ event.utilisateur }}
+          <span class="text-gray-500">({{ event.role }})</span>
+        </p>
+
+        <p *ngIf="event.observation" class="text-sm text-gray-700 mt-2">
+          Observation: {{ event.observation }}
+        </p>
+
+        <p *ngIf="event.motif" class="text-sm text-gray-600 mt-1">
+          Motif: {{ event.motif }}
+        </p>
+
+        <p *ngIf="event.ancienStatut || event.nouveauStatut" class="text-xs text-gray-500 mt-2">
+          Statut: {{ event.ancienStatut || '-' }} -> {{ event.nouveauStatut || '-' }}
+        </p>
+      </div>
+    </li>
+  </ol>
+</div>

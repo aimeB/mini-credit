@@ -1,0 +1,30 @@
+<div class="card form-card">
+  <h3>Créer compte manquant (réparation admin)</h3>
+
+  <div class="error" *ngIf="!canCreateMissingAccount">
+    Cette action de réparation est réservée à l'administrateur.
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" *ngIf="canCreateMissingAccount">
+    <div class="form-row">
+      <label>Type de compte</label>
+      <select formControlName="typeCompte">
+        <option [ngValue]="null">-- choisir --</option>
+        <option *ngFor="let type of typesCompte" [ngValue]="type">{{ type }}</option>
+      </select>
+    </div>
+
+    <div class="form-row">
+      <label>Date d'ouverture</label>
+      <input type="date" formControlName="dateOuverture" />
+    </div>
+
+    <div class="error" *ngIf="errorMessage">
+      {{ errorMessage }}
+    </div>
+
+    <button type="submit" [disabled]="loading">
+      {{ loading ? 'Enregistrement...' : 'Créer compte manquant' }}
+    </button>
+  </form>
+</div>

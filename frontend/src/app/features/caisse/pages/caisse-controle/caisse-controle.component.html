@@ -1,0 +1,91 @@
+<div class="mc-page-wide">
+  <header class="mc-page-hero">
+    <h1 class="mc-page-title">Contrôle de caisse</h1>
+    <p class="mc-page-subtitle">Validation des sessions en pré-clôture, en attente de contrôle et clôturées.</p>
+  </header>
+
+  <app-workflow-guidance-banner [guidance]="controlGuidance"></app-workflow-guidance-banner>
+
+  <div class="mc-panel">
+    <label class="mc-field-label">Note de contrôle (optionnelle)</label>
+    <textarea
+      [(ngModel)]="noteControle"
+      rows="3"
+      class="mc-textarea"
+      placeholder="Observation commune à la validation"
+    ></textarea>
+  </div>
+
+  <div *ngIf="loading" class="mc-state mc-state-info">
+    Chargement des sessions à contrôler...
+  </div>
+
+  <div *ngIf="error" class="mc-state mc-state-danger">
+    {{ error }}
+  </div>
+
+  <div class="mc-table-wrap" *ngIf="!loading && sessionsFermees.length > 0">
+    <table class="mc-table min-w-[1200px]">
+      <thead>
+        <tr>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Session</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Caisse</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Site</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Caissier</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Ouverture</th>
+          <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Clôture</th>
+          <th class="px-4 py-3 text-right text-sm font-semibold text-gray-700">Solde théorique</th>
+          <th class="px-4 py-3 text-right text-sm font-semibold text-gray-700">Solde physique</th>
+          <th class="px-4 py-3 text-right text-sm font-semibold text-gray-700">Écart</th>
+          <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">Statut contrôle</th>
+          <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        <tr *ngFor="let session of sessionsFermees">
+          <td class="px-4 py-3 text-sm text-gray-800">#{{ session.id }}</td>
+          <td class="px-4 py-3 text-sm text-gray-800">{{ session.caisseCode }}</td>
+          <td class="px-4 py-3 text-sm text-gray-800">{{ session.siteNom || '-' }}</td>
+          <td class="px-4 py-3 text-sm text-gray-800">{{ session.utilisateurNom }}</td>
+          <td class="px-4 py-3 text-sm text-gray-800">{{ session.dateOuverture | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td class="px-4 py-3 text-sm text-gray-800">{{ session.dateCloture | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td class="px-4 py-3 text-sm text-right font-semibold text-blue-700">{{ formatCdf(session.soldeTheorique) }}</td>
+          <td class="px-4 py-3 text-sm text-right font-semibold text-gray-800">{{ formatCdf(session.soldePhysique) }}</td>
+          <td class="px-4 py-3 text-sm text-right font-semibold" [ngClass]="(session.ecartCaisse ?? 0) === 0 ? 'text-emerald-700' : 'text-red-700'">
+            {{ formatCdf(session.ecartCaisse) }}
+          </td>
+          <td class="px-4 py-3 text-center">
+            <span class="mc-badge"
+              [ngClass]="session.dateControle ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'">
+              {{ session.dateControle ? 'VALIDÉ' : 'À CONTRÔLER' }}
+            </span>
+          </td>
+          <td class="px-4 py-3 text-center">
+            <div class="mc-button-row justify-center">
+              <a [routerLink]="['/caisses/sessions', session.id]" class="mc-btn mc-btn-primary px-3 py-1.5 text-xs">
+                Détail
+              </a>
+              <button *ngIf="canValiderControle() && !session.dateControle"
+                type="button"
+                class="mc-btn mc-btn-success px-3 py-1.5 text-xs disabled:opacity-60"
+                [disabled]="validatingSessionId === session.id"
+                (click)="validerControle(session)">
+                {{ validatingSessionId === session.id ? 'Validation...' : 'Valider contrôle' }}
+              </button>
+              <button type="button"
+                class="mc-btn bg-gray-200 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-300"
+                (click)="demanderCorrection(session)">
+                Demander correction
+              </button>
+              <span *ngIf="session.dateControle" class="text-xs text-emerald-700 font-semibold">Contrôle validé</span>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="!loading && sessionsFermees.length === 0" class="mc-state mc-state-info text-center">
+    Aucune session de contrôle disponible.
+  </div>
+</div>

@@ -1,0 +1,181 @@
+<div class="mc-page-wide">
+  <header class="mc-page-hero">
+    <h1 class="mc-page-title">Gestion Épargne</h1>
+    <p class="mc-page-subtitle">Consultez les comptes, les soldes disponibles et bloqués, puis l’historique traçable des opérations épargne.</p>
+  </header>
+
+  <main class="space-y-6 overflow-x-hidden">
+    <app-workflow-guidance-banner [guidance]="guidance"></app-workflow-guidance-banner>
+
+    @if (isAgentTerrain) {
+      <div class="mc-state mc-state-success">
+        <p class="font-semibold">Mode consultation Agent Terrain</p>
+        <p class="mt-1">Les opérations terrain doivent être encodées dans Ma collecte du jour.</p>
+        <a routerLink="/collectes/ma-collecte" class="mc-btn mc-btn-success mt-3">
+          Aller vers Ma collecte du jour
+        </a>
+      </div>
+    }
+
+    <section class="space-y-4">
+      <div class="mc-panel flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <h2 class="mb-1 text-lg font-bold text-slate-900">Comptes d'Épargne</h2>
+          <p class="text-sm leading-6 text-slate-600">Liste des comptes disponibles avec membre, numéro de compte, statut et soldes.</p>
+        </div>
+      </div>
+
+      <div class="mc-filter-panel">
+        <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            (input)="applySearch()"
+            placeholder="Rechercher par membre, code compte ou ID membre..."
+            class="mc-input"
+          />
+
+          @if (canRepairMissingAccount) {
+            <div class="flex flex-col gap-2 sm:flex-row">
+              <input
+                type="number"
+                min="1"
+                [(ngModel)]="repairMemberId"
+                placeholder="ID membre sans compte"
+                class="mc-input"
+              />
+              <button
+                type="button"
+                (click)="repairMissingAccount()"
+                [disabled]="repairLoading"
+                class="mc-btn mc-btn-primary whitespace-nowrap"
+              >
+                Créer compte manquant
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+
+      @if (repairMessage) {
+        <div class="mc-state" [ngClass]="repairMessage.includes('succès') ? 'mc-state-success' : 'mc-state-danger'">
+          {{ repairMessage }}
+        </div>
+      }
+
+      @if (errorMessage) {
+        <div class="mc-state mc-state-danger">
+          {{ errorMessage }}
+        </div>
+      }
+
+      <div *ngIf="loading" class="mc-state mc-state-info text-center">
+        Chargement des comptes...
+      </div>
+
+      <div *ngIf="!loading && (!filteredComptes || filteredComptes.length === 0)" class="mc-state mc-state-info text-center">
+        <p class="font-semibold">Aucun compte d'épargne trouvé.</p>
+        <p>{{ searchTerm ? 'Aucun résultat ne correspond aux filtres actuels.' : "Les comptes d'épargne apparaîtront ici une fois créés." }}</p>
+      </div>
+
+      <div *ngIf="!loading && filteredComptes && filteredComptes.length > 0" class="mc-table-wrap">
+        <table class="mc-table min-w-[1120px]">
+          <thead>
+            <tr>
+              <th>Membre</th>
+              <th>Numéro compte</th>
+              <th>Type</th>
+              <th class="text-right">Solde disponible</th>
+              <th class="text-right">Solde bloqué</th>
+              <th class="text-right">Total</th>
+              <th class="text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let compte of filteredComptes; trackBy: trackByCompteId">
+              <td>
+                <div class="flex items-center gap-3">
+                  <div class="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 font-bold text-amber-700">
+                    {{ getInitials(compte.membreNomComplet) }}
+                  </div>
+                  <div>
+                    <p class="font-semibold text-slate-900">{{ compte.membreNomComplet }}</p>
+                    <p class="text-xs text-slate-500">ID: {{ compte.membreId }}</p>
+                  </div>
+                </div>
+              </td>
+              <td class="font-mono text-slate-700">{{ compte.numeroCompte }}</td>
+              <td>
+                <span class="mc-badge"
+                  [ngClass]="{
+                    'bg-blue-100 text-blue-800': compte.typeCompte === 'COTISATION',
+                    'bg-green-100 text-green-800': compte.typeCompte === 'EPARGNE_VOLONTAIRE',
+                    'bg-slate-100 text-slate-800': compte.typeCompte === 'MIXTE'
+                  }">
+                  {{ compte.typeCompte }}
+                </span>
+              </td>
+              <td class="text-right font-semibold text-emerald-700">{{ compte.soldeDisponible | number:'1.0-2' }}</td>
+              <td class="text-right font-semibold text-amber-700">{{ compte.soldeBloque | number:'1.0-2' }}</td>
+              <td class="text-right font-bold text-slate-900">{{ (compte.soldeDisponible + compte.soldeBloque) | number:'1.0-2' }}</td>
+              <td class="text-center">
+                <button (click)="onCompteSelected(compte)" class="mc-btn mc-btn-dark">
+                  Détails
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section *ngIf="compteSelectionne" class="space-y-6">
+      <div class="mc-panel space-y-5 border-amber-200 bg-amber-50">
+        <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <h2 class="mb-1 text-lg font-bold text-slate-900">Détails du Compte</h2>
+            <p class="text-sm text-slate-600">{{ compteSelectionne.numeroCompte }}</p>
+          </div>
+          <button (click)="compteSelectionne = null" class="mc-btn bg-slate-200 text-slate-700 hover:bg-slate-300">
+            Fermer
+          </button>
+        </div>
+
+        <div class="mc-kpi-grid lg:grid-cols-5">
+          <div class="mc-kpi-card"><p class="mc-kpi-label">ID Compte</p><p class="mc-kpi-value">{{ compteSelectionne.id }}</p></div>
+          <div class="mc-kpi-card"><p class="mc-kpi-label">Membre</p><p class="mc-kpi-value text-base">{{ compteSelectionne.membreNomComplet }}</p></div>
+          <div class="mc-kpi-card mc-kpi-card-success"><p class="mc-kpi-label text-emerald-700">Disponible</p><p class="mc-kpi-value text-emerald-900">{{ compteSelectionne.soldeDisponible | number:'1.0-2' }}</p></div>
+          <div class="mc-kpi-card mc-kpi-card-warning"><p class="mc-kpi-label text-amber-700">Bloqué</p><p class="mc-kpi-value text-amber-900">{{ compteSelectionne.soldeBloque | number:'1.0-2' }}</p></div>
+          <div class="mc-kpi-card"><p class="mc-kpi-label">Total</p><p class="mc-kpi-value">{{ (compteSelectionne.soldeDisponible + compteSelectionne.soldeBloque) | number:'1.0-2' }}</p></div>
+        </div>
+
+        <div class="mc-button-row" *ngIf="canCreateOperation">
+          <button (click)="toggleFormOperation()" class="mc-btn mc-btn-primary px-5 py-3">
+            {{ afficherFormOperation ? 'Fermer Opération' : 'Nouvelle Opération' }}
+          </button>
+        </div>
+
+        <div *ngIf="canViewOnlySelectedAccount" class="mc-state mc-state-warning">
+          Vous pouvez consulter le compte, mais vous n’êtes pas autorisé à enregistrer une opération épargne.
+        </div>
+      </div>
+
+      <div *ngIf="canCreateOperation && afficherFormOperation && compteSelectionne" class="mc-panel border-t-4 border-blue-500">
+        <h2 class="mb-4 text-lg font-bold text-slate-900">Nouvelle Opération</h2>
+        <app-operation-epargne-form
+          [membreId]="compteSelectionne.membreId"
+          [compteId]="compteSelectionne.id"
+          (saved)="onOperationCreated()">
+        </app-operation-epargne-form>
+      </div>
+
+      <div class="mc-panel space-y-4">
+        <div>
+          <h2 class="mb-1 text-lg font-bold text-slate-900">Historique des Opérations</h2>
+          <p class="text-sm leading-6 text-slate-600">Toutes les transactions du compte, avec date, référence et observation.</p>
+        </div>
+        <app-operation-epargne-list [compteId]="compteSelectionne.id"></app-operation-epargne-list>
+      </div>
+    </section>
+  </main>
+</div>

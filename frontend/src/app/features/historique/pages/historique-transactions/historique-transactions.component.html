@@ -1,0 +1,231 @@
+<div class="belfius-container">
+  <!-- SIDEBAR GAUCHE -->
+  <aside class="sidebar">
+    <!-- Boîte compte avec fond rouge -->
+    <div class="sidebar-header">
+      <div class="account-box">
+        <div class="account-box-icon">↔️</div>
+        <div class="account-box-text">KALUMBO NYAMABO MALELABO KALUMBO</div>
+      </div>
+
+      <!-- Menu principal -->
+      <nav class="sidebar-menu">
+        <!-- Section Comptes -->
+        <div class="menu-section">
+          <div class="menu-item parent-item">
+            <span class="item-text">Comptes</span>
+            <span class="dropdown-arrow">▼</span>
+          </div>
+          <div class="submenu">
+            <a href="#" class="submenu-item">Aperçu</a>
+            <a href="#" class="submenu-item active">Consulter l'historique</a>
+            <a href="#" class="submenu-item">Ouvrir un compte</a>
+            <a href="#" class="submenu-item">Ajouter un compte d'une autre banque</a>
+          </div>
+
+          <div class="menu-item">
+            <span class="item-text">Gérer les paramètres</span>
+          </div>
+          <div class="menu-item">
+            <span class="item-text">Changer de compte</span>
+          </div>
+          <div class="menu-item">
+            <span class="item-text">Gérer les limites</span>
+          </div>
+          <div class="menu-item">
+            <span class="item-text">Adapter type de paiement</span>
+          </div>
+          <div class="menu-item">
+            <span class="item-text">Déterminer préférence réception</span>
+          </div>
+        </div>
+      </nav>
+    </div>
+  </aside>
+
+  <!-- CONTENU PRINCIPAL (DROITE) -->
+  <main class="main-content">
+    <!-- TITRE -->
+    <div class="page-header">
+      <h1>Consulter l'historique</h1>
+    </div>
+
+    <!-- SECTION SÉLECTION DE COMPTE -->
+    <div class="account-selection-section">
+      <!-- Radio buttons -->
+      <div class="radio-group">
+        <label class="radio-label">
+          <input type="radio" name="accountStatus" checked />
+          <span>Comptes actifs</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="accountStatus" />
+          <span>Comptes supprimés</span>
+        </label>
+      </div>
+
+      <!-- Sélecteur de compte -->
+      <div class="account-selector-row">
+        <div class="form-group">
+          <label>Compte*</label>
+          <select #compteSelect (change)="selectCompte(comptes[compteSelect.selectedIndex])">
+            <option *ngFor="let compte of comptes; let i = index" 
+                    [selected]="selectedCompte?.id === compte.id">
+              {{ compte.numero }} - BELFIUS - {{ compte.titulaire }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Infos du compte (à droite) -->
+        <div class="account-info-display" *ngIf="selectedCompte">
+          <div class="info-item">
+            <span class="info-label">Solde</span>
+            <span class="info-value">{{ selectedCompte.solde.toFixed(2) }} EUR</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Disponible</span>
+            <span class="info-value">{{ selectedCompte.disponible.toFixed(2) }} EUR</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ONGLETS -->
+    <div class="tabs-container">
+      <div class="tabs">
+        <button 
+          class="tab-btn" 
+          [class.active]="activeTab === 'operations'"
+          (click)="changeTab('operations')">
+          Opérations financières
+        </button>
+        <button 
+          class="tab-btn"
+          [class.active]="activeTab === 'annexes'"
+          (click)="changeTab('annexes')">
+          Annexes
+        </button>
+        <button 
+          class="tab-btn"
+          [class.active]="activeTab === 'extraits'"
+          (click)="changeTab('extraits')">
+          Extraits de compte
+        </button>
+      </div>
+    </div>
+
+    <!-- CONTENU DES ONGLETS -->
+    <div class="tab-content-wrapper">
+      <!-- Onglet Opérations financières -->
+      <div *ngIf="activeTab === 'operations'" class="tab-content">
+        <!-- Section de recherche collapsible -->
+        <div class="search-section" [class.collapsed]="!searchExpanded">
+          <div class="search-header" (click)="searchExpanded = !searchExpanded">
+            <span class="search-icon">⚙️</span>
+            <span class="search-title">Définir critères de recherche</span>
+            <span class="search-arrow">›</span>
+          </div>
+
+          <div class="search-form" *ngIf="searchExpanded">
+            <div class="search-fields">
+              <div class="field-group">
+                <label>Date</label>
+                <input type="date" 
+                       [(ngModel)]="searchCriteria.dateDebut"
+                       (change)="applyFilters()"
+                       placeholder="JJ/MM/AAAA">
+              </div>
+              <div class="field-group">
+                <label>Montant</label>
+                <input type="number" 
+                       [(ngModel)]="searchCriteria.montantMin"
+                       (change)="applyFilters()"
+                       placeholder="Montant">
+              </div>
+              <div class="field-group">
+                <label>Transaction</label>
+                <input type="text" 
+                       [(ngModel)]="searchCriteria.transaction"
+                       (change)="applyFilters()"
+                       placeholder="Type">
+              </div>
+              <div class="field-group">
+                <label>Compte contrepartie/Nom</label>
+                <input type="text" 
+                       [(ngModel)]="searchCriteria.beneficiaire"
+                       (change)="applyFilters()"
+                       placeholder="Nom">
+              </div>
+            </div>
+            <button class="btn-reset" (click)="resetFilters()">Réinitialiser</button>
+          </div>
+        </div>
+
+        <!-- TABLEAU DES TRANSACTIONS -->
+        <div class="table-wrapper">
+          <table class="transactions-table">
+            <thead>
+              <tr>
+                <th class="col-date">Date</th>
+                <th class="col-montant">Montant</th>
+                <th class="col-transaction">Transaction</th>
+                <th class="col-contrepartie">Compte contrepartie / Nom</th>
+                <th class="col-action"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <ng-container *ngFor="let transaction of filteredTransactions">
+                <tr class="transaction-row">
+                  <td class="col-date">{{ formatDate(transaction.date) }}</td>
+                  
+                  <td class="col-montant" [class.debit]="transaction.type === 'DEBIT'">
+                    {{ formatMontant(transaction.montant) }} EUR
+                  </td>
+                  
+                  <td class="col-transaction">
+                    <div class="trans-type">{{ transaction.description }}</div>
+                    <div *ngIf="transaction.status === 'PENDING'" class="trans-badge pending">
+                      en traitement
+                    </div>
+                    <div *ngIf="transaction.status === 'COMPLETED'" class="trans-badge completed">
+                      complété
+                    </div>
+                    <div *ngIf="transaction.status === 'FAILED'" class="trans-badge failed">
+                      échoué
+                    </div>
+                  </td>
+                  
+                  <td class="col-contrepartie">
+                    <div class="beneficiary-name">{{ transaction.nomBeneficiaire }}</div>
+                    <div class="beneficiary-account">{{ transaction.compteContrepartie }}</div>
+                  </td>
+                  
+                  <td class="col-action">
+                    <select class="btn-select">
+                      <option>Sélectionner</option>
+                      <option>Voir détails</option>
+                    </select>
+                  </td>
+                </tr>
+              </ng-container>
+            </tbody>
+          </table>
+
+          <div *ngIf="filteredTransactions.length === 0" class="no-data">
+            <p>Aucune transaction trouvée.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Onglet Annexes -->
+      <div *ngIf="activeTab === 'annexes'" class="tab-content">
+        <div class="empty-tab">Aucune annexe disponible.</div>
+      </div>
+
+      <!-- Onglet Extraits -->
+      <div *ngIf="activeTab === 'extraits'" class="tab-content">
+        <div class="empty-tab">Aucun extrait disponible.</div>
+      </div>
+    </div>
+  </main>
+</div>

@@ -1,0 +1,70 @@
+<div class="mc-page-wide">
+  <header class="mc-page-hero">
+    <h1 class="mc-page-title">Rapport Caisse - Dépenses</h1>
+    <p class="mc-page-subtitle">Analyse des charges caisse payées par période, caisse et site.</p>
+  </header>
+
+  <div class="mc-filter-panel mc-filter-grid">
+    <div>
+      <label class="mc-field-label">Date début</label>
+      <input class="mc-input" type="date" [(ngModel)]="dateDebut" />
+    </div>
+    <div>
+      <label class="mc-field-label">Date fin</label>
+      <input class="mc-input" type="date" [(ngModel)]="dateFin" />
+    </div>
+    <div>
+      <label class="mc-field-label">Caisse ID</label>
+      <input class="mc-input" type="number" [(ngModel)]="caisseId" />
+    </div>
+    <div>
+      <label class="mc-field-label">Site ID</label>
+      <input class="mc-input" type="number" [(ngModel)]="siteId" />
+    </div>
+    <button class="mc-btn mc-btn-primary" (click)="rechercher()">Rechercher</button>
+    <div class="mc-button-row">
+      <button class="mc-btn bg-gray-200 text-gray-700 hover:bg-gray-300" (click)="reinitialiser()">Réinitialiser</button>
+      <button class="mc-btn mc-btn-success" (click)="exportCsv()">Export CSV</button>
+    </div>
+  </div>
+
+  <p *ngIf="loading" class="mc-state mc-state-info">Chargement...</p>
+  <p *ngIf="error" class="mc-state mc-state-danger">{{ error }}</p>
+
+  <div *ngIf="rapport" class="space-y-4">
+    <div class="mc-panel grid grid-cols-1 gap-4 text-sm md:grid-cols-3">
+      <div><strong>Nb dépenses:</strong> {{ rapport.nombreDepenses }}</div>
+      <div><strong>Montant total:</strong> {{ rapport.montantTotal }}</div>
+      <div><strong>Période:</strong> {{ rapport.dateDebut }} au {{ rapport.dateFin }}</div>
+    </div>
+
+    <div class="mc-table-wrap">
+      <table class="mc-table min-w-[900px]">
+        <thead>
+          <tr>
+            <th class="p-2 text-left">ID</th>
+            <th class="p-2 text-left">Date</th>
+            <th class="p-2 text-left">Caisse</th>
+            <th class="p-2 text-left">Site</th>
+            <th class="p-2 text-left">Catégorie</th>
+            <th class="p-2 text-left">Montant</th>
+            <th class="p-2 text-left">Statut</th>
+            <th class="p-2 text-left">Demandeur</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let ligne of rapport.lignes" class="border-t">
+            <td class="p-2">{{ ligne.depenseId }}</td>
+            <td class="p-2">{{ ligne.dateDemande }}</td>
+            <td class="p-2">{{ ligne.caisseLibelle }}</td>
+            <td class="p-2">{{ ligne.siteNom }}</td>
+            <td class="p-2">{{ ligne.categorie }}</td>
+            <td class="p-2">{{ ligne.montant }}</td>
+            <td class="p-2">{{ ligne.statut }}</td>
+            <td class="p-2">{{ ligne.demandePar }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

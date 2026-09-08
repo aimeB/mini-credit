@@ -1,0 +1,160 @@
+﻿<div class="mc-page-wide">
+
+    <!-- Fil d'Ariane -->
+    <div class="flex items-center gap-2 text-sm text-gray-500">
+      <a routerLink="/dashboard" class="hover:text-gray-700">Dashboard</a>
+      <span>/</span>
+      <a routerLink="/organisation" class="hover:text-gray-700">Organisation</a>
+      <span>/</span>
+      <span class="text-gray-800 font-medium">Sites</span>
+    </div>
+
+    <!-- Header -->
+    <header class="mc-page-hero">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h1 class="mc-page-title">Sites / Antennes</h1>
+        <p class="mc-page-subtitle">Chaque site appartient à une agence et conserve ses rattachements terrain.</p>
+      </div>
+      <div class="mc-button-row">
+        <a routerLink="/organisation"
+           class="mc-btn bg-white/15 text-white ring-1 ring-white/30 hover:bg-white/25">
+          Organisation
+        </a>
+        <a routerLink="/agences"
+           class="mc-btn bg-blue-100 text-blue-700 hover:bg-blue-200">
+          Voir les agences
+        </a>
+        <a routerLink="/sites/nouveau"
+           class="mc-btn mc-btn-primary">
+          Nouveau Site
+        </a>
+      </div>
+    </div>
+    </header>
+
+    @if (successMessage) {
+      <div class="mc-state mc-state-success">{{ successMessage }}</div>
+    }
+
+    <div class="mb-6">
+      <app-workflow-guidance-banner [guidance]="globalGuidance"></app-workflow-guidance-banner>
+    </div>
+
+    @if (loading) {
+      <div class="mc-state mc-state-info text-center">Chargement...</div>
+    } @else if (error) {
+      <div class="mc-state mc-state-danger">{{ error }}</div>
+    } @else if (sites.length === 0) {
+      <div class="mc-state mc-state-info text-center">
+        <h3 class="text-xl font-bold text-gray-900 mb-2">Aucun site</h3>
+        <p class="text-gray-600 mb-4">Créez votre premier site rattaché à une agence.</p>
+        @if (agences.length === 0) {
+          <div class="mc-state mc-state-warning mb-4">
+            Aucune agence trouvée. Créez d'abord une agence avant de créer un site.
+          </div>
+          <a routerLink="/agences/nouveau"
+             class="mc-btn bg-amber-600 text-white hover:bg-amber-700">
+            Créer une agence d'abord
+          </a>
+        } @else {
+          <a routerLink="/sites/nouveau"
+             class="mc-btn mc-btn-primary">
+            Créer un site
+          </a>
+        }
+      </div>
+    } @else {
+      <div class="mc-table-wrap">
+        <table class="mc-table mc-table-admin w-full">
+          <colgroup>
+            <col class="w-[8%]">
+            <col class="w-[14%]">
+            <col class="w-[16%]">
+            <col class="w-[20%]">
+            <col class="w-[12%]">
+            <col class="w-[12%]">
+            <col class="w-[6%]">
+            <col class="w-[12%]">
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Nom Site</th>
+              <th>Agence</th>
+              <th>Zone</th>
+              <th>Agent Terrain</th>
+              <th>Gestionnaire</th>
+              <th>Statut</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (site of sites; track site.id) {
+              <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                <td>
+                  <span class="font-mono bg-slate-100 px-2 py-1 rounded text-xs font-bold">{{ site.codeSite }}</span>
+                </td>
+                <td class="font-semibold text-gray-900 break-words" [title]="site.nomSite">{{ site.nomSite }}</td>
+                <td class="text-gray-600">
+                  <div class="mc-cell-stack">
+                    <span class="mc-badge bg-blue-50 text-blue-700 w-fit max-w-full px-2 py-0.5 text-[10px]">
+                      {{ site.nomAgence || getNomAgence(site.agenceId!) }}
+                    </span>
+                    @if (site.communeAgence || site.villeAgence) {
+                      <span class="text-[11px] text-gray-400">{{ site.communeAgence }}, {{ site.villeAgence }}</span>
+                    }
+                  </div>
+                </td>
+                <td class="mc-cell-muted break-words" [title]="site.zone || ''">{{ site.zone || '-' }}</td>
+                <td>
+                  @if (getAgentResume(site.id)) {
+                    <span class="mc-badge bg-orange-50 text-orange-700 px-2 py-0.5 text-[10px]">
+                      {{ getAgentResume(site.id) }}
+                    </span>
+                  } @else {
+                    <span class="text-gray-300 text-xs italic">Aucun</span>
+                  }
+                </td>
+                <td>
+                  @if (getGestionnaireResume(site.id)) {
+                    <span class="mc-badge bg-purple-50 text-purple-700 px-2 py-0.5 text-[10px]">
+                      {{ getGestionnaireResume(site.id) }}
+                    </span>
+                  } @else {
+                    <span class="text-gray-300 text-xs italic">—</span>
+                  }
+                </td>
+                <td>
+                  @if (site.actif) {
+                    <span class="mc-badge bg-green-100 text-green-800 px-2 py-0.5 text-[10px]">Actif</span>
+                  } @else {
+                    <span class="mc-badge bg-red-100 text-red-800 px-2 py-0.5 text-[10px]">Inactif</span>
+                  }
+                </td>
+                <td>
+                  <div class="mc-actions-compact">
+                    <a [routerLink]="['/sites', site.id]"
+                       class="mc-btn bg-blue-50 text-blue-700 hover:bg-blue-100 mc-btn-compact">
+                      Voir
+                    </a>
+                    <a [routerLink]="['/sites', site.id, 'modifier']"
+                       class="mc-btn bg-amber-50 text-amber-700 hover:bg-amber-100 mc-btn-compact">
+                      Modif.
+                    </a>
+                    @if (site.actif) {
+                      <button (click)="desactiver(site)"
+                        class="mc-btn bg-red-50 text-red-700 hover:bg-red-100 mc-btn-compact"
+                        title="Désactiver">
+                        Désact.
+                      </button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+</div>

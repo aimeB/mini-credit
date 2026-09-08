@@ -1,0 +1,86 @@
+package com.mini.credit.dto.caisse;
+
+import com.mini.credit.enums.DepenseCaisseCategorie;
+import com.mini.credit.enums.DepenseCaisseStatus;
+import com.mini.credit.enums.ModeCalculPaie;
+import com.mini.credit.enums.TypeChargeFixe;
+import com.mini.credit.enums.TypePaiementPersonnel;
+import lombok.Builder;
+import lombok.Getter;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@Getter
+@Builder
+public class DepenseCaisseResponse {
+    private Long id;
+    private Long sessionCaisseId;
+    private Long caisseId;
+    private String caisseCode;
+    private Long siteId;
+    private String siteNom;
+    private DepenseCaisseCategorie categorie;
+    private BigDecimal montant;
+    private String devise;
+    private String motif;
+    private String beneficiaire;
+    private Long beneficiaireId;
+    private String beneficiaireNom;
+    private String beneficiaireRole;
+    private String beneficiaireAgence;
+    private Long employeId;
+    private String employeMatricule;
+    private String employeNomComplet;
+    private String employePoste;
+    private BigDecimal salaireBase;
+    private BigDecimal primeFixe;
+    private BigDecimal bonusVariable;
+    private String periodePaie;
+    private TypePaiementPersonnel typePaiementPersonnel;
+    private BigDecimal montantRemunerationReference;
+    private BigDecimal montantEcartRemuneration;
+    private String motifEcartRemuneration;
+    private String naturePaiementPaie;
+    private BigDecimal montantSalaireDu;
+    private BigDecimal montantDejaPaye;
+    private BigDecimal montantRestantApresPaiement;
+    private BigDecimal montantRetenue;
+    private String motifRetenue;
+    private String motifPaiementPartiel;
+    private String commentairePaie;
+    private String periodeCharge;
+    private TypeChargeFixe typeChargeFixe;
+    private Long siteChargeId;
+    private String siteChargeNom;
+    private BigDecimal montantChargeFixeReference;
+    private BigDecimal montantEcartChargeFixe;
+    private String commentaireRapprochement;
+    private BigDecimal epargneCollecteeReference;
+    private BigDecimal remboursementCollecteReference;
+    private Integer nombreCarnetsVendus;
+    private BigDecimal primeMobilisationEpargne;
+    private BigDecimal primeMobilisationRemboursement;
+    private BigDecimal bonusCarnets;
+    private BigDecimal primeMotivationManuelle;
+    private String motifPrimeMotivationManuelle;
+    private ModeCalculPaie modeCalculPaie;
+    private String detailCalculPaieJson;
+    private String justificatifUrl;
+    private DepenseCaisseStatus statut;
+    private Long demandeParId;
+    private String demandeParNom;
+    private Long valideParId;
+    private String valideParNom;
+    private Long payeParId;
+    private String payeParNom;
+    private LocalDateTime dateDemande;
+    private LocalDateTime dateSoumission;
+    private LocalDateTime dateValidation;
+    private LocalDateTime datePaiement;
+    private Long operationCaisseId;
+    private String commentaireValidation;
+    private String motifRejet;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+}

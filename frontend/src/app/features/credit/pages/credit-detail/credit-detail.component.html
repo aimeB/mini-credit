@@ -1,0 +1,189 @@
+<div class="mc-page-wide">
+  <header class="mc-page-hero">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      <div>
+        <a routerLink="/credits/liste" class="mb-4 inline-flex w-fit items-center text-sm font-semibold text-slate-200 hover:text-white">
+          ← Retour crédits
+        </a>
+        <h1 class="mc-page-title">Dossier crédit {{ dossier?.resume?.numeroCredit || '' }}</h1>
+        <p class="mc-page-subtitle">{{ dossier?.resume?.membreNomComplet || 'Chargement du dossier' }}</p>
+      </div>
+
+      @if (dossier) {
+        <div class="mc-button-row">
+          @if (canRembourser()) {
+            <a [routerLink]="['/credits', dossier.resume.id, 'remboursement']" class="mc-btn mc-btn-success px-5 py-3">
+              Enregistrer remboursement
+            </a>
+          }
+          <a [routerLink]="['/credits', dossier.resume.id, 'contrat']" class="mc-btn mc-btn-dark px-5 py-3">
+            Voir contrat
+          </a>
+        </div>
+      }
+    </div>
+  </header>
+
+  <main class="space-y-6 overflow-x-hidden">
+    @if (loading) {
+      <div class="mc-state mc-state-info text-center">
+        <div class="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-b-2 border-slate-800"></div>
+        <p>Chargement du dossier crédit...</p>
+      </div>
+    }
+
+    @if (errorMessage) {
+      <div class="mc-state mc-state-danger">
+        {{ errorMessage }}
+      </div>
+    }
+
+    @if (!loading && dossier) {
+      <section class="mc-kpi-grid lg:grid-cols-4">
+        <div class="mc-kpi-card">
+          <p class="mc-kpi-label uppercase">Statut</p>
+          <p class="mc-kpi-value">{{ dossier.resume.statut }}</p>
+        </div>
+        <div class="mc-kpi-card">
+          <p class="mc-kpi-label uppercase">Montant accordé</p>
+          <p class="mc-kpi-value">{{ dossier.resume.montantAccorde | number:'1.0-2' }} {{ dossier.resume.devise }}</p>
+        </div>
+        <div class="mc-kpi-card mc-kpi-card-success">
+          <p class="mc-kpi-label uppercase text-emerald-700">Total payé</p>
+          <p class="mc-kpi-value text-emerald-900">{{ dossier.suiviFinancier.totalPaye | number:'1.0-2' }} {{ dossier.resume.devise }}</p>
+        </div>
+        <div class="mc-kpi-card mc-kpi-card-warning">
+          <p class="mc-kpi-label uppercase text-amber-700">Reste à payer</p>
+          <p class="mc-kpi-value text-amber-900">{{ dossier.suiviFinancier.totalRestant | number:'1.0-2' }} {{ dossier.resume.devise }}</p>
+        </div>
+      </section>
+
+      <section class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div class="mc-panel space-y-4 lg:col-span-2">
+          <h2 class="mb-0 text-lg font-bold text-slate-900">Résumé du crédit</h2>
+          <div class="grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
+            <div><span class="text-slate-500">N° crédit</span><p class="font-semibold text-slate-900">{{ dossier.resume.numeroCredit }}</p></div>
+            <div><span class="text-slate-500">N° demande</span><p class="font-semibold text-slate-900">{{ dossier.resume.numeroDemande || '-' }}</p></div>
+            <div><span class="text-slate-500">Membre</span><p class="font-semibold text-slate-900">{{ dossier.resume.membreNomComplet || '-' }}</p></div>
+            <div><span class="text-slate-500">Antenne</span><p class="font-semibold text-slate-900">{{ dossier.resume.antenneNom || '-' }}</p></div>
+            <div><span class="text-slate-500">Date demande</span><p class="font-semibold text-slate-900">{{ dossier.resume.dateDemande || '-' }}</p></div>
+            <div><span class="text-slate-500">Date approbation</span><p class="font-semibold text-slate-900">{{ dossier.resume.dateApprobation || '-' }}</p></div>
+            <div><span class="text-slate-500">Date décaissement</span><p class="font-semibold text-slate-900">{{ dossier.resume.dateDecaissement || '-' }}</p></div>
+            <div><span class="text-slate-500">Durée</span><p class="font-semibold text-slate-900">{{ dossier.resume.dureeValeur || '-' }} {{ dossier.resume.dureeUnite || '' }}</p></div>
+            <div class="md:col-span-2"><span class="text-slate-500">Objet</span><p class="font-semibold text-slate-900">{{ dossier.resume.objetCredit || '-' }}</p></div>
+            <div class="md:col-span-2"><span class="text-slate-500">Gage proposé</span><p class="font-semibold text-slate-900">{{ dossier.resume.gagePropose || '-' }}</p></div>
+          </div>
+        </div>
+
+        <div class="mc-panel space-y-4">
+          <h2 class="mb-0 text-lg font-bold text-slate-900">Responsables</h2>
+          <div class="space-y-3 text-sm">
+            <div><span class="text-slate-500">Agent terrain</span><p class="font-semibold text-slate-900">{{ formatRoleValue(dossier.responsables.agentTerrainNom) }}</p></div>
+            <div><span class="text-slate-500">Gestionnaire</span><p class="font-semibold text-slate-900">{{ getGestionnaireNom(dossier) }}</p></div>
+            <div><span class="text-slate-500">Contrôleur</span><p class="font-semibold text-slate-900">{{ formatRoleValue(dossier.responsables.controleurNom) }}</p></div>
+            <div><span class="text-slate-500">Chef bureau</span><p class="font-semibold text-slate-900">{{ formatRoleValue(dossier.responsables.chefBureauNom) }}</p></div>
+            <div><span class="text-slate-500">Caissier</span><p class="font-semibold text-slate-900">{{ getCaissierNom(dossier) }}</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div class="mc-panel space-y-4">
+          <h2 class="mb-0 text-lg font-bold text-slate-900">Garantie</h2>
+          <div class="space-y-3 text-sm">
+            <div><span class="text-slate-500">Statut</span><p class="font-semibold text-slate-900">{{ dossier.garantie.statutGarantie || '-' }}</p></div>
+            <div><span class="text-slate-500">Montant requis</span><p class="font-semibold text-slate-900">{{ dossier.garantie.montantGarantieRequis | number:'1.0-2' }} {{ dossier.resume.devise }}</p></div>
+            <div><span class="text-slate-500">Montant bloqué</span><p class="font-semibold text-slate-900">{{ dossier.garantie.montantGarantieBloque | number:'1.0-2' }} {{ dossier.resume.devise }}</p></div>
+            <div><span class="text-slate-500">Source</span><p class="font-semibold text-slate-900">{{ dossier.garantie.sourceGarantie || '-' }}</p></div>
+            <div><span class="text-slate-500">Garanties matérielles acceptées</span><p class="font-semibold text-slate-900">{{ dossier.garantie.garantiesMateriellesAcceptees || '-' }}</p></div>
+            <div><span class="text-slate-500">Date blocage</span><p class="font-semibold text-slate-900">{{ dossier.garantie.dateBlocage | date:'short' }}</p></div>
+          </div>
+        </div>
+
+        <div class="mc-panel space-y-4 lg:col-span-2">
+          <h2 class="mb-0 text-lg font-bold text-slate-900">Suivi financier</h2>
+          <div class="grid grid-cols-1 gap-4 text-sm md:grid-cols-3">
+            <div><span class="text-slate-500">Capital initial</span><p class="font-semibold text-slate-900">{{ dossier.suiviFinancier.capitalInitial | number:'1.0-2' }}</p></div>
+            <div><span class="text-slate-500">Capital remboursé</span><p class="font-semibold text-emerald-700">{{ dossier.suiviFinancier.capitalRembourse | number:'1.0-2' }}</p></div>
+            <div><span class="text-slate-500">Capital restant</span><p class="font-semibold text-amber-700">{{ dossier.suiviFinancier.capitalRestant | number:'1.0-2' }}</p></div>
+            <div><span class="text-slate-500">Intérêts attendus</span><p class="font-semibold text-slate-900">{{ dossier.suiviFinancier.interetsAttendus | number:'1.0-2' }}</p></div>
+            <div><span class="text-slate-500">Intérêts payés</span><p class="font-semibold text-emerald-700">{{ dossier.suiviFinancier.interetsPayes | number:'1.0-2' }}</p></div>
+            <div><span class="text-slate-500">Intérêts restants</span><p class="font-semibold text-amber-700">{{ dossier.suiviFinancier.interetsRestants | number:'1.0-2' }}</p></div>
+            <div><span class="text-slate-500">Pénalités dues</span><p class="font-semibold text-red-700">{{ dossier.suiviFinancier.penalitesDues | number:'1.0-2' }}</p></div>
+            <div><span class="text-slate-500">Pénalités payées</span><p class="font-semibold text-emerald-700">{{ dossier.suiviFinancier.penalitesPayees | number:'1.0-2' }}</p></div>
+            <div><span class="text-slate-500">Devise</span><p class="font-semibold text-slate-900">{{ dossier.resume.devise }}</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="space-y-4">
+        <div class="mc-panel">
+          <h2 class="mb-0 text-lg font-bold text-slate-900">Échéancier</h2>
+        </div>
+        <div class="mc-table-wrap">
+          <table class="mc-table min-w-[980px]">
+            <thead>
+              <tr>
+                <th>N°</th>
+                <th>Date</th>
+                <th class="text-right">Capital</th>
+                <th class="text-right">Intérêt</th>
+                <th class="text-right">Pénalité</th>
+                <th class="text-right">Payé</th>
+                <th class="text-right">Reste</th>
+                <th class="text-center">Statut</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let echeance of dossier.echeancier; trackBy: trackById">
+                <td class="font-semibold text-slate-900">{{ echeance.numeroEcheance }}</td>
+                <td>{{ echeance.dateEcheance || '-' }}</td>
+                <td class="text-right">{{ echeance.capitalDu | number:'1.0-2' }}</td>
+                <td class="text-right">{{ echeance.interetDu | number:'1.0-2' }}</td>
+                <td class="text-right">{{ echeance.penalite | number:'1.0-2' }}</td>
+                <td class="text-right font-semibold text-emerald-700">{{ echeance.montantPaye | number:'1.0-2' }}</td>
+                <td class="text-right font-semibold text-amber-700">{{ echeance.resteAPayer | number:'1.0-2' }}</td>
+                <td class="text-center"><span class="mc-badge bg-slate-100 text-slate-700">{{ echeance.statut }}</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div class="mc-panel space-y-4">
+          <h2 class="mb-0 text-lg font-bold text-slate-900">Remboursements</h2>
+          <div class="divide-y divide-slate-200 rounded-2xl border border-slate-200">
+            @if (dossier.remboursements.length === 0) {
+              <p class="p-5 text-sm text-slate-500">Aucun remboursement enregistré.</p>
+            }
+            <div *ngFor="let remboursement of dossier.remboursements; trackBy: trackById" class="p-5">
+              <div class="flex flex-col gap-2 sm:flex-row sm:justify-between">
+                <div>
+                  <p class="font-semibold text-slate-900">{{ remboursement.numeroRecu || 'Reçu non renseigné' }}</p>
+                  <p class="text-sm text-slate-500">{{ remboursement.datePaiement | date:'short' }} · {{ remboursement.utilisateurNom || 'Utilisateur non renseigné' }}</p>
+                </div>
+                <p class="font-bold text-emerald-700">{{ remboursement.montantPaye | number:'1.0-2' }} {{ dossier.resume.devise }}</p>
+              </div>
+              <p class="mt-2 text-sm text-slate-600">Capital {{ remboursement.capitalPaye | number:'1.0-2' }} · Intérêt {{ remboursement.interetPaye | number:'1.0-2' }} · Pénalité {{ remboursement.penalitePayee | number:'1.0-2' }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="mc-panel space-y-4">
+          <h2 class="mb-0 text-lg font-bold text-slate-900">Historique</h2>
+          <div class="divide-y divide-slate-200 rounded-2xl border border-slate-200">
+            @if (dossier.historique.length === 0) {
+              <p class="p-5 text-sm text-slate-500">Aucun événement enregistré.</p>
+            }
+            <div *ngFor="let event of dossier.historique; trackBy: trackByHistory" class="p-5">
+              <p class="font-semibold text-slate-900">{{ event.type }}</p>
+              <p class="text-sm text-slate-500">{{ event.dateHeure | date:'short' }} · {{ event.utilisateur || 'Système' }}</p>
+              <p class="mt-1 text-sm text-slate-600">{{ event.antenneNom || '-' }} · {{ event.commentaire || '-' }}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    }
+  </main>
+</div>

@@ -1,0 +1,410 @@
+:host {
+  display: block;
+  background: #f5f7fb;
+  min-height: 100vh;
+}
+
+.recettes-page {
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: 28px;
+  color: #18212f;
+}
+
+.page-hero,
+.mode-context,
+.filter-panel,
+.data-panel,
+.pagination-panel,
+.warning-panel {
+  background: #ffffff;
+  border: 1px solid #dde5f0;
+  border-radius: 8px;
+  box-shadow: 0 10px 26px rgba(24, 33, 47, 0.06);
+}
+
+.page-hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: flex-start;
+  padding: 28px;
+  margin-bottom: 16px;
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  color: #5f6f84;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+h1,
+h2 {
+  margin: 0;
+  color: #111827;
+  font-weight: 760;
+}
+
+h1 {
+  font-size: clamp(1.75rem, 3vw, 2.6rem);
+}
+
+h2 {
+  font-size: 1.15rem;
+}
+
+.hero-subtitle,
+.mode-context p,
+.table-header p {
+  color: #526173;
+  margin: 8px 0 0;
+}
+
+.secondary-link,
+.primary-action,
+.tab-action,
+.inline-action,
+.pagination-actions button,
+.mode-card {
+  border-radius: 8px;
+  font-weight: 700;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.secondary-link {
+  border: 1px solid #b9c6d8;
+  color: #223049;
+  padding: 10px 14px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.secondary-link:hover,
+.mode-card:hover,
+.tab-action:hover:not(:disabled),
+.inline-action:hover,
+.pagination-actions button:hover:not(:disabled) {
+  border-color: #355c9a;
+  box-shadow: 0 8px 18px rgba(53, 92, 154, 0.14);
+}
+
+.warning-panel {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+  border-color: #f0c36b;
+  background: #fff9ec;
+  color: #6f4e09;
+}
+
+.mode-selector {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 18px 0;
+}
+
+.mode-card {
+  text-align: left;
+  border: 1px solid #d7e0ed;
+  background: #ffffff;
+  padding: 20px;
+  color: #1f2a3d;
+}
+
+.mode-card strong,
+.mode-card small {
+  display: block;
+}
+
+.mode-card strong {
+  margin: 10px 0 6px;
+  font-size: 1.05rem;
+}
+
+.mode-card small {
+  color: #627084;
+  line-height: 1.45;
+}
+
+.mode-card.active {
+  border-color: #2363b8;
+  box-shadow: inset 0 0 0 2px rgba(35, 99, 184, 0.14), 0 14px 28px rgba(35, 99, 184, 0.12);
+}
+
+.mode-card.legacy.active {
+  border-color: #6b7280;
+  box-shadow: inset 0 0 0 2px rgba(107, 114, 128, 0.18), 0 14px 28px rgba(107, 114, 128, 0.12);
+}
+
+.mode-badge,
+.legacy-chip,
+.status-pill,
+.count-pill {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.active-source {
+  color: #17437a;
+  background: #e5f0ff;
+}
+
+.legacy-source,
+.legacy-chip {
+  color: #374151;
+  background: #eef0f3;
+}
+
+.mode-context {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: flex-start;
+  padding: 22px;
+  margin-bottom: 18px;
+}
+
+.legacy-context {
+  border-color: #c9ced6;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.legacy-warning {
+  color: #7c2d12 !important;
+  font-weight: 700;
+}
+
+.action-group,
+.row-actions,
+.pagination-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.primary-action,
+.tab-action,
+.inline-action,
+.pagination-actions button {
+  border: 1px solid #c8d3e2;
+  background: #ffffff;
+  color: #243044;
+  padding: 9px 12px;
+}
+
+.primary-action {
+  border-color: #1f7a4d;
+  background: #1f7a4d;
+  color: #ffffff;
+}
+
+.tab-action:disabled,
+.pagination-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tab-action.danger,
+.inline-action.danger {
+  border-color: #f0b9b3;
+  color: #9f241d;
+}
+
+.inline-action.warning {
+  border-color: #f1c777;
+  color: #805500;
+}
+
+.filter-panel,
+.data-panel,
+.pagination-panel {
+  padding: 22px;
+  margin-top: 18px;
+}
+
+.filter-title,
+.table-header,
+.pagination-panel {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: center;
+}
+
+.filter-title span,
+.count-pill {
+  color: #445268;
+  background: #edf2f7;
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.filter-grid label {
+  display: grid;
+  gap: 6px;
+  color: #48576b;
+  font-weight: 700;
+}
+
+.filter-grid input,
+.filter-grid select {
+  min-height: 40px;
+  border: 1px solid #cfd9e7;
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #ffffff;
+}
+
+.loading-panel,
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 110px;
+  color: #5d6c80;
+}
+
+.export-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 18px 0;
+}
+
+.export-tabs button {
+  text-align: left;
+  border: 1px solid #d5deea;
+  border-radius: 8px;
+  background: #f9fbfe;
+  padding: 14px;
+}
+
+.export-tabs strong,
+.export-tabs span {
+  display: block;
+}
+
+.export-tabs span {
+  color: #637184;
+  margin-top: 5px;
+  line-height: 1.35;
+}
+
+.report-table {
+  min-width: 1120px;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.report-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #f0f4f8;
+  color: #344054;
+  border-bottom: 1px solid #d6dfeb;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.report-table td {
+  vertical-align: middle;
+  color: #263348;
+}
+
+.amount {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.strong {
+  font-weight: 800;
+}
+
+.negative {
+  color: #b42318 !important;
+}
+
+.positive {
+  color: #047857 !important;
+}
+
+.status-warning {
+  color: #7a4e00;
+  background: #fff4d7;
+}
+
+.status-info {
+  color: #155e75;
+  background: #dff6ff;
+}
+
+.status-success {
+  color: #166534;
+  background: #dcfce7;
+}
+
+.status-danger {
+  color: #991b1b;
+  background: #fee2e2;
+}
+
+.status-secondary {
+  color: #374151;
+  background: #eef0f3;
+}
+
+.pagination-actions button.active {
+  border-color: #2363b8;
+  background: #2363b8;
+  color: #ffffff;
+}
+
+@media (max-width: 980px) {
+  .recettes-page {
+    padding: 18px;
+  }
+
+  .page-hero,
+  .mode-context,
+  .filter-title,
+  .table-header,
+  .pagination-panel,
+  .warning-panel {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .mode-selector,
+  .filter-grid,
+  .export-tabs {
+    grid-template-columns: 1fr;
+  }
+
+  .action-group,
+  .pagination-actions {
+    justify-content: flex-start;
+  }
+}

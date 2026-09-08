@@ -1,0 +1,49 @@
+<div class="mc-page-wide">
+  <header class="mc-page-hero">
+    <h1 class="mc-page-title">Rapport Caisse - Période</h1>
+    <p class="mc-page-subtitle">Synthèse caisse consolidée par période, caisse et site.</p>
+  </header>
+
+  <div class="mc-filter-panel mc-filter-grid">
+    <div>
+      <label class="mc-field-label">Date début</label>
+      <input class="mc-input" type="date" [(ngModel)]="dateDebut" />
+    </div>
+    <div>
+      <label class="mc-field-label">Date fin</label>
+      <input class="mc-input" type="date" [(ngModel)]="dateFin" />
+    </div>
+    <div>
+      <label class="mc-field-label">Caisse ID</label>
+      <input class="mc-input" type="number" [(ngModel)]="caisseId" />
+    </div>
+    <div>
+      <label class="mc-field-label">Site ID</label>
+      <input class="mc-input" type="number" [(ngModel)]="siteId" />
+    </div>
+    <button class="mc-btn mc-btn-primary" (click)="rechercher()">Rechercher</button>
+    <div class="mc-button-row">
+      <button class="mc-btn bg-gray-200 text-gray-700 hover:bg-gray-300" (click)="reinitialiser()">Réinitialiser</button>
+      <button class="mc-btn mc-btn-success" (click)="exportCsv()">Export CSV</button>
+    </div>
+  </div>
+
+  <p *ngIf="loading" class="mc-state mc-state-info">Chargement...</p>
+  <p *ngIf="error" class="mc-state mc-state-danger">{{ error }}</p>
+
+  <div *ngIf="rapport" class="mc-panel grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
+    <div><strong>Période:</strong> {{ rapport.dateDebut }} au {{ rapport.dateFin }}</div>
+    <div><strong>Sessions:</strong> {{ rapport.nombreSessions }}</div>
+    <div><strong>Sessions non clôturées:</strong> {{ rapport.nombreSessionsNonCloturees }}</div>
+    <div><strong>Total entrées:</strong> {{ rapport.totalEntrees }}</div>
+    <div><strong>Total sorties:</strong> {{ rapport.totalSorties }}</div>
+    <div><strong>Solde théorique:</strong> {{ rapport.soldeTheoriqueTotal }}</div>
+    <div><strong>Solde physique:</strong> {{ rapport.soldePhysiqueTotal }}</div>
+    <div><strong>Écart total:</strong> {{ rapport.ecartTotal }}</div>
+    <div><strong>Nb opérations:</strong> {{ rapport.nombreOperations }}</div>
+    <div><strong>Nb dépenses:</strong> {{ rapport.nombreDepenses }}</div>
+    <div><strong>Montant dépenses:</strong> {{ rapport.montantDepenses }}</div>
+    <div><strong>Nb écarts:</strong> {{ rapport.nombreEcarts }}</div>
+    <div><strong>Montant écarts:</strong> {{ rapport.montantEcarts }}</div>
+  </div>
+</div>

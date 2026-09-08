@@ -1,0 +1,175 @@
+<div class="mc-page-wide">
+  <header class="mc-page-hero">
+    <h1 class="mc-page-title">Mes collectes</h1>
+    <p class="mc-page-subtitle">Suivez l’état de vos collectes journalières par membre, de la saisie terrain jusqu’au billetage et au contrôle.</p>
+  </header>
+
+  <main class="space-y-6 overflow-x-hidden">
+    <app-workflow-guidance-banner [guidance]="globalGuidance"></app-workflow-guidance-banner>
+
+    @if (loading) {
+      <div class="mc-state mc-state-info text-center">Chargement de vos collectes...</div>
+    }
+
+    @if (!loading && errorMessage) {
+      <div class="mc-state mc-state-danger">
+        {{ errorMessage }}
+      </div>
+    }
+
+    @if (actionError) {
+      <div class="mc-state mc-state-danger">
+        {{ actionError }}
+      </div>
+    }
+
+    @if (actionMessage) {
+      <div class="mc-state mc-state-success">
+        {{ actionMessage }}
+      </div>
+    }
+
+    @if (!loading && !errorMessage && collectes.length === 0) {
+      <div class="mc-state mc-state-info text-center">
+        Aucune collecte trouvée pour votre périmètre.
+      </div>
+    }
+
+    @if (!loading && !errorMessage && collectes.length > 0) {
+      <section class="space-y-4">
+        <div class="mc-panel">
+          <h2 class="mb-1 text-lg font-bold text-slate-900">Collectes terrain</h2>
+          <p class="text-sm leading-6 text-slate-600">L’épargne collectée reste tracée séparément des revenus; seuls les frais constituent un revenu réel.</p>
+        </div>
+
+        <div class="mc-table-wrap">
+          <table class="mc-table min-w-[1280px]">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Agent terrain</th>
+                <th>Site</th>
+                <th>Statut</th>
+                <th class="text-right">Épargne</th>
+                <th class="text-right">Remboursements</th>
+                <th class="text-right">Frais</th>
+                <th class="text-right">Total</th>
+                <th class="text-right">Espèces remises</th>
+                <th class="text-right">Écart</th>
+                <th>Observation</th>
+                <th class="text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (collecte of collectes; track collecte.id) {
+                <tr>
+                  <td>{{ collecte.dateCollecte | date:'shortDate' }}</td>
+                  <td>{{ collecte.agentTerrainId || '-' }}</td>
+                  <td>{{ collecte.siteNom || '-' }}</td>
+                  <td>
+                    <span class="mc-badge"
+                      [ngClass]="{
+                        'bg-gray-100 text-gray-700': collecte.statut === 'BROUILLON',
+                        'bg-blue-100 text-blue-700': collecte.statut === 'SOUMISE',
+                        'bg-green-100 text-green-700': collecte.statut === 'VALIDEE',
+                        'bg-red-100 text-red-700': collecte.statut === 'REJETEE'
+                      }">
+                      {{ collecte.statut }}
+                    </span>
+                  </td>
+                  <td class="text-right">{{ formatCdf(collecte.totalEpargneCalcule) }}</td>
+                  <td class="text-right">{{ formatCdf(collecte.totalRemboursementsCalcule) }}</td>
+                  <td class="text-right font-semibold text-emerald-700">{{ formatCdf(collecte.totalFraisCalcule) }}</td>
+                  <td class="text-right font-semibold text-slate-900">{{ formatCdf(collecte.totalGeneralCalcule) }}</td>
+                  <td class="text-right">{{ formatCdf(collecte.especesRemises) }}</td>
+                  <td class="text-right" [ngClass]="collecte.ecartTresorerie !== 0 ? 'text-red-700 font-semibold' : 'text-gray-700'">
+                    {{ formatCdf(collecte.ecartTresorerie) }}
+                  </td>
+                  <td class="max-w-[320px] whitespace-normal break-words" [title]="collecte.observations || ''">
+                    {{ collecte.observations || '-' }}
+                  </td>
+                  <td class="text-center">
+                    <div class="mc-button-row justify-center">
+                      <button
+                        type="button"
+                        (click)="toggleDetail(collecte.id)"
+                        class="mc-btn mc-btn-success px-3 py-1.5 text-xs">
+                        Voir détail
+                      </button>
+
+                      @if (canReprendre(collecte)) {
+                        <button
+                          type="button"
+                          (click)="reprendre(collecte)"
+                          class="mc-btn mc-btn-primary px-3 py-1.5 text-xs">
+                          Reprendre / Modifier
+                        </button>
+                      }
+
+                      @if (canSoumettre(collecte)) {
+                        <button
+                          type="button"
+                          (click)="soumettreDepuisListe(collecte)"
+                          [disabled]="actionInProgressId === collecte.id"
+                          class="mc-btn bg-indigo-600 px-3 py-1.5 text-xs text-white hover:bg-indigo-700">
+                          {{ actionInProgressId === collecte.id ? 'Soumission...' : 'Soumettre' }}
+                        </button>
+                      }
+
+                      @if (!canReprendre(collecte)) {
+                        <span class="mc-badge"
+                          [ngClass]="{
+                            'bg-blue-100 text-blue-700': collecte.statut === 'SOUMISE',
+                            'bg-green-100 text-green-700': collecte.statut === 'VALIDEE',
+                            'bg-red-100 text-red-700': collecte.statut === 'REJETEE'
+                          }">
+                          {{ statusBadgeLabel(collecte) }}
+                        </span>
+                      }
+                    </div>
+                  </td>
+                </tr>
+                @if (isExpanded(collecte.id)) {
+                  <tr>
+                    <td colspan="12" class="bg-slate-50">
+                      <div class="mb-2 text-xs font-bold uppercase tracking-wide text-slate-600">Lignes de collecte</div>
+                      @if (collecte.lignes.length === 0) {
+                        <div class="text-sm text-slate-500">Aucune ligne.</div>
+                      }
+                      @if (collecte.lignes.length > 0) {
+                        <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+                          <table class="w-full min-w-[760px] text-xs">
+                            <thead>
+                              <tr class="bg-slate-100 text-slate-600">
+                                <th class="px-3 py-2 text-left">Membre</th>
+                                <th class="px-3 py-2 text-left">Type</th>
+                                <th class="px-3 py-2 text-right">Montant</th>
+                                <th class="px-3 py-2 text-right">Quantité</th>
+                                <th class="px-3 py-2 text-left">Référence</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              @for (ligne of collecte.lignes; track ligne.id) {
+                                <tr>
+                                  <td class="px-3 py-2">{{ ligne.membreCode || '-' }} {{ ligne.membreNom || '' }}</td>
+                                  <td class="px-3 py-2">{{ ligne.typeLigne }}</td>
+                                  <td class="px-3 py-2 text-right">{{ formatCdf(ligne.montant) }}</td>
+                                  <td class="px-3 py-2 text-right">{{ ligne.quantite || 0 }}</td>
+                                  <td class="px-3 py-2">{{ ligne.reference || '-' }}</td>
+                                </tr>
+                              }
+                            </tbody>
+                          </table>
+                        </div>
+                      }
+                    </td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+    }
+  </main>
+</div>

@@ -1,0 +1,1 @@
+export type Sexe = 'M' | 'F' | 'AUTRE';

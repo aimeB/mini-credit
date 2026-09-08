@@ -1,0 +1,62 @@
+CREATE TABLE collecte_journaliere_terrain (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    agent_terrain_id BIGINT NOT NULL,
+    site_id BIGINT NOT NULL,
+    antenne_id BIGINT NOT NULL,
+    date_collecte DATE NOT NULL,
+    statut ENUM('BROUILLON','SOUMISE','VALIDEE','REJETEE') NOT NULL DEFAULT 'BROUILLON',
+    especes_remises DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+    total_epargne_calcule DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+    total_remboursements_calcule DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+    total_frais_calcule DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+    total_carnets_calcule INT NOT NULL DEFAULT 0,
+    total_general_calcule DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+    ecart_tresorerie DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+    observations LONGTEXT,
+    created_by BIGINT,
+    date_creation DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    date_modification DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    submitted_at DATETIME,
+    validated_by BIGINT,
+    validated_at DATETIME,
+    operations_generated_at DATETIME,
+
+    CONSTRAINT uk_collecte_agent_date UNIQUE (agent_terrain_id, date_collecte),
+    CONSTRAINT fk_cjt_agent FOREIGN KEY (agent_terrain_id) REFERENCES agent_terrain(id),
+    CONSTRAINT fk_cjt_site FOREIGN KEY (site_id) REFERENCES site(id),
+    CONSTRAINT fk_cjt_antenne FOREIGN KEY (antenne_id) REFERENCES agence(id),
+    CONSTRAINT fk_cjt_created_by FOREIGN KEY (created_by) REFERENCES utilisateur(id),
+    CONSTRAINT fk_cjt_validated_by FOREIGN KEY (validated_by) REFERENCES utilisateur(id),
+
+    INDEX idx_cjt_agent (agent_terrain_id),
+    INDEX idx_cjt_site (site_id),
+    INDEX idx_cjt_antenne (antenne_id),
+    INDEX idx_cjt_date (date_collecte),
+    INDEX idx_cjt_statut (statut)
+);
+
+CREATE TABLE collecte_membre_ligne (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    collecte_id BIGINT NOT NULL,
+    membre_id BIGINT NOT NULL,
+    compte_epargne_id BIGINT,
+    credit_id BIGINT,
+    demande_credit_id BIGINT,
+    type_ligne ENUM('EPARGNE','REMBOURSEMENT_CREDIT','CARNET','FRAIS_ANALYSE','DEMANDE_CREDIT') NOT NULL,
+    montant DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+    quantite INT NOT NULL DEFAULT 0,
+    reference VARCHAR(100),
+    commentaire VARCHAR(500),
+    date_creation DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    date_modification DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_cml_collecte FOREIGN KEY (collecte_id) REFERENCES collecte_journaliere_terrain(id) ON DELETE CASCADE,
+    CONSTRAINT fk_cml_membre FOREIGN KEY (membre_id) REFERENCES membre(id),
+    CONSTRAINT fk_cml_compte FOREIGN KEY (compte_epargne_id) REFERENCES compte_epargne(id),
+    CONSTRAINT fk_cml_credit FOREIGN KEY (credit_id) REFERENCES credit(id),
+    CONSTRAINT fk_cml_demande FOREIGN KEY (demande_credit_id) REFERENCES demande_credit(id),
+
+    INDEX idx_cml_collecte (collecte_id),
+    INDEX idx_cml_membre (membre_id),
+    INDEX idx_cml_type (type_ligne)
+);

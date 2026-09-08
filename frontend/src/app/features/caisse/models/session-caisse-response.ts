@@ -1,0 +1,46 @@
+import { StatutSessionCaisse } from './statut-session-caisse';
+import { OperationCaisseResponse } from './operation-caisse-response';
+
+export interface SessionCaisseResponse {
+  id: number;
+  caisseId: number;
+  caisseCode: string;
+  devise?: string;
+  siteId?: number;
+  siteNom?: string;
+  antenneId?: number;
+  antenneNom?: string;
+  caissierResponsableNom?: string;
+  utilisateurId: number;
+  utilisateurNom: string;
+  dateComptable?: string;
+  dateOuverture: string;
+  dateCloture?: string;
+  soldeOuverture: number;
+  totalEntrees: number;
+  totalSorties: number;
+  soldeTheorique: number;
+  soldePhysique?: number;
+  ecart?: number;
+  ecartCaisse?: number;
+  statut: StatutSessionCaisse;
+  statutControle?: string;
+  observation?: string;
+  clotureParId?: number;
+  clotureParNom?: string;
+  controleValideParId?: number;
+  controleValideParNom?: string;
+  dateControle?: string;
+  peutDemanderAnnulation?: boolean;
+  peutValiderAnnulation?: boolean;
+  peutAnnulerAdministrativement?: boolean;
+  peutReouvrirControlee?: boolean;
+  statutCorrection?: string;
+  derniereAnomalieId?: number;
+  motifAnnulation?: string;
+  annuleePar?: string;
+  dateAnnulation?: string;
+  mouvements?: OperationCaisseResponse[];
+  createdAt: string;
+  updatedAt: string;
+}

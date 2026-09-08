@@ -1,0 +1,208 @@
+<div class="min-h-screen bg-gray-50">
+  
+  <!-- Dashboard Header -->
+  <div class="bg-gradient-to-r from-emerald-900 via-green-900 to-emerald-900 text-white shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div>
+        <h1 class="text-3xl font-bold text-white">Gestion des Crédits</h1>
+        <p class="text-emerald-100 mt-2">Tableau de bord du module crédit</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+    <app-workflow-guidance-banner [guidance]="globalGuidance"></app-workflow-guidance-banner>
+
+    <section class="mb-8 rounded-xl border border-blue-200 bg-blue-50 p-6">
+      <h2 class="text-xl font-bold text-blue-900">À traiter par mon rôle</h2>
+      <p class="text-sm text-blue-800 mt-1">Rôle courant: {{ currentRole || 'Non identifié' }}</p>
+      <ul class="mt-3 space-y-1 text-sm text-blue-900">
+        <li *ngFor="let task of roleTasks">• {{ task }}</li>
+      </ul>
+    </section>
+
+    @if (isAgentTerrain) {
+      <div class="mb-8 rounded-xl border border-emerald-200 bg-emerald-50 p-6">
+        <h2 class="text-xl font-bold text-emerald-900">Parcours Agent Terrain</h2>
+        <p class="text-sm text-emerald-800 mt-2">
+          Les opérations crédit terrain (nouvelle demande et remboursement collecté) se font via Ma collecte du jour.
+        </p>
+      </div>
+    }
+    
+    <!-- Dashboard Grid with Modern Cards -->
+    @if (isAgentTerrain) {
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="group relative bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-gray-100">
+          <div class="bg-gradient-to-r from-emerald-500 to-emerald-600 h-2"></div>
+          <div class="p-8">
+            <div class="text-5xl mb-4">🧾</div>
+            <h3 class="text-2xl font-bold text-gray-900 mb-2">Nouvelle Demande via Collecte</h3>
+            <p class="text-gray-600 mb-6 text-sm leading-relaxed">Encodez DEMANDE_CREDIT dans Ma collecte du jour.</p>
+            <a routerLink="/collectes/ma-collecte" class="inline-flex items-center px-6 py-3 rounded-lg font-semibold text-white bg-emerald-600 hover:bg-emerald-700 transition-all duration-300">
+              Ouvrir Ma collecte du jour
+            </a>
+          </div>
+        </div>
+
+        <div class="group relative bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-gray-100">
+          <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-2"></div>
+          <div class="p-8">
+            <div class="text-5xl mb-4">💵</div>
+            <h3 class="text-2xl font-bold text-gray-900 mb-2">Remboursement via Collecte</h3>
+            <p class="text-gray-600 mb-6 text-sm leading-relaxed">Encodez REMBOURSEMENT_CREDIT dans Ma collecte du jour.</p>
+            <a routerLink="/collectes/ma-collecte" class="inline-flex items-center px-6 py-3 rounded-lg font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-all duration-300">
+              Encoder un remboursement collecté
+            </a>
+          </div>
+        </div>
+      </div>
+    } @else {
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      
+      <!-- Card 1: Voir les demandes -->
+      <div class="group relative bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-gray-100">
+        <!-- Colored Background Top -->
+        <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-2"></div>
+
+        <!-- Card Content -->
+        <div class="p-8">
+          <!-- Icon -->
+          <div class="text-5xl mb-4 transform group-hover:scale-110 transition-transform duration-300">
+            📋
+          </div>
+
+          <!-- Title -->
+          <h3 class="text-2xl font-bold text-gray-900 mb-2">Demandes de Crédit</h3>
+
+          <!-- Description -->
+          <p class="text-gray-600 mb-6 text-sm leading-relaxed">Consultez, analysez et approuvez les demandes de crédit en attente.</p>
+
+          <!-- Button -->
+          <a routerLink="/credits/demandes" class="inline-flex items-center px-6 py-3 rounded-lg font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-all duration-300 group-hover:translate-x-1">
+            Voir les demandes
+            <svg class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+            </svg>
+          </a>
+        </div>
+
+        <!-- Hover Overlay Effect -->
+        <div class="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-600 opacity-0 group-hover:opacity-10 transition-opacity duration-300 pointer-events-none"></div>
+      </div>
+
+      <!-- Card 2: Nouvelle demande -->
+      <div class="group relative bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-gray-100">
+        <!-- Colored Background Top -->
+        <div class="bg-gradient-to-r from-emerald-500 to-emerald-600 h-2"></div>
+
+        <!-- Card Content -->
+        <div class="p-8">
+          <!-- Icon -->
+          <div class="text-5xl mb-4 transform group-hover:scale-110 transition-transform duration-300">
+            ➕
+          </div>
+
+          <!-- Title -->
+          <h3 class="text-2xl font-bold text-gray-900 mb-2">Nouvelle Demande</h3>
+
+          <!-- Description -->
+          <p class="text-gray-600 mb-6 text-sm leading-relaxed">Créez une nouvelle demande de crédit pour un membre.</p>
+
+          <!-- Button -->
+          <a routerLink="/credits/demandes/nouveau" class="inline-flex items-center px-6 py-3 rounded-lg font-semibold text-white bg-emerald-600 hover:bg-emerald-700 transition-all duration-300 group-hover:translate-x-1">
+            Créer une demande
+            <svg class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+            </svg>
+          </a>
+        </div>
+
+        <!-- Hover Overlay Effect -->
+        <div class="absolute inset-0 bg-gradient-to-r from-emerald-500 to-emerald-600 opacity-0 group-hover:opacity-10 transition-opacity duration-300 pointer-events-none"></div>
+      </div>
+
+      <!-- Card 3: Voir les crédits -->
+      <div class="group relative bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-gray-100">
+        <!-- Colored Background Top -->
+        <div class="bg-gradient-to-r from-purple-500 to-purple-600 h-2"></div>
+
+        <!-- Card Content -->
+        <div class="p-8">
+          <!-- Icon -->
+          <div class="text-5xl mb-4 transform group-hover:scale-110 transition-transform duration-300">
+            💰
+          </div>
+
+          <!-- Title -->
+          <h3 class="text-2xl font-bold text-gray-900 mb-2">Crédits approuvés à décaisser</h3>
+
+          <!-- Description -->
+          <p class="text-gray-600 mb-6 text-sm leading-relaxed">Consultez les crédits approuvés en attente de décaissement.</p>
+
+          <!-- Button -->
+          <a routerLink="/credits/liste" class="inline-flex items-center px-6 py-3 rounded-lg font-semibold text-white bg-purple-600 hover:bg-purple-700 transition-all duration-300 group-hover:translate-x-1">
+            Voir les crédits
+            <svg class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+            </svg>
+          </a>
+        </div>
+
+        <!-- Hover Overlay Effect -->
+        <div class="absolute inset-0 bg-gradient-to-r from-purple-500 to-purple-600 opacity-0 group-hover:opacity-10 transition-opacity duration-300 pointer-events-none"></div>
+      </div>
+
+      <div class="group relative bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-gray-100">
+        <div class="bg-gradient-to-r from-slate-700 to-slate-900 h-2"></div>
+
+        <div class="p-8">
+          <div class="text-5xl mb-4 transform group-hover:scale-110 transition-transform duration-300">
+            📊
+          </div>
+
+          <h3 class="text-2xl font-bold text-gray-900 mb-2">Crédits en cours</h3>
+
+          <p class="text-gray-600 mb-6 text-sm leading-relaxed">Consultez tous les crédits accordés non clôturés.</p>
+
+          <a routerLink="/credits/en-cours" class="inline-flex items-center px-6 py-3 rounded-lg font-semibold text-white bg-slate-800 hover:bg-slate-900 transition-all duration-300 group-hover:translate-x-1">
+            Voir les crédits en cours
+            <svg class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+            </svg>
+          </a>
+        </div>
+
+        <div class="absolute inset-0 bg-gradient-to-r from-slate-700 to-slate-900 opacity-0 group-hover:opacity-10 transition-opacity duration-300 pointer-events-none"></div>
+      </div>
+
+      <div class="group relative bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-gray-100">
+        <div class="bg-gradient-to-r from-emerald-700 to-teal-700 h-2"></div>
+
+        <div class="p-8">
+          <div class="text-5xl mb-4 transform group-hover:scale-110 transition-transform duration-300">
+            ✓
+          </div>
+
+          <h3 class="text-2xl font-bold text-gray-900 mb-2">Crédits remboursés</h3>
+
+          <p class="text-gray-600 mb-6 text-sm leading-relaxed">Consultez les crédits totalement payés et clôturés.</p>
+
+          <a routerLink="/credits/rembourses" class="inline-flex items-center px-6 py-3 rounded-lg font-semibold text-white bg-emerald-700 hover:bg-emerald-800 transition-all duration-300 group-hover:translate-x-1">
+            Voir les crédits remboursés
+            <svg class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+            </svg>
+          </a>
+        </div>
+
+        <div class="absolute inset-0 bg-gradient-to-r from-emerald-700 to-teal-700 opacity-0 group-hover:opacity-10 transition-opacity duration-300 pointer-events-none"></div>
+      </div>
+
+    </div>
+    }
+
+  </main>
+</div>

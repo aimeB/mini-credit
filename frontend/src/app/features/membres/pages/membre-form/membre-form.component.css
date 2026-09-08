@@ -1,0 +1,21 @@
+/* Tailwind CSS styles are applied directly via template classes */
+/* This file is here for component-specific styles if needed */
+
+/* Custom animations and utilities can be added here */
+@layer components {
+  .form-group {
+    @apply mb-6;
+  }
+
+  .form-label {
+    @apply block text-sm font-semibold text-gray-900 mb-2;
+  }
+
+  .form-input {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white text-gray-900;
+  }
+
+  .form-input:invalid {
+    @apply border-red-500;
+  }
+}

@@ -1,0 +1,67 @@
+<div class="page">
+  <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white rounded-xl shadow-lg mb-6 p-6">
+    <h2 class="text-2xl font-bold">Anomalies sessions caisse</h2>
+    <p class="text-slate-200 mt-1 text-sm">Suivi des demandes d'annulation, validations et réouvertures contrôlées.</p>
+  </div>
+
+  <app-workflow-guidance-banner [guidance]="anomaliesGuidance"></app-workflow-guidance-banner>
+
+  <div class="bg-white rounded-xl shadow-md p-4 mb-4 grid grid-cols-1 md:grid-cols-4 gap-3">
+    <input type="date" [(ngModel)]="filtreDate" class="rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+    <input type="number" placeholder="Session" [(ngModel)]="filtreSession" class="rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+    <select [(ngModel)]="filtreStatut" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      <option value="">Tous statuts dossier</option>
+      <option value="DEMANDEE">DEMANDEE</option>
+      <option value="VALIDEE">VALIDEE</option>
+      <option value="REJETEE">REJETEE</option>
+      <option value="EXECUTEE">EXECUTEE</option>
+    </select>
+    <select [(ngModel)]="filtreType" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      <option value="">Tous types</option>
+      <option value="OUVERTURE_ERRONEE_SANS_MOUVEMENT">OUVERTURE_ERRONEE_SANS_MOUVEMENT</option>
+      <option value="PRE_CLOTURE_ERRONEE">PRE_CLOTURE_ERRONEE</option>
+      <option value="CLOTURE_ERRONEE_SANS_MOUVEMENT">CLOTURE_ERRONEE_SANS_MOUVEMENT</option>
+      <option value="SESSION_AVEC_MOUVEMENTS_RECTIFICATION_REQUISE">SESSION_AVEC_MOUVEMENTS_RECTIFICATION_REQUISE</option>
+    </select>
+  </div>
+
+  <div *ngIf="loading" class="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700 mb-4">
+    Chargement des anomalies...
+  </div>
+  <div *ngIf="error" class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 mb-4">
+    {{ error }}
+  </div>
+
+  <div class="bg-white rounded-xl shadow-md p-4 overflow-x-auto">
+    <table class="w-full text-sm" *ngIf="!loading">
+      <thead class="bg-gray-50 border-b border-gray-200">
+        <tr>
+          <th class="px-3 py-2 text-left">ID</th>
+          <th class="px-3 py-2 text-left">Session</th>
+          <th class="px-3 py-2 text-left">Type</th>
+          <th class="px-3 py-2 text-left">Ancien</th>
+          <th class="px-3 py-2 text-left">Nouveau</th>
+          <th class="px-3 py-2 text-left">Statut dossier</th>
+          <th class="px-3 py-2 text-left">Demande</th>
+          <th class="px-3 py-2 text-left">Validation</th>
+          <th class="px-3 py-2 text-left">Action</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        <tr *ngFor="let a of anomaliesFiltrees">
+          <td class="px-3 py-2">#{{ a.id }}</td>
+          <td class="px-3 py-2">
+            <a [routerLink]="['/caisses/session', a.sessionId]" class="text-blue-700 hover:underline">Session #{{ a.sessionId }}</a>
+          </td>
+          <td class="px-3 py-2">{{ a.typeAnomalie }}</td>
+          <td class="px-3 py-2">{{ a.ancienStatut }}</td>
+          <td class="px-3 py-2">{{ a.nouveauStatut || '-' }}</td>
+          <td class="px-3 py-2">{{ a.statutDossier }}</td>
+          <td class="px-3 py-2">{{ a.dateDemande | date:'dd/MM/yyyy HH:mm' }} ({{ a.demandePar || '-' }})</td>
+          <td class="px-3 py-2">{{ a.dateValidation ? (a.dateValidation | date:'dd/MM/yyyy HH:mm') : '-' }} ({{ a.validePar || '-' }})</td>
+          <td class="px-3 py-2">{{ a.actionExecutee || '-' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

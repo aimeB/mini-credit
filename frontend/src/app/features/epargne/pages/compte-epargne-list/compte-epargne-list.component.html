@@ -1,0 +1,59 @@
+<div class="space-y-4">
+  <div class="mc-panel flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <h2 class="mb-1 text-lg font-bold text-slate-900">Comptes épargne du membre</h2>
+      <p class="text-sm text-slate-600">Comptes actifs, soldes et statut du membre sélectionné.</p>
+    </div>
+    <button type="button" (click)="loadComptes()" [disabled]="loading" class="mc-btn mc-btn-dark">
+      Actualiser
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="mc-state mc-state-info">
+    Chargement des comptes...
+  </div>
+
+  <div *ngIf="errorMessage" class="mc-state mc-state-danger">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="!loading && !errorMessage && comptes.length === 0" class="mc-state mc-state-info">
+    Aucun compte épargne trouvé pour ce membre.
+  </div>
+
+  <div *ngIf="!loading && comptes.length > 0" class="mc-table-wrap">
+  <table class="mc-table min-w-[920px]">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Numéro compte</th>
+        <th>Type</th>
+        <th class="text-right">Solde disponible</th>
+        <th class="text-right">Solde bloqué</th>
+        <th>Statut</th>
+        <th>Date ouverture</th>
+        <th class="text-center">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr
+        *ngFor="let compte of comptes"
+        [class.selected-row]="selectedCompteId === compte.id"
+      >
+        <td>{{ compte.id }}</td>
+        <td class="font-mono text-slate-700">{{ compte.numeroCompte }}</td>
+        <td><span class="mc-badge bg-slate-100 text-slate-700">{{ compte.typeCompte }}</span></td>
+        <td class="text-right font-semibold text-emerald-700">{{ compte.soldeDisponible }}</td>
+        <td class="text-right font-semibold text-amber-700">{{ compte.soldeBloque }}</td>
+        <td><span class="mc-badge bg-emerald-100 text-emerald-800">{{ compte.statut }}</span></td>
+        <td>{{ compte.dateOuverture }}</td>
+        <td class="text-center">
+          <button type="button" (click)="selectCompte(compte)" class="mc-btn mc-btn-primary">
+            Sélectionner
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+</div>

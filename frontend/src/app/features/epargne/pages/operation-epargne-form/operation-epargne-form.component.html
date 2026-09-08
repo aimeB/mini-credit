@@ -1,0 +1,88 @@
+<div class="space-y-4">
+  <h3 class="mb-0 text-lg font-bold text-slate-900">Nouvelle opération</h3>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="grid gap-4 md:grid-cols-2">
+    <div class="mc-field-label">
+      <label for="typeOperation">Type d'opération</label>
+      <select id="typeOperation" formControlName="typeOperation" class="mc-select">
+        <option [ngValue]="null">-- choisir --</option>
+        <option *ngFor="let op of operations" [ngValue]="op">{{ op }}</option>
+      </select>
+      <small class="text-red-700"
+             *ngIf="form.get('typeOperation')?.touched && form.get('typeOperation')?.invalid">
+        Le type d'opération est obligatoire.
+      </small>
+    </div>
+
+    <div class="mc-field-label">
+      <label for="montant">Montant</label>
+      <input id="montant" type="number" step="0.01" formControlName="montant" class="mc-input" />
+      <small class="text-red-700"
+             *ngIf="form.get('montant')?.touched && form.get('montant')?.invalid">
+        Le montant doit être supérieur à 0.
+      </small>
+    </div>
+
+    <div class="mc-field-label" *ngIf="form.get('typeOperation')?.value === 'AJUSTEMENT'">
+      <label for="sens">Sens de l'ajustement</label>
+      <select id="sens" formControlName="sens" class="mc-select">
+        <option [ngValue]="null">-- choisir --</option>
+        <option value="ENTREE">Ajouter au solde</option>
+        <option value="SORTIE">Retirer du solde</option>
+      </select>
+      <small class="text-red-700"
+             *ngIf="form.get('sens')?.touched && form.get('sens')?.invalid">
+        Le sens est obligatoire pour un ajustement.
+      </small>
+    </div>
+
+    <div class="mc-field-label">
+      <label for="modePaiement">Mode de paiement</label>
+      <select id="modePaiement" formControlName="modePaiement" class="mc-select">
+        <option [ngValue]="null">-- choisir --</option>
+        <option *ngFor="let mode of modesPaiement" [ngValue]="mode">{{ mode }}</option>
+      </select>
+    </div>
+
+    <div class="mc-field-label">
+      <label for="referenceExterne">Référence externe</label>
+      <input id="referenceExterne" type="text" formControlName="referenceExterne" class="mc-input" />
+    </div>
+
+    <div class="mc-field-label md:col-span-2">
+      <label for="observation">Observation</label>
+      <textarea id="observation" rows="3" formControlName="observation" class="mc-textarea"></textarea>
+    </div>
+
+    <div class="mc-state mc-state-danger md:col-span-2" *ngIf="errorMessage">
+      {{ errorMessage }}
+    </div>
+
+    <div class="mc-state mc-state-success md:col-span-2" *ngIf="successMessage">
+      {{ successMessage }}
+    </div>
+
+    <div class="mc-state mc-state-info md:col-span-2" *ngIf="ticketLoading">
+      Recherche du ticket reçu...
+    </div>
+
+    <div class="mc-panel md:col-span-2" *ngIf="ticketRecu">
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p class="mb-1 text-xs font-semibold uppercase text-slate-500">Ticket reçu</p>
+          <strong class="text-slate-900">{{ ticketRecu.numeroTicket }}</strong>
+          <p class="mt-1 text-sm text-slate-600">Code vérification {{ ticketRecu.codeVerification }}</p>
+        </div>
+        <button type="button" class="mc-btn mc-btn-primary" (click)="imprimerTicket()" [disabled]="!canPrintTicket()">
+          Imprimer le ticket
+        </button>
+      </div>
+    </div>
+
+    <div class="md:col-span-2">
+    <button type="submit" [disabled]="loading || form.invalid" class="mc-btn mc-btn-primary">
+      {{ loading ? 'Enregistrement...' : 'Valider l’opération' }}
+    </button>
+    </div>
+  </form>
+</div>

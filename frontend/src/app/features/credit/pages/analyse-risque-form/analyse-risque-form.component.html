@@ -1,0 +1,247 @@
+<div class="min-h-screen bg-slate-50 p-4 md:p-8">
+  <div class="mx-auto max-w-7xl space-y-6">
+    <div class="rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-cyan-900 p-6 text-white shadow-xl md:p-8">
+      <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <p class="text-xs uppercase tracking-[0.24em] text-cyan-200">Workflow Crédit 3N</p>
+          <h2 class="mb-1 text-2xl font-bold text-white md:text-3xl">Analyse de risque crédit</h2>
+          <p class="text-sm text-cyan-100">Demande n° {{ demande?.numeroDemande || demandeId }} • N° analyse généré automatiquement à l’enregistrement</p>
+        </div>
+        <a routerLink="/credits/demandes" class="inline-flex items-center rounded-lg border border-cyan-200/40 bg-cyan-100/10 px-4 py-2 text-sm font-semibold text-cyan-50 hover:bg-cyan-100/20">
+          Retour aux demandes
+        </a>
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-700 shadow-sm">
+      Chargement des informations de la demande...
+    </div>
+
+    <app-workflow-guidance-banner *ngIf="demande && !loading" [guidance]="guidance"></app-workflow-guidance-banner>
+
+    <div *ngIf="demande && !loading" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+      <h3 class="mb-4 text-lg font-semibold text-slate-900">Section 1 — Résumé de la demande</h3>
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="rounded-lg bg-slate-100 p-3">
+          <p class="text-xs text-slate-500">N° demande</p>
+          <p class="font-semibold text-slate-900">{{ demande.numeroDemande || ('DMD-' + demande.id) }}</p>
+        </div>
+        <div class="rounded-lg bg-slate-100 p-3">
+          <p class="text-xs text-slate-500">Membre</p>
+          <p class="font-semibold text-slate-900">{{ demande.membreNomComplet }}</p>
+        </div>
+        <div class="rounded-lg bg-slate-100 p-3">
+          <p class="text-xs text-slate-500">Site / antenne</p>
+          <p class="font-semibold text-slate-900">{{ demande.siteNom || 'Non renseigné' }}</p>
+        </div>
+        <div class="rounded-lg bg-slate-100 p-3">
+          <p class="text-xs text-slate-500">Statut actuel</p>
+          <p class="font-semibold text-slate-900">{{ demande.statut }}</p>
+        </div>
+        <div class="rounded-lg border border-cyan-200 bg-cyan-50 p-3">
+          <p class="text-xs text-cyan-700">Montant demandé</p>
+          <p class="font-semibold text-cyan-900">{{ formatMontantAvecDevise(demande.montantDemande, demande.devise) }}</p>
+        </div>
+        <div class="rounded-lg border border-cyan-200 bg-cyan-50 p-3">
+          <p class="text-xs text-cyan-700">Durée</p>
+          <p class="font-semibold text-cyan-900">{{ demande.dureeValeur }} {{ demande.dureeUnite }}</p>
+        </div>
+        <div class="rounded-lg border border-cyan-200 bg-cyan-50 p-3">
+          <p class="text-xs text-cyan-700">Taux</p>
+          <p class="font-semibold text-cyan-900">{{ demande.tauxInteret | number:'1.0-2' }}%</p>
+        </div>
+        <div class="rounded-lg border border-cyan-200 bg-cyan-50 p-3">
+          <p class="text-xs text-cyan-700">Frais de demande</p>
+          <p class="font-semibold text-cyan-900">{{ formatMontantAvecDevise(demande.fraisDemande, demande.devise) }}</p>
+        </div>
+        <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+          <p class="text-xs text-emerald-700">Frais payés</p>
+          <p class="font-semibold text-emerald-900">{{ formatMontantAvecDevise(demande.fraisDemandePayes, demande.devise) }}</p>
+        </div>
+        <div class="rounded-lg border border-amber-200 bg-amber-50 p-3">
+          <p class="text-xs text-amber-700">Garantie requise (20%)</p>
+          <p class="font-semibold text-amber-900">{{ formatMontantAvecDevise(demande.depotGarantieRequis, demande.devise) }}</p>
+        </div>
+        <div class="rounded-lg border border-sky-200 bg-sky-50 p-3 sm:col-span-2 lg:col-span-2">
+          <p class="text-xs text-sky-700">Gage proposé</p>
+          <p class="font-semibold text-sky-900">{{ demande.gagePropose || 'Non renseigné' }}</p>
+        </div>
+        <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+          <p class="text-xs text-emerald-700">Garantie disponible</p>
+          <p class="font-semibold text-emerald-900">{{ formatMontantAvecDevise(demande.depotGarantiePaye, demande.devise) }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="errorMessage" class="rounded-xl border border-red-300 bg-red-50 p-4 text-sm text-red-800">
+      {{ errorMessage }}
+    </div>
+
+    <div *ngIf="successMessage" class="rounded-xl border border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-800">
+      {{ successMessage }}
+    </div>
+
+    <form *ngIf="!loading && autoriseAnalyse" [formGroup]="form" (ngSubmit)="submit()" class="space-y-5">
+      <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+        <h3 class="mb-4 text-base font-semibold text-slate-900">A. Informations dossier</h3>
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div>
+            <label class="mb-1 block text-sm font-medium text-slate-700" for="dateVisite">Date visite *</label>
+            <input id="dateVisite" type="date" formControlName="dateVisite" class="w-full rounded-lg border border-slate-300 px-3 py-2" />
+            <p *ngIf="f.dateVisite.touched && f.dateVisite.invalid" class="mt-1 text-xs text-red-600">Date visite obligatoire.</p>
+          </div>
+          <div class="md:col-span-2">
+            <label class="mb-1 block text-sm font-medium text-slate-700" for="lieuVisite">Lieu visité *</label>
+            <input id="lieuVisite" type="text" formControlName="lieuVisite" class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="Ex: Marché central, commune de ..." />
+            <p *ngIf="f.lieuVisite.touched && f.lieuVisite.invalid" class="mt-1 text-xs text-red-600">Lieu visité obligatoire.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+        <h3 class="mb-4 text-base font-semibold text-slate-900">B. Visite et activité</h3>
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <label class="flex items-center gap-2 rounded-lg bg-slate-100 p-3 text-sm font-medium text-slate-700">
+            <input type="checkbox" formControlName="activiteVerifiee" class="h-4 w-4" />
+            Activité vérifiée sur terrain
+          </label>
+          <div>
+            <label class="mb-1 block text-sm font-medium text-slate-700" for="ancienneteActivite">Ancienneté activité</label>
+            <input id="ancienneteActivite" type="text" formControlName="ancienneteActivite" class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="Ex: 3 ans" />
+          </div>
+          <div class="md:col-span-2">
+            <label class="mb-1 block text-sm font-medium text-slate-700" for="descriptionActivite">Description activité <span *ngIf="f.activiteVerifiee.value" class="text-red-600">*</span></label>
+            <textarea id="descriptionActivite" rows="3" formControlName="descriptionActivite" class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="Décrire l’activité observée et le niveau de fiabilité"></textarea>
+            <p *ngIf="form.errors?.['descriptionActiviteRequired'] && (f.descriptionActivite.touched || f.activiteVerifiee.touched)" class="mt-1 text-xs text-red-600">Description activité obligatoire si activité vérifiée.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+        <h3 class="mb-4 text-base font-semibold text-slate-900">C. Données financières</h3>
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div class="rounded-lg bg-slate-50 p-3">
+            <label class="mb-1 block text-sm font-medium text-slate-700" for="chiffreAffairesEstime">Chiffre d’affaires estimé</label>
+            <div class="grid grid-cols-3 gap-2">
+              <input id="chiffreAffairesEstime" type="number" min="0" step="0.01" formControlName="chiffreAffairesEstime" class="col-span-2 rounded-lg border border-slate-300 px-3 py-2" />
+              <select formControlName="chiffreAffairesDevise" class="rounded-lg border border-slate-300 px-3 py-2">
+                <option *ngFor="let devise of deviseOptions" [value]="devise">{{ devise }}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="rounded-lg bg-slate-50 p-3">
+            <label class="mb-1 block text-sm font-medium text-slate-700" for="revenuNetEstime">Revenu net estimé</label>
+            <div class="grid grid-cols-3 gap-2">
+              <input id="revenuNetEstime" type="number" min="0" step="0.01" formControlName="revenuNetEstime" class="col-span-2 rounded-lg border border-slate-300 px-3 py-2" />
+              <select formControlName="revenuNetDevise" class="rounded-lg border border-slate-300 px-3 py-2">
+                <option *ngFor="let devise of deviseOptions" [value]="devise">{{ devise }}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="rounded-lg bg-slate-50 p-3">
+            <label class="mb-1 block text-sm font-medium text-slate-700" for="chargesMensuelles">Charges mensuelles</label>
+            <div class="grid grid-cols-3 gap-2">
+              <input id="chargesMensuelles" type="number" min="0" step="0.01" formControlName="chargesMensuelles" class="col-span-2 rounded-lg border border-slate-300 px-3 py-2" />
+              <select formControlName="chargesMensuellesDevise" class="rounded-lg border border-slate-300 px-3 py-2">
+                <option *ngFor="let devise of deviseOptions" [value]="devise">{{ devise }}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="rounded-lg border border-cyan-200 bg-cyan-50 p-3">
+            <label class="mb-1 block text-sm font-medium text-cyan-900" for="capaciteRemboursement">Capacité remboursement *</label>
+            <div class="grid grid-cols-3 gap-2">
+              <input id="capaciteRemboursement" type="number" min="0" step="0.01" formControlName="capaciteRemboursement" class="col-span-2 rounded-lg border border-cyan-300 px-3 py-2" />
+              <select formControlName="capaciteRemboursementDevise" class="rounded-lg border border-cyan-300 px-3 py-2">
+                <option *ngFor="let devise of deviseOptions" [value]="devise">{{ devise }}</option>
+              </select>
+            </div>
+            <p *ngIf="f.capaciteRemboursement.touched && f.capaciteRemboursement.invalid" class="mt-1 text-xs text-red-600">Capacité remboursement obligatoire et >= 0.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+        <h3 class="mb-4 text-base font-semibold text-slate-900">D. Analyse risque</h3>
+        <div class="mb-4 grid grid-cols-1 gap-3 md:grid-cols-3">
+          <div class="rounded-lg bg-slate-100 p-3">
+            <p class="text-xs text-slate-500">Score risque (calculé)</p>
+            <p class="text-lg font-bold text-slate-900">{{ scoreRisqueAffiche }}</p>
+          </div>
+          <div class="rounded-lg bg-slate-100 p-3">
+            <p class="text-xs text-slate-500">Niveau risque</p>
+            <select id="risqueNiveau" formControlName="risqueNiveau" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2">
+              <option [ngValue]="null">-- Sélectionner --</option>
+              <option *ngFor="let option of niveauRisqueOptions" [value]="option">{{ option }}</option>
+            </select>
+          </div>
+          <div class="rounded-lg bg-slate-100 p-3">
+            <label class="flex items-center gap-2 text-sm font-medium text-slate-700">
+              <input type="checkbox" formControlName="scoreRisqueOverride" class="h-4 w-4" />
+              Corriger manuellement le score
+            </label>
+            <input id="scoreRisque" type="number" min="0" max="100" step="0.01" formControlName="scoreRisque" class="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 disabled:bg-slate-200" />
+          </div>
+        </div>
+
+        <div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
+          <p class="mb-2 text-sm font-semibold text-slate-700">Détail indicatif du score (paramétrable)</p>
+          <ul class="space-y-2 text-sm text-slate-700">
+            <li *ngFor="let item of scoreDetail" class="flex items-center justify-between gap-2 rounded bg-white px-3 py-2">
+              <span>{{ item.critere }} — {{ item.detail }}</span>
+              <span class="font-semibold">{{ item.points | number:'1.0-2' }} pts</span>
+            </li>
+          </ul>
+        </div>
+
+        <div *ngIf="form.errors?.['incoherenceScoreNiveau']" class="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+          Incohérence détectée: le niveau de risque doit correspondre au score.
+        </div>
+        <div *ngIf="form.errors?.['scoreNonCalcule']" class="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
+          Score non calculé: renseignez les données minimales ou activez la correction manuelle.
+        </div>
+      </section>
+
+      <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+        <h3 class="mb-4 text-base font-semibold text-slate-900">E. Commentaire et décision</h3>
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div>
+            <label class="mb-1 block text-sm font-medium text-slate-700" for="recommandation">Recommandation *</label>
+            <select id="recommandation" formControlName="recommandation" class="w-full rounded-lg border border-slate-300 px-3 py-2">
+              <option *ngFor="let option of recommandationOptions" [value]="option">{{ recommandationLabels[option] }}</option>
+            </select>
+            <p class="mt-1 text-xs text-slate-500">Sélection actuelle: {{ recommandationLabelActuelle }}</p>
+          </div>
+          <div class="rounded-lg bg-slate-100 p-3 text-xs text-slate-700">
+            Commentaire obligatoire si:
+            <ul class="mt-2 list-disc pl-5">
+              <li>Recommandation = Favorable avec réserve</li>
+              <li>Recommandation = Défavorable</li>
+              <li>Niveau risque = Élevé</li>
+              <li>Score corrigé manuellement</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <label class="mb-1 block text-sm font-medium text-slate-700" for="commentaire">Commentaire</label>
+          <textarea id="commentaire" rows="5" formControlName="commentaire" class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="Ajouter une justification claire pour la décision prise..."></textarea>
+          <p *ngIf="form.errors?.['commentaireRequiredByRecommandation'] || form.errors?.['commentaireRequiredByHighRisk'] || form.errors?.['commentaireRequiredByManualScore']" class="mt-1 text-xs text-red-600">
+            Le commentaire est obligatoire pour la combinaison de règles sélectionnée.
+          </p>
+        </div>
+      </section>
+
+      <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+        <a routerLink="/credits/demandes" class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100">
+          Annuler
+        </a>
+        <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800 disabled:cursor-not-allowed disabled:opacity-60" [disabled]="loading || form.invalid || !autoriseAnalyse">
+          {{ loading ? 'Enregistrement...' : 'Enregistrer l’analyse' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

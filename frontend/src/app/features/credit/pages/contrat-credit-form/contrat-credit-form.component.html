@@ -1,0 +1,236 @@
+<div class="min-h-screen bg-slate-100 print:bg-white">
+  <header class="bg-slate-900 text-white shadow-lg print:hidden">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <a [routerLink]="['/credits', creditId]" class="inline-flex items-center text-slate-200 hover:text-white text-sm font-medium mb-4">
+            ← Retour au dossier crédit
+          </a>
+          <h1 class="text-3xl font-bold text-white mb-0">CONTRAT DE PRÊT DE MEMBRE</h1>
+          <p class="text-slate-300 mt-2">{{ contrat?.numeroCredit || 'Chargement du contrat' }}</p>
+        </div>
+        <button
+          type="button"
+          (click)="imprimer()"
+          [disabled]="!contrat"
+          class="inline-flex items-center justify-center px-5 py-3 rounded-lg font-semibold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          Imprimer
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 print:max-w-none print:px-0 print:py-0">
+    <app-workflow-guidance-banner class="print:hidden" [guidance]="globalGuidance"></app-workflow-guidance-banner>
+
+    <div *ngIf="loading" class="text-center py-16 print:hidden">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-slate-800"></div>
+      <p class="text-slate-600 mt-4">Chargement du contrat...</p>
+    </div>
+
+    <div *ngIf="errorMessage" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 print:hidden">
+      <p class="text-sm text-red-700">{{ errorMessage }}</p>
+    </div>
+
+    <article *ngIf="!loading && contrat" class="bg-white border border-slate-200 shadow-sm rounded-lg p-8 print:shadow-none print:border-0 print:rounded-none text-slate-950 leading-relaxed">
+      <section class="text-center border-b border-slate-300 pb-6 mb-8">
+        <p class="text-sm uppercase tracking-wide text-slate-600 font-semibold">ONG/ASBL</p>
+        <h2 class="text-2xl font-bold text-slate-950 mt-1">3N Génération Sans Chômage</h2>
+        <div class="mt-3 text-sm text-slate-600 space-y-1">
+          <p>Adresse : Non renseigné</p>
+          <p>Téléphone : Non renseigné</p>
+        </div>
+        <h1 class="text-3xl font-black text-slate-950 mt-6 mb-0 uppercase">CONTRAT DE PRÊT DE MEMBRE</h1>
+        <p class="text-slate-700 mt-2 font-semibold">N° crédit : {{ contrat.numeroCredit }}</p>
+      </section>
+
+      <section class="mb-8 text-sm">
+        <h3 class="text-lg font-bold text-slate-950 mb-2">Introduction contractuelle</h3>
+        <p>
+          Nous, l’ONG/ASBL <strong>3N Génération Sans Chômage</strong>, acceptons d’accorder un prêt au membre
+          <strong>{{ valueOrDefault(contrat.membreNomComplet) }}</strong>, identifié dans le système sous le dossier crédit
+          <strong>{{ contrat.numeroCredit }}</strong>, selon les conditions définies ci-dessous.
+        </p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-5">
+          <div class="border border-slate-200 rounded-lg p-4">
+            <h3 class="font-bold text-slate-900 mb-3">Identification du membre</h3>
+            <p>Nom complet : <strong>{{ valueOrDefault(contrat.membreNomComplet) }}</strong></p>
+            <p>Adresse : <strong>{{ valueOrDefault(contrat.membreAdresse) }}</strong></p>
+            <p>Téléphone : <strong>{{ valueOrDefault(contrat.membreTelephone) }}</strong></p>
+          </div>
+          <div class="border border-slate-200 rounded-lg p-4">
+            <h3 class="font-bold text-slate-900 mb-3">Références du dossier</h3>
+            <p>N° demande : <strong>{{ valueOrDefault(contrat.numeroDemande) }}</strong></p>
+            <p>Antenne : <strong>{{ valueOrDefault(contrat.antenneNom) }}</strong></p>
+            <p>Statut : <strong>{{ valueOrDefault(contrat.statut) }}</strong></p>
+          </div>
+        </div>
+      </section>
+
+      <section class="space-y-6 text-sm">
+        <div>
+          <h3 class="text-lg font-bold text-slate-950">Article 1 — Montant et durée du prêt</h3>
+          <p class="mt-2">
+            Le montant accordé au membre est de
+            <strong>{{ contrat.montantAccorde | number:'1.0-2' }} {{ contrat.devise || '' }}</strong>.
+            La durée du prêt est de <strong>{{ formatDuree(contrat) }}</strong>.
+            La date du prêt est <strong>{{ contrat.datePret || 'Non renseigné' }}</strong> et la date de décaissement est
+            <strong>{{ contrat.dateDecaissement || 'Non renseigné' }}</strong>.
+            L’échéancier de remboursement est annexé au présent contrat.
+          </p>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-bold text-slate-950">Article 2 — Intérêt et frais</h3>
+          <p class="mt-2">
+            Le taux d’intérêt applicable au crédit est :
+            <strong>{{ contrat.tauxInteret != null ? (contrat.tauxInteret + ' %') : 'Non renseigné' }}</strong>.
+            Aucun autre frais contractuel n’est affiché lorsqu’il n’est pas stocké dans le dossier crédit.
+          </p>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-bold text-slate-950">Article 3 — Objet du prêt</h3>
+          <p class="mt-2 whitespace-pre-line">
+            L’objet déclaré du crédit est : <strong>{{ valueOrDefault(contrat.objetCredit) }}</strong>.
+            Le membre s’engage à utiliser le prêt uniquement pour cet objet.
+          </p>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-bold text-slate-950">Article 4 — Interdiction de changement d’objet</h3>
+          <p class="mt-2">
+            Le membre ne peut pas utiliser le prêt pour une activité autre que celle déclarée. En cas de violation,
+            3N peut résilier le contrat et réclamer le remboursement immédiat du solde dû.
+          </p>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-bold text-slate-950">Article 5 — Garantie</h3>
+          <div class="mt-2 space-y-1">
+            <p>La garantie obligatoire est de <strong>{{ contrat.garantieRegleLibelle || '20 % du montant demandé' }}</strong>.</p>
+            <p>Montant calculé : <strong>{{ (contrat.garantieRegleMontant || 0) | number:'1.0-2' }} {{ contrat.devise || '' }}</strong>.</p>
+            <p>Garantie bloquée : <strong>{{ (contrat.montantGarantieBloque || 0) | number:'1.0-2' }} {{ contrat.devise || '' }}</strong>.</p>
+            <p>Compte épargne concerné / source : <strong>{{ valueOrDefault(contrat.sourceGarantie) }}</strong>.</p>
+            <p>Gage proposé : <strong>{{ valueOrDefault(contrat.gagePropose) }}</strong>.</p>
+            <p>Garanties matérielles acceptées : <strong>{{ valueOrDefault(contrat.garantiesMateriellesAcceptees) }}</strong>.</p>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-bold text-slate-950">Article 6 — Saisie de la garantie</h3>
+          <p class="mt-2">
+            En cas de non-paiement, 3N peut utiliser la garantie bloquée et/ou les garanties déclarées dans le dossier
+            pour couvrir les montants dus, conformément aux règles applicables.
+          </p>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-bold text-slate-950">Article 7 — Droit de visite et contrôle</h3>
+          <p class="mt-2">
+            3N, par ses agents, peut visiter le membre à son domicile ou sur le lieu de son activité afin de vérifier
+            l’utilisation du crédit et le déroulement de l’activité financée.
+          </p>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-bold text-slate-950">Article 8 — Remboursement et pénalités</h3>
+          <div class="mt-2 space-y-1">
+            <p>Le remboursement s’effectue selon l’échéancier annexé au présent contrat.</p>
+            <p>Total principal : <strong>{{ (contrat.totalPrincipal || 0) | number:'1.0-2' }} {{ contrat.devise || '' }}</strong>.</p>
+            <p>Total intérêt : <strong>{{ (contrat.totalInteret || 0) | number:'1.0-2' }} {{ contrat.devise || '' }}</strong>.</p>
+            <p>Total à payer : <strong>{{ (contrat.totalAPayer || 0) | number:'1.0-2' }} {{ contrat.devise || '' }}</strong>.</p>
+            <p>Pénalité de retard : <strong>{{ contrat.penaliteRetardLibelle || '2500 FC par jour de retard' }}</strong>.</p>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-bold text-slate-950">Article 9 — Changement d’adresse</h3>
+          <p class="mt-2">
+            Le membre doit informer 3N de tout changement d’adresse du domicile ou du lieu d’activité.
+          </p>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-bold text-slate-950">Article 10 — Fausse déclaration</h3>
+          <p class="mt-2">
+            Toute fausse adresse ou fausse déclaration peut entraîner la résiliation du contrat et des poursuites selon
+            les règles applicables.
+          </p>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-bold text-slate-950">Article 11 — Acceptation</h3>
+          <p class="mt-2">
+            Le membre reconnaît avoir lu, compris et accepté les clauses du présent contrat.
+          </p>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-bold text-slate-950">Article 12 — Exemplaires</h3>
+          <p class="mt-2">Le contrat est établi en deux exemplaires originaux :</p>
+          <ul class="list-disc list-inside mt-1">
+            <li>un pour 3N ;</li>
+            <li>un pour le membre.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="mt-10">
+        <h3 class="text-xl font-bold text-slate-950 mb-4">Annexe : Échéancier des remboursements</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm border border-slate-300">
+            <thead class="bg-slate-100 text-slate-700">
+              <tr>
+                <th class="px-3 py-2 text-left border border-slate-300">Échéance</th>
+                <th class="px-3 py-2 text-right border border-slate-300">Principal</th>
+                <th class="px-3 py-2 text-right border border-slate-300">Intérêt</th>
+                <th class="px-3 py-2 text-right border border-slate-300">Total à payer</th>
+                <th class="px-3 py-2 text-right border border-slate-300">Pénalités</th>
+                <th class="px-3 py-2 text-right border border-slate-300">Net payé</th>
+                <th class="px-3 py-2 text-left border border-slate-300">Observations</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let echeance of contrat.echeancier; trackBy: trackByEcheanceId">
+                <td class="px-3 py-2 border border-slate-300">{{ echeance.numeroEcheance }} — {{ echeance.dateEcheance || 'Non renseigné' }}</td>
+                <td class="px-3 py-2 text-right border border-slate-300">{{ echeance.capitalDu | number:'1.0-2' }}</td>
+                <td class="px-3 py-2 text-right border border-slate-300">{{ echeance.interetDu | number:'1.0-2' }}</td>
+                <td class="px-3 py-2 text-right border border-slate-300">{{ echeance.totalDu | number:'1.0-2' }}</td>
+                <td class="px-3 py-2 text-right border border-slate-300">{{ echeance.penalite | number:'1.0-2' }}</td>
+                <td class="px-3 py-2 text-right border border-slate-300">{{ echeance.montantPaye | number:'1.0-2' }}</td>
+                <td class="px-3 py-2 border border-slate-300">{{ echeance.statut || 'Non renseigné' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="mt-10 text-sm">
+        <h3 class="text-xl font-bold text-slate-950 mb-4">Responsables et signatures</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <div><span class="text-slate-500">Agent terrain</span><p class="font-semibold text-slate-900">{{ valueOrDefault(contrat.agentTerrainNom) }}</p></div>
+          <div><span class="text-slate-500">Gestionnaire</span><p class="font-semibold text-slate-900">{{ valueOrDefault(contrat.gestionnaireNom) }}</p></div>
+          <div><span class="text-slate-500">Contrôleur</span><p class="font-semibold text-slate-900">{{ valueOrDefault(contrat.controleurNom) }}</p></div>
+          <div><span class="text-slate-500">Chef de bureau</span><p class="font-semibold text-slate-900">{{ valueOrDefault(contrat.chefBureauNom) }}</p></div>
+          <div><span class="text-slate-500">Caissier</span><p class="font-semibold text-slate-900">{{ valueOrDefault(contrat.caissierNom) }}</p></div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12 pt-4">
+          <div>
+            <p class="font-bold text-slate-900">Pour 3N</p>
+            <p class="mt-2">Nom : {{ valueOrDefault(contrat.chefBureauNom) }}</p>
+            <p>Qualité : Chef de bureau</p>
+            <div class="mt-16 border-t border-slate-400 pt-2 text-slate-600">Signature et date</div>
+          </div>
+          <div>
+            <p class="font-bold text-slate-900">Pour le membre</p>
+            <p class="mt-2">Nom : {{ valueOrDefault(contrat.membreNomComplet) }}</p>
+            <div class="mt-16 border-t border-slate-400 pt-2 text-slate-600">Signature et date</div>
+          </div>
+        </div>
+      </section>
+    </article>
+  </main>
+</div>

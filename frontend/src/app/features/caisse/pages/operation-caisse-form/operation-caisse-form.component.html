@@ -1,0 +1,204 @@
+<div class="mc-page-wide">
+  <header class="mc-page-hero">
+    <div>
+      <h1 class="mc-page-title">Nouvelle opération caisse</h1>
+      <p class="mc-page-subtitle">Enregistrez une entrée ou une sortie manuelle sur la session ouverte.</p>
+    </div>
+    <button type="button" class="mc-btn bg-white/15 text-white ring-1 ring-white/30 hover:bg-white/25" (click)="cancel()">Retour</button>
+  </header>
+
+  <div *ngIf="loadingSession" class="mc-state mc-state-info">Chargement de la session...</div>
+  <div *ngIf="error" class="mc-state mc-state-danger">{{ error }}</div>
+
+  <section *ngIf="session" class="mc-kpi-grid">
+    <div class="mc-kpi-card">
+      <span class="mc-kpi-label">Caisse</span>
+      <span class="text-base font-semibold text-slate-900">{{ session.caisseCode }} — {{ caisseDisplayName }}</span>
+    </div>
+    <div class="mc-kpi-card">
+      <span class="mc-kpi-label">Agence</span>
+      <span class="text-base font-semibold text-slate-900">{{ agenceDisplayName }}</span>
+    </div>
+    <div class="mc-kpi-card">
+      <span class="mc-kpi-label">Session</span>
+      <span class="mc-kpi-value">#{{ session.id }}</span>
+    </div>
+    <div class="mc-kpi-card mc-kpi-card-success">
+      <span class="mc-kpi-label text-emerald-700">Statut</span>
+      <span class="mc-badge bg-emerald-100 text-emerald-800" [class.status-open]="session.statut === 'OUVERTE'">{{ session.statut }}</span>
+    </div>
+    <div class="mc-kpi-card">
+      <span class="mc-kpi-label">Devise</span>
+      <span class="mc-kpi-value">{{ devise }}</span>
+    </div>
+    <div class="mc-kpi-card">
+      <span class="mc-kpi-label">Solde théorique actuel</span>
+      <span class="mc-kpi-value">{{ formatMontant(soldeActuel) }} {{ devise }}</span>
+    </div>
+  </section>
+
+  <div class="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]" *ngIf="session">
+    <form
+      class="mc-panel space-y-6"
+      [formGroup]="form"
+      (ngSubmit)="submit()"
+    >
+      <section class="space-y-4">
+        <h3 class="text-lg font-bold text-slate-900">Section 1 — Type d’opération</h3>
+
+        <div>
+          <label class="mc-field-label">Source de l’opération</label>
+          <div class="mc-badge bg-blue-50 text-blue-700">{{ sourceDisplayLabel }}</div>
+        </div>
+
+        <div class="mc-state mc-state-info">
+          Les sources automatiques (recette, retrait épargne, crédit) sont gérées par le backend.
+        </div>
+
+        <div>
+          <label class="mc-field-label">Type d’opération <span class="required">*</span></label>
+          <div class="mc-button-row">
+            <button
+              type="button"
+              class="mc-btn"
+              [class.mc-btn-success]="form.get('typeOperation')?.value === 'ENTREE'"
+              [class.bg-white]="form.get('typeOperation')?.value !== 'ENTREE'"
+              (click)="form.get('typeOperation')?.setValue('ENTREE')"
+            >Entrée caisse +</button>
+            <button
+              type="button"
+              class="mc-btn"
+              [class.bg-red-600]="form.get('typeOperation')?.value === 'SORTIE'"
+              [class.text-white]="form.get('typeOperation')?.value === 'SORTIE'"
+              [class.bg-white]="form.get('typeOperation')?.value !== 'SORTIE'"
+              (click)="form.get('typeOperation')?.setValue('SORTIE')"
+            >Sortie caisse -</button>
+          </div>
+        </div>
+
+        <div>
+          <label for="categorieOperation" class="mc-field-label">Catégorie <span class="required">*</span></label>
+          <select id="categorieOperation" formControlName="categorieOperation" class="mc-select">
+            <option *ngFor="let category of currentCategorieOptions" [value]="category.value">
+              {{ category.label }}
+            </option>
+          </select>
+        </div>
+
+        <div *ngIf="isApprovisionnement">
+          <label for="natureFinancement" class="mc-field-label">Nature du financement <span class="required">*</span></label>
+          <select id="natureFinancement" formControlName="natureFinancement" class="mc-select">
+            <option [ngValue]="null">Sélectionner une nature</option>
+            <option *ngFor="let option of natureFinancementOptions" [ngValue]="option.value">
+              {{ option.label }}
+            </option>
+          </select>
+          <div *ngIf="form.get('natureFinancement')?.invalid && form.get('natureFinancement')?.touched" class="mt-1 text-sm font-semibold text-red-700">
+            Nature du financement obligatoire pour un approvisionnement.
+          </div>
+        </div>
+      </section>
+
+      <section class="space-y-4">
+        <h3 class="text-lg font-bold text-slate-900">Section 2 — Détails</h3>
+
+        <div>
+          <label for="montant" class="mc-field-label">Montant ({{ devise }}) <span class="required">*</span></label>
+          <input
+            id="montant"
+            type="number"
+            formControlName="montant"
+            class="mc-input"
+            placeholder="Exemple : 500 000"
+            min="0.01"
+            step="0.01"
+          />
+          <div *ngIf="form.get('montant')?.invalid && form.get('montant')?.touched" class="mt-1 text-sm font-semibold text-red-700">
+            Montant obligatoire et positif.
+          </div>
+        </div>
+
+        <div>
+          <label for="modePaiement" class="mc-field-label">Mode de paiement <span class="required">*</span></label>
+          <select id="modePaiement" formControlName="modePaiement" class="mc-select">
+            <option *ngFor="let mp of modePaiementOptions" [value]="mp">{{ mp }}</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="motif" class="mc-field-label">Motif <span class="required">*</span></label>
+          <input
+            id="motif"
+            type="text"
+            formControlName="motif"
+            class="mc-input"
+            placeholder="Exemple : Fonds de roulement initial"
+            maxlength="255"
+          />
+          <div *ngIf="form.get('motif')?.invalid && form.get('motif')?.touched" class="mt-1 text-sm font-semibold text-red-700">
+            Motif obligatoire.
+          </div>
+        </div>
+
+        <div>
+          <label for="observation" class="mc-field-label">Observation <span class="required" *ngIf="requiresFinancementComment">*</span></label>
+          <textarea
+            id="observation"
+            formControlName="observation"
+            class="mc-textarea"
+            rows="3"
+            [placeholder]="requiresFinancementComment ? 'Commentaire obligatoire pour ce type de financement' : 'Commentaire complémentaire optionnel'"
+            maxlength="500"
+          ></textarea>
+          <div *ngIf="form.get('observation')?.invalid && form.get('observation')?.touched" class="mt-1 text-sm font-semibold text-red-700">
+            Un commentaire est obligatoire pour un prêt reçu ou un autre financement.
+          </div>
+        </div>
+
+        <div>
+          <label for="referenceExterne" class="mc-field-label">Référence externe</label>
+          <input
+            id="referenceExterne"
+            type="text"
+            formControlName="referenceExterne"
+            class="mc-input"
+            placeholder="Référence optionnelle"
+            maxlength="100"
+          />
+        </div>
+      </section>
+
+      <div *ngIf="hasSoldeInsuffisant" class="mc-state mc-state-warning">
+        Solde insuffisant pour cette sortie.
+      </div>
+
+      <div class="mc-button-row">
+        <button type="submit" class="mc-btn mc-btn-primary" [disabled]="!canSubmit">
+          {{ loading ? 'Enregistrement...' : 'Enregistrer' }}
+        </button>
+        <button type="button" class="mc-btn bg-white text-slate-700 hover:bg-slate-50" (click)="cancel()">Annuler</button>
+      </div>
+
+      <p *ngIf="!canSubmit" class="text-sm font-semibold text-amber-700">{{ disabledSubmitReason }}</p>
+    </form>
+
+    <aside class="mc-panel h-fit space-y-4" *ngIf="session">
+      <h3 class="text-lg font-bold text-slate-900">Résumé avant enregistrement</h3>
+      <div class="flex items-center justify-between gap-3 text-sm">
+        <span>Solde actuel :</span>
+        <strong>{{ formatMontant(soldeActuel) }} {{ devise }}</strong>
+      </div>
+      <div class="flex items-center justify-between gap-3 text-sm">
+        <span>Opération :</span>
+        <strong>{{ operationLabel }} de {{ formatMontant(montantValue) }} {{ devise }}</strong>
+      </div>
+      <div class="flex items-center justify-between gap-3 border-t border-slate-200 pt-4 text-sm">
+        <span>Solde après opération :</span>
+        <strong>{{ formatMontant(soldeApresOperation) }} {{ devise }}</strong>
+      </div>
+      <div *ngIf="hasSoldeInsuffisant" class="mc-state mc-state-warning">
+        Solde insuffisant pour cette sortie.
+      </div>
+    </aside>
+  </div>
+</div>

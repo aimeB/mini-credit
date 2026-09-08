@@ -1,0 +1,252 @@
+<div class="mc-page-wide">
+  <header class="mc-page-hero">
+    <h1 class="mc-page-title">Session caisse active</h1>
+    <p class="mc-page-subtitle">Suivi des mouvements, du solde théorique et de l'écart de caisse.</p>
+  </header>
+
+  <div *ngIf="loading" class="mc-state mc-state-info">
+    Chargement de la session...
+  </div>
+  <div *ngIf="error" class="mc-state mc-state-danger">
+    {{ error }}
+  </div>
+  <div *ngIf="message" class="mc-state mc-state-success">
+    {{ message }}
+  </div>
+
+  <div *ngIf="session" class="space-y-6">
+    <app-workflow-guidance-banner [guidance]="guidance"></app-workflow-guidance-banner>
+
+    <div class="mc-panel">
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <h3 class="text-xl font-bold text-gray-900">Session #{{ session.id }}</h3>
+          <p class="text-sm text-gray-600 mt-1">Caisse {{ session.caisseCode }} • Caissier {{ session.utilisateurNom }}</p>
+        </div>
+        <span class="mc-badge"
+          [ngClass]="session.statut === 'OUVERTE' ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-700'">
+          {{ session.statut }}
+        </span>
+      </div>
+
+      <div class="mc-kpi-grid">
+        <div class="mc-kpi-card">
+          <p class="mc-kpi-label">Solde ouverture</p>
+          <p class="mc-kpi-value">{{ formatCdf(session.soldeOuverture) }}</p>
+        </div>
+        <div class="mc-kpi-card mc-kpi-card-success">
+          <p class="mc-kpi-label text-emerald-700">Entrées</p>
+          <p class="mc-kpi-value text-emerald-900">{{ formatCdf(session.totalEntrees) }}</p>
+        </div>
+        <div class="mc-kpi-card mc-kpi-card-warning">
+          <p class="mc-kpi-label text-amber-700">Sorties</p>
+          <p class="mc-kpi-value text-amber-900">{{ formatCdf(session.totalSorties) }}</p>
+        </div>
+        <div class="mc-kpi-card">
+          <p class="mc-kpi-label">Solde théorique</p>
+          <p class="mc-kpi-value text-blue-700">{{ formatCdf(session.soldeTheorique) }}</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+        <div class="rounded-lg border border-gray-200 p-4">
+          <p class="text-xs text-gray-500">Date comptable</p>
+          <p class="text-sm font-medium text-gray-800 mt-1">{{ session.dateComptable || '-' }}</p>
+        </div>
+        <div class="rounded-lg border border-gray-200 p-4">
+          <p class="text-xs text-gray-500">Date ouverture</p>
+          <p class="text-sm font-medium text-gray-800 mt-1">{{ session.dateOuverture | date:'dd/MM/yyyy HH:mm' }}</p>
+        </div>
+        <div class="rounded-lg border border-gray-200 p-4">
+          <p class="text-xs text-gray-500">Écart</p>
+          <p class="text-sm font-semibold mt-1"
+            [ngClass]="(session.ecartCaisse ?? 0) === 0 ? 'text-emerald-700' : 'text-red-700'">
+            {{ formatCdf(session.ecartCaisse) }}
+          </p>
+        </div>
+      </div>
+
+      <div *ngIf="isSessionAncienneOuverte()" class="mc-state mc-state-danger mt-4">
+        Cette session appartient à une date comptable antérieure et bloque le travail du jour. Clôturez ou régularisez-la avant toute nouvelle opération.
+      </div>
+
+      <div *ngIf="session.statut === 'ANNULEE' || session.statut === 'ANNULEE_ADMINISTRATIVEMENT'" class="mc-state mc-state-warning mt-4">
+        Session annulée. Motif: {{ session.motifAnnulation || '-' }}
+        <span *ngIf="session.annuleePar"> • Par: {{ session.annuleePar }}</span>
+      </div>
+    </div>
+
+    <div class="mc-panel">
+      <h4 class="text-lg font-semibold text-gray-900 mb-4">Actions</h4>
+      <div class="mc-button-row">
+        <a *ngIf="canAddOperations()"
+          [routerLink]="['/caisses/session', session.id, 'operations', 'nouveau']"
+          class="mc-btn mc-btn-success">
+          Ajouter entrée/sortie
+        </a>
+        <a routerLink="/caisses/depenses"
+          class="mc-btn mc-btn-success">
+          Dépense caisse
+        </a>
+        <a *ngIf="session.statut === 'OUVERTE'"
+          [routerLink]="['/caisses/sessions', session.id, 'cloture']"
+          class="mc-btn bg-amber-600 text-white hover:bg-amber-700">
+          Soumettre au contrôle
+        </a>
+        <button *ngIf="session.statut === 'PRE_CLOTUREE' && canValidateControl() && !session.dateControle"
+          type="button"
+          (click)="validerControle()"
+          [disabled]="validating"
+          class="mc-btn bg-indigo-600 text-white hover:bg-indigo-700">
+          {{ validating ? 'Validation...' : 'Valider contrôle' }}
+        </button>
+        <button *ngIf="session.statut === 'VALIDEE_CONTROLE' && canFinalClose()"
+          type="button"
+          (click)="cloturerFinale()"
+          [disabled]="finalClosing"
+          class="mc-btn mc-btn-dark">
+          {{ finalClosing ? 'Clôture finale...' : 'Clôturer définitivement' }}
+        </button>
+        <a [routerLink]="['/caisses/session', session.id, 'operations']"
+          class="mc-btn mc-btn-primary">
+          Voir journal session
+        </a>
+        <a routerLink="/caisses/journal"
+          class="mc-btn bg-gray-200 text-gray-700 hover:bg-gray-300">
+          Journal global
+        </a>
+        <a [routerLink]="['/caisses/session', session.id, 'ecarts']"
+          class="mc-btn bg-amber-600 text-white hover:bg-amber-700">
+          Voir écarts
+        </a>
+        <button *ngIf="session.peutDemanderAnnulation"
+          type="button"
+          (click)="demanderAnnulation()"
+          class="mc-btn bg-orange-600 text-white hover:bg-orange-700">
+          Demander annulation
+        </button>
+        <button *ngIf="session.peutValiderAnnulation"
+          type="button"
+          (click)="validerAnnulation()"
+          class="mc-btn bg-teal-600 text-white hover:bg-teal-700">
+          Valider annulation
+        </button>
+        <button *ngIf="session.peutAnnulerAdministrativement"
+          type="button"
+          (click)="annulerAdministrativement()"
+          class="mc-btn bg-rose-700 text-white hover:bg-rose-800">
+          Annuler administrativement
+        </button>
+        <button *ngIf="session.peutReouvrirControlee"
+          type="button"
+          (click)="reouvrirControlee()"
+          class="mc-btn bg-violet-700 text-white hover:bg-violet-800">
+          Réouvrir contrôlée
+        </button>
+      </div>
+    </div>
+
+    <div class="mc-panel">
+      <div class="flex items-center justify-between mb-4">
+        <h4 class="text-lg font-semibold text-gray-900">Historique anomalies</h4>
+        <a routerLink="/caisses/anomalies" class="text-sm text-blue-700 hover:underline">Voir la liste globale</a>
+      </div>
+
+      <div *ngIf="loadingAnomalies" class="mc-state mc-state-info">
+        Chargement des anomalies...
+      </div>
+
+      <div *ngIf="!loadingAnomalies && anomalies.length === 0" class="mc-state mc-state-info">
+        Aucune anomalie déclarée pour cette session.
+      </div>
+
+      <div class="mc-table-wrap" *ngIf="!loadingAnomalies && anomalies.length > 0">
+        <table class="mc-table min-w-[900px]">
+          <thead>
+            <tr>
+              <th class="px-3 py-2 text-left">ID</th>
+              <th class="px-3 py-2 text-left">Type</th>
+              <th class="px-3 py-2 text-left">Statut dossier</th>
+              <th class="px-3 py-2 text-left">Demande</th>
+              <th class="px-3 py-2 text-left">Validation</th>
+              <th class="px-3 py-2 text-left">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let a of anomalies">
+              <td class="px-3 py-2">#{{ a.id }}</td>
+              <td class="px-3 py-2">{{ a.typeAnomalie }}</td>
+              <td class="px-3 py-2">{{ a.statutDossier }}</td>
+              <td class="px-3 py-2">{{ a.dateDemande | date:'dd/MM/yyyy HH:mm' }} ({{ a.demandePar || '-' }})</td>
+              <td class="px-3 py-2">{{ a.dateValidation ? (a.dateValidation | date:'dd/MM/yyyy HH:mm') : '-' }} ({{ a.validePar || '-' }})</td>
+              <td class="px-3 py-2">{{ a.actionExecutee || '-' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div *ngIf="canViewTimeline()" class="mc-panel">
+      <h4 class="text-lg font-semibold text-gray-900 mb-4">Timeline de session</h4>
+
+      <div *ngIf="loadingTimeline" class="mc-state mc-state-info mb-4">
+        Chargement de la timeline...
+      </div>
+
+      <div *ngIf="timelineError" class="mc-state mc-state-danger mb-4">
+        {{ timelineError }}
+      </div>
+
+      <app-session-timeline [events]="auditEvents"></app-session-timeline>
+
+      <div class="mt-4 flex justify-center" *ngIf="hasNextTimelinePage && !timelineError">
+        <button
+          type="button"
+          (click)="loadMoreTimeline()"
+          [disabled]="loadingTimeline"
+          class="mc-btn bg-gray-100 text-gray-700 hover:bg-gray-200">
+          {{ loadingTimeline ? 'Chargement...' : 'Charger plus' }}
+        </button>
+      </div>
+    </div>
+
+    <div class="mc-panel">
+      <h4 class="text-lg font-semibold text-gray-900 mb-4">Mouvements de la session</h4>
+
+      <div class="mc-table-wrap" *ngIf="(session.mouvements?.length || 0) > 0; else noMouvements">
+        <table class="mc-table min-w-[1100px]">
+          <thead>
+            <tr>
+              <th class="px-3 py-2 text-left">Date/Heure</th>
+              <th class="px-3 py-2 text-left">Type</th>
+              <th class="px-3 py-2 text-left">Nature</th>
+              <th class="px-3 py-2 text-left">Source</th>
+              <th class="px-3 py-2 text-left">Référence</th>
+              <th class="px-3 py-2 text-right">Montant</th>
+              <th class="px-3 py-2 text-left">Utilisateur</th>
+              <th class="px-3 py-2 text-left">Observation</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let op of session.mouvements">
+              <td class="px-3 py-2">{{ op.dateOperation | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td class="px-3 py-2">{{ op.typeOperation }}</td>
+              <td class="px-3 py-2">{{ getNatureMouvement(op.source) }}</td>
+              <td class="px-3 py-2">{{ getSourceLabel(op.source) }}</td>
+              <td class="px-3 py-2">{{ op.referenceExterne || '-' }}</td>
+              <td class="px-3 py-2 text-right font-semibold">{{ formatCdf(op.montant) }}</td>
+              <td class="px-3 py-2">{{ op.createdById || '-' }}</td>
+              <td class="px-3 py-2">{{ op.description || '-' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ng-template #noMouvements>
+        <div class="mc-state mc-state-info">
+          Aucun mouvement enregistré pour cette session.
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>

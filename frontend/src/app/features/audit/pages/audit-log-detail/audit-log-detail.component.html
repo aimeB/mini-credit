@@ -1,0 +1,39 @@
+<div class="mc-page-wide">
+  <header class="mc-page-hero flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <h1 class="mc-page-title">Détail audit</h1>
+      <p class="mc-page-subtitle">Lecture détaillée d'un événement de traçabilité 3N.</p>
+    </div>
+    <a routerLink="/audit/logs" class="mc-btn mc-btn-dark">Retour liste</a>
+  </header>
+
+    <div *ngIf="loading" class="mc-state mc-state-info">Chargement en cours...</div>
+
+    <div *ngIf="error" class="mc-state mc-state-danger">{{ error }}</div>
+
+    <div *ngIf="!loading && log" class="mc-panel grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div><span class="font-semibold">Action:</span> {{ log.action }}</div>
+      <div><span class="font-semibold">Module:</span> {{ log.module }}</div>
+      <div><span class="font-semibold">Utilisateur:</span> {{ log.username }} ({{ log.userRole || '-' }})</div>
+      <div><span class="font-semibold">Date/Heure:</span> {{ log.dateAction | date: 'dd/MM/yyyy HH:mm:ss' }}</div>
+      <div><span class="font-semibold">Entité:</span> {{ log.entityType }} {{ log.entityId ? ('#' + log.entityId) : '' }}</div>
+      <div><span class="font-semibold">Référence métier:</span> {{ log.referenceMetier || '-' }}</div>
+      <div><span class="font-semibold">Site:</span> {{ log.siteLibelle || ('#' + (log.siteId || '-')) }}</div>
+      <div><span class="font-semibold">Caisse / Session:</span> {{ log.caisseId || '-' }} / {{ log.sessionCaisseId || '-' }}</div>
+      <div><span class="font-semibold">IP:</span> {{ log.ipAddress || '-' }}</div>
+      <div><span class="font-semibold">User-Agent:</span> {{ log.userAgent || '-' }}</div>
+      <div><span class="font-semibold">Résultat:</span> <span [ngClass]="log.success ? 'text-green-700 font-semibold' : 'text-red-700 font-semibold'">{{ log.success ? 'Succès' : 'Échec' }}</span></div>
+      <div><span class="font-semibold">Sévérité:</span> {{ log.severite }}</div>
+
+      <div class="md:col-span-2"><span class="font-semibold">Commentaire:</span> {{ log.commentaire || '-' }}</div>
+      <div class="md:col-span-2"><span class="font-semibold">Ancienne valeur:</span>
+        <pre class="mt-1 overflow-auto rounded-lg bg-gray-100 p-3 text-xs">{{ log.oldValue || '-' }}</pre>
+      </div>
+      <div class="md:col-span-2"><span class="font-semibold">Nouvelle valeur:</span>
+        <pre class="mt-1 overflow-auto rounded-lg bg-gray-100 p-3 text-xs">{{ log.newValue || '-' }}</pre>
+      </div>
+      <div class="md:col-span-2" *ngIf="log.errorMessage"><span class="font-semibold text-red-700">Message d'erreur:</span>
+        <pre class="mt-1 overflow-auto rounded-lg bg-red-50 p-3 text-xs text-red-700">{{ log.errorMessage }}</pre>
+      </div>
+    </div>
+</div>

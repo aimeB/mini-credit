@@ -1,0 +1,122 @@
+<div class="belfius-demo">
+  <div class="belfius-canvas">
+
+    <header class="topbar">
+      <div class="logo">Belfius</div>
+
+      <button class="client-type">Particulier <span>⌄</span></button>
+
+      <nav class="topnav">
+        <a>Produits⌄</a>
+        <a>Vos ambitions⌄</a>
+        <a>ReBel⌄</a>
+        <a>Questions & Contact</a>
+      </nav>
+
+      <div class="top-actions">
+        <button class="my-belfius">♙ Mon Belfius</button>
+        <button class="logout">↪</button>
+        <button class="search">⌕</button>
+      </div>
+    </header>
+
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="profile-card">
+          <div class="profile-exit">↪</div>
+          <div class="profile-name">KALUMBO NYAMABO MALE...</div>
+        </div>
+
+        <div class="side-section-title">
+          <span>Comptes</span>
+          <span>⌄</span>
+        </div>
+
+        <nav class="side-menu">
+          <a>Aperçu</a>
+          <a class="active">Consulter l'historique</a>
+          <a>Ouvrir un compte</a>
+          <a>Ajouter un compte<br />d'une autre banque</a>
+          <a>Gérer les paramètres</a>
+          <a>Changer de compte</a>
+          <a>Gérer les limites</a>
+          <a>Adapter type de<br />paiement</a>
+          <a>Déterminer<br />préférence réception</a>
+        </nav>
+      </aside>
+
+      <main class="content">
+        <h1>Consulter l'historique</h1>
+
+        <div class="radio-row">
+          <label><span class="radio checked"></span>Comptes actifs</label>
+          <label><span class="radio"></span>Comptes supprimés</label>
+        </div>
+
+        <div class="account-row">
+          <label>Compte*</label>
+
+          <button class="account-select">
+            BE67 0636 9677 6394 - BELFIUS - Nyamabo Malelabo Kalumbo
+            <span>⌄</span>
+          </button>
+
+          <div class="balances">
+            <strong>Solde</strong> 416,49 EUR
+            <span></span>
+            <strong>Disponible</strong> 174,68 EUR
+          </div>
+        </div>
+
+        <div class="tabs">
+          <button class="tab active">Opérations financières</button>
+          <button class="tab">Annexes</button>
+          <button class="tab">Extraits de compte</button>
+        </div>
+
+        <section class="history-card">
+          <div class="criteria">
+            <span class="circle">›</span>
+            <strong>Définir critères de recherche</strong>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th class="amount-col">Montant</th>
+                <th>Transaction</th>
+                <th>Compte contrepartie/<br />Nom</th>
+                <th></th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr *ngFor="let op of operations">
+                <td>{{ op.date }}</td>
+
+                <td class="amount">
+                  {{ op.montant }}
+                  <span *ngIf="op.badge" class="badge">{{ op.badge }}</span>
+                </td>
+
+                <td class="transaction">{{ op.transaction }}</td>
+
+                <td class="counterparty">
+                  <span *ngFor="let line of op.contrepartie.split('\n')">
+                    {{ line }}<br />
+                  </span>
+                </td>
+
+                <td class="action-cell">
+                  <button>Sélectionner <span>⌄</span></button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+      </main>
+    </div>
+
+  </div>
+</div>

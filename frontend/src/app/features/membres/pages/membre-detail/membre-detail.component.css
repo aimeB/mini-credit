@@ -1,0 +1,17 @@
+/* Tailwind CSS styles are applied directly via template classes */
+/* This file is here for component-specific styles if needed */
+
+/* Custom animations and utilities can be added here */
+@layer components {
+  .card-section {
+    @apply bg-white rounded-xl shadow-md overflow-hidden;
+  }
+
+  .card-header {
+    @apply bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200;
+  }
+
+  .card-content {
+    @apply p-6;
+  }
+}

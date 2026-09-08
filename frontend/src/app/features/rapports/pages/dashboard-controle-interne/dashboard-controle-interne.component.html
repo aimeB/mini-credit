@@ -1,0 +1,144 @@
+<div class="mc-page-wide">
+  <div class="space-y-6">
+    <section class="mc-page-hero">
+      <h1 class="mc-page-title">Contrôle interne et alertes opérationnelles</h1>
+      <p class="mc-page-subtitle">
+        Vue consultative consolidée sur les statuts existants (caisse, dépenses, recettes, retraits, crédits, audit).
+      </p>
+    </section>
+
+    <app-workflow-guidance-banner [guidance]="roleGuidance"></app-workflow-guidance-banner>
+
+    <section class="mc-filter-panel">
+      <div class="mc-filter-grid">
+        <div>
+          <label class="mc-field-label">Date début</label>
+          <input type="date" [(ngModel)]="dateDebut" class="mc-input" />
+        </div>
+        <div>
+          <label class="mc-field-label">Date fin</label>
+          <input type="date" [(ngModel)]="dateFin" class="mc-input" />
+        </div>
+        <div>
+          <label class="mc-field-label">Site (ID)</label>
+          <input type="number" [(ngModel)]="siteId" class="mc-input" placeholder="Tous" />
+        </div>
+        <div>
+          <label class="mc-field-label">Caisse (ID)</label>
+          <input type="number" [(ngModel)]="caisseId" class="mc-input" placeholder="Toutes" />
+        </div>
+        <div class="flex items-end gap-2">
+          <button (click)="loadDashboard()" class="mc-btn mc-btn-primary w-full">
+            Appliquer
+          </button>
+          <button (click)="resetFilters()" class="mc-btn bg-white text-slate-700 hover:bg-slate-50 w-full">
+            Reset
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section *ngIf="loading" class="mc-state mc-state-info text-center">
+      Chargement du dashboard...
+    </section>
+
+    <section *ngIf="error" class="mc-state mc-state-danger">
+      {{ error }}
+    </section>
+
+    <ng-container *ngIf="dashboard as d">
+      <section class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <article class="mc-panel cursor-pointer transition hover:shadow-lg" (click)="openCard('CAISSE')">
+          <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Caisse</h2>
+          <div class="mt-3 space-y-2 text-sm text-slate-700">
+            <p>Sessions ouvertes: <span class="font-semibold">{{ d.caisse.sessionsOuvertes }}</span></p>
+            <p>Sessions fermées non validées: <span class="font-semibold">{{ d.caisse.sessionsFermeesNonValidees }}</span></p>
+            <p>Écarts détectés: <span class="font-semibold">{{ d.caisse.ecartsDetectes }}</span></p>
+            <p>Écarts en investigation: <span class="font-semibold">{{ d.caisse.ecartsEnInvestigation }}</span></p>
+            <p>Écarts non résolus: <span class="font-semibold text-red-700">{{ d.caisse.ecartsNonResolus }}</span></p>
+          </div>
+        </article>
+
+        <article class="mc-panel cursor-pointer transition hover:shadow-lg" (click)="openCard('DEPENSES')">
+          <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Dépenses</h2>
+          <div class="mt-3 space-y-2 text-sm text-slate-700">
+            <p>Brouillon: <span class="font-semibold">{{ d.depenses.brouillon }}</span></p>
+            <p>En attente validation: <span class="font-semibold text-amber-700">{{ d.depenses.enAttenteValidation }}</span></p>
+            <p>Validées non payées: <span class="font-semibold">{{ d.depenses.valideesNonPayees }}</span></p>
+            <p>Payées: <span class="font-semibold">{{ d.depenses.payees }}</span></p>
+            <p>Rejetées: <span class="font-semibold">{{ d.depenses.rejetees }}</span></p>
+          </div>
+        </article>
+
+        <article class="mc-panel cursor-pointer transition hover:shadow-lg" (click)="openCard('RECETTES')">
+          <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Recettes</h2>
+          <div class="mt-3 space-y-2 text-sm text-slate-700">
+            <p>Créées: <span class="font-semibold">{{ d.recettes.brouillon }}</span></p>
+            <p>Soumises: <span class="font-semibold text-amber-700">{{ d.recettes.soumises }}</span></p>
+            <p>Validées: <span class="font-semibold">{{ d.recettes.validees }}</span></p>
+            <p>Rejetées: <span class="font-semibold">{{ d.recettes.rejetees }}</span></p>
+          </div>
+        </article>
+
+        <article class="mc-panel cursor-pointer transition hover:shadow-lg" (click)="openCard('RETRAITS')">
+          <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Retraits épargne</h2>
+          <div class="mt-3 space-y-2 text-sm text-slate-700">
+            <p>En attente: <span class="font-semibold text-amber-700">{{ d.retraits.creees }}</span></p>
+            <p>Validés: <span class="font-semibold">{{ d.retraits.valides }}</span></p>
+            <p>Rejetés: <span class="font-semibold">{{ d.retraits.rejetees }}</span></p>
+            <p>Décaissés: <span class="font-semibold">{{ d.retraits.decaissees }}</span></p>
+          </div>
+        </article>
+
+        <article class="mc-panel cursor-pointer transition hover:shadow-lg" (click)="openCard('CREDITS')">
+          <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Crédits</h2>
+          <div class="mt-3 space-y-2 text-sm text-slate-700">
+            <p>Approuvés / décaissés: <span class="font-semibold">{{ d.credits.approuves }}</span></p>
+            <p>En cours: <span class="font-semibold">{{ d.credits.enCours }}</span></p>
+            <p>En retard: <span class="font-semibold text-red-700">{{ d.credits.enRetard }}</span></p>
+            <p>Contentieux: <span class="font-semibold text-red-700">{{ d.credits.contentieux }}</span></p>
+            <p>Clôturés: <span class="font-semibold">{{ d.credits.clotures }}</span></p>
+          </div>
+        </article>
+
+        <article class="mc-panel cursor-pointer transition hover:shadow-lg" (click)="openCard('AUDIT')">
+          <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Audit</h2>
+          <div class="mt-3 space-y-2 text-sm text-slate-700">
+            <p>Total événements: <span class="font-semibold">{{ d.audit.totalEvenements }}</span></p>
+            <p>Infos: <span class="font-semibold">{{ d.audit.infos }}</span></p>
+            <p>Warnings: <span class="font-semibold text-amber-700">{{ d.audit.warnings }}</span></p>
+            <p>Critiques: <span class="font-semibold text-red-700">{{ d.audit.critiques }}</span></p>
+          </div>
+        </article>
+      </section>
+
+      <section class="mc-panel">
+        <h2 class="text-lg font-semibold text-slate-900">Alertes opérationnelles</h2>
+
+        <div *ngIf="d.alertes.length === 0" class="mc-state mc-state-info mt-4">
+          Aucune alerte active sur la période.
+        </div>
+
+        <div class="mt-4 space-y-3" *ngIf="d.alertes.length > 0">
+          <article *ngFor="let alerte of d.alertes" class="cursor-pointer rounded-xl border p-4" [ngClass]="getAlerteClass(alerte.niveau)" (click)="openAction(alerte)">
+            <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p class="text-sm font-semibold">{{ alerte.titre }}</p>
+                <p class="text-xs opacity-90">{{ alerte.message }}</p>
+                <p class="mt-1 text-xs font-semibold">Volume: {{ alerte.nombre }}</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <a *ngIf="resolveAlerteRoute(alerte)" [attr.href]="resolveAlerteRoute(alerte)" class="mc-btn bg-white/60 px-3 py-1.5 text-xs" (click)="$event.preventDefault(); $event.stopPropagation(); openAction(alerte)">
+                  {{ alerte.action?.libelle || 'Ouvrir' }}
+                </a>
+                <button *ngIf="resolveAlerteRoute(alerte)" (click)="$event.stopPropagation(); openAction(alerte)" class="mc-btn mc-btn-dark px-3 py-1.5 text-xs">
+                  Aller
+                </button>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+    </ng-container>
+  </div>
+</div>

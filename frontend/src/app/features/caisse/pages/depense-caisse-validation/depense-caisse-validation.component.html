@@ -1,0 +1,49 @@
+<div class="mc-page">
+  <header class="mc-page-hero">
+    <div>
+      <h1 class="mc-page-title">Validation dépense caisse</h1>
+      <p class="mc-page-subtitle">Valider, rejeter, payer ou annuler selon le statut.</p>
+    </div>
+    <a routerLink="/caisses/depenses" class="mc-btn bg-white/15 text-white ring-1 ring-white/30 hover:bg-white/25">Retour</a>
+  </header>
+
+  <app-workflow-guidance-banner [guidance]="globalGuidance"></app-workflow-guidance-banner>
+  <app-workflow-guidance-banner *ngIf="guidance" [guidance]="guidance"></app-workflow-guidance-banner>
+
+  <div *ngIf="error" class="mc-state mc-state-danger">{{ error }}</div>
+
+  <div *ngIf="depense" class="mc-panel space-y-2">
+    <p><strong>Caisse :</strong> {{ depense.caisseCode || depense.caisseId }}</p>
+    <p><strong>Catégorie :</strong> {{ depense.categorie }}</p>
+    <p><strong>Montant :</strong> {{ depense.montant }} {{ depense.devise }}</p>
+    <p><strong>Statut :</strong> {{ depense.statut }}</p>
+    <p><strong>Motif :</strong> {{ depense.motif }}</p>
+  </div>
+
+  <div *ngIf="showWaitingPaymentMessage" class="mc-state mc-state-info">
+    <p><strong>Information :</strong> La dépense est validée, mais elle n'est pas encore payée.</p>
+    <p>Le mouvement de sortie en caisse ne sera créé qu'au moment du paiement par un caissier sur une session caisse ouverte.</p>
+  </div>
+
+  <div *ngIf="showPayActionMessage" class="mc-state mc-state-info">
+    <p><strong>Information :</strong> Cette dépense est prête à être payée.</p>
+    <p>En cliquant sur Payer, une sortie de caisse sera enregistrée et le montant sera déduit de la session caisse ouverte du jour.</p>
+  </div>
+
+  <div *ngIf="depense" class="mc-panel space-y-4">
+    <div>
+      <label class="mc-field-label">Commentaire validation</label>
+      <textarea [formControl]="commentaireValidationControl" class="mc-textarea" rows="3"></textarea>
+    </div>
+    <div>
+      <label class="mc-field-label">Commentaire rejet / annulation</label>
+      <textarea [formControl]="commentaireControl" class="mc-textarea" rows="3"></textarea>
+    </div>
+    <div class="mc-button-row">
+      <button *ngIf="canValidateDepense" type="button" class="mc-btn mc-btn-primary" [disabled]="loading" (click)="valider()">Valider</button>
+      <button *ngIf="canValidateDepense" type="button" class="mc-btn bg-red-600 text-white hover:bg-red-700" [disabled]="loading" (click)="rejeter()">Rejeter</button>
+      <button *ngIf="canPayDepense" type="button" class="mc-btn mc-btn-success" [disabled]="loading" (click)="payer()">Payer</button>
+      <button *ngIf="canAnnulerDepense" type="button" class="mc-btn bg-gray-200 text-gray-700 hover:bg-gray-300" [disabled]="loading" (click)="annuler()">Annuler</button>
+    </div>
+  </div>
+</div>

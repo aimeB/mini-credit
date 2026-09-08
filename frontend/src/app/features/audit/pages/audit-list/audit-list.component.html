@@ -1,0 +1,182 @@
+<div class="mc-page-wide">
+  <header class="mc-page-hero">
+    <h1 class="mc-page-title">Audit / Contrôle interne</h1>
+    <p class="mc-page-subtitle">Traçabilité 3N des opérations sensibles</p>
+  </header>
+
+    <div class="mc-filter-panel">
+      <h3 class="text-lg font-semibold text-gray-900 mb-4">Filtres</h3>
+      <div *ngIf="showExportFallbackNotice()" class="mc-state mc-state-warning mb-4">
+        Permissions non exposées dans l'état d'authentification: affichage export basé temporairement sur les rôles ADMIN/RCI.
+      </div>
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div>
+          <label class="mc-field-label">Date Début</label>
+          <input type="date" [(ngModel)]="filters.dateDebut" class="mc-input">
+        </div>
+        <div>
+          <label class="mc-field-label">Date Fin</label>
+          <input type="date" [(ngModel)]="filters.dateFin" class="mc-input">
+        </div>
+        <div>
+          <label class="mc-field-label">Module</label>
+          <select [(ngModel)]="filters.module" class="mc-select">
+            <option value="">Tous</option>
+            <option *ngFor="let module of moduleOptions" [value]="module">{{ module }}</option>
+          </select>
+        </div>
+        <div>
+          <label class="mc-field-label">Action</label>
+          <select [(ngModel)]="filters.action" class="mc-select">
+            <option value="">Toutes</option>
+            <option *ngFor="let action of actionOptions" [value]="action">{{ action }}</option>
+          </select>
+        </div>
+        <div>
+          <label class="mc-field-label">Sévérité</label>
+          <select [(ngModel)]="filters.severity" class="mc-select">
+            <option value="">Toutes</option>
+            <option *ngFor="let severity of severityOptions" [value]="severity">{{ severity }}</option>
+          </select>
+        </div>
+        <div>
+          <label class="mc-field-label">Succès</label>
+          <select (ngModelChange)="setSuccessFilter($event)" [ngModel]="filters.success === undefined ? '' : (filters.success ? 'true' : 'false')" class="mc-select">
+            <option value="">Tous</option>
+            <option value="true">Succès</option>
+            <option value="false">Échec</option>
+          </select>
+        </div>
+        <div>
+          <label class="mc-field-label">Utilisateur (ID)</label>
+          <input type="number" [(ngModel)]="filters.userId" placeholder="Ex: 12"
+            class="mc-input">
+        </div>
+        <div>
+          <label class="mc-field-label">Site (ID)</label>
+          <input type="number" [(ngModel)]="filters.siteId" placeholder="Ex: 3"
+            class="mc-input">
+        </div>
+        <div>
+          <label class="mc-field-label">Caisse (ID)</label>
+          <input type="number" [(ngModel)]="filters.caisseId" placeholder="Ex: 9"
+            class="mc-input">
+        </div>
+        <div>
+          <label class="mc-field-label">Session caisse (ID)</label>
+          <input type="number" [(ngModel)]="filters.sessionCaisseId" placeholder="Ex: 45"
+            class="mc-input">
+        </div>
+        <div>
+          <label class="mc-field-label">Entité</label>
+          <input type="text" [(ngModel)]="filters.entityType" placeholder="SessionCaisse"
+            class="mc-input">
+        </div>
+        <div>
+          <label class="mc-field-label">Entity ID</label>
+          <input type="number" [(ngModel)]="filters.entityId" placeholder="Ex: 77"
+            class="mc-input">
+        </div>
+        <div>
+          <label class="mc-field-label">Référence métier</label>
+          <input type="text" [(ngModel)]="filters.referenceMetier" placeholder="DEPENSE-123"
+            class="mc-input">
+        </div>
+        <div class="mc-button-row items-end lg:col-span-4">
+          <button 
+            (click)="applyFilters()"
+            class="mc-btn mc-btn-primary">
+            Filtrer
+          </button>
+          <button 
+            (click)="resetFilters()"
+            class="mc-btn mc-btn-dark">
+            Réinitialiser
+          </button>
+          <button 
+            *ngIf="canExport()"
+            (click)="exportCsv()"
+            class="mc-btn mc-btn-success">
+            CSV
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="mc-state mc-state-info">
+      Chargement en cours...
+    </div>
+
+    <div *ngIf="error" class="mc-state mc-state-danger">
+      {{ error }}
+    </div>
+
+    <div *ngIf="!loading && logs.length > 0" class="mc-table-wrap">
+      <table class="mc-table min-w-[1600px]">
+        <thead>
+          <tr>
+            <th class="px-6 py-4 text-left font-semibold">Date</th>
+            <th class="px-6 py-4 text-left font-semibold">Heure</th>
+            <th class="px-6 py-4 text-left font-semibold">Utilisateur</th>
+            <th class="px-6 py-4 text-left font-semibold">Rôle</th>
+            <th class="px-6 py-4 text-left font-semibold">Module</th>
+            <th class="px-6 py-4 text-left font-semibold">Action</th>
+            <th class="px-6 py-4 text-left font-semibold">Sévérité</th>
+            <th class="px-6 py-4 text-left font-semibold">Succès</th>
+            <th class="px-6 py-4 text-left font-semibold">Site</th>
+            <th class="px-6 py-4 text-left font-semibold">Caisse</th>
+            <th class="px-6 py-4 text-left font-semibold">Session</th>
+            <th class="px-6 py-4 text-left font-semibold">Référence</th>
+            <th class="px-6 py-4 text-left font-semibold">Commentaire</th>
+            <th class="px-6 py-4 text-left font-semibold">Détail</th>
+          </tr>
+        </thead>
+
+        <tbody class="divide-y divide-gray-200">
+          <tr *ngFor="let log of logs" class="hover:bg-gray-50 transition">
+            <td class="px-6 py-4 text-sm text-gray-600">
+              {{ log.dateAction | date: 'dd/MM/yyyy' }}
+            </td>
+            <td class="px-6 py-4 text-sm text-gray-600">{{ log.dateAction | date: 'HH:mm:ss' }}</td>
+            <td class="px-6 py-4 font-semibold text-gray-900">{{ log.username }}</td>
+            <td class="px-6 py-4 text-sm">{{ log.userRole || '-' }}</td>
+            <td class="px-6 py-4 text-sm">{{ log.module }}</td>
+            <td class="px-6 py-4">
+              <span [ngClass]="'mc-badge ' + getActionColor(log.action)">
+                {{ log.action }}
+              </span>
+            </td>
+            <td class="px-6 py-4">
+              <span [ngClass]="'font-semibold ' + getSeveriteColor(log.severite)">
+                {{ log.severite }}
+              </span>
+            </td>
+            <td class="px-6 py-4 text-sm" [ngClass]="log.success ? 'text-green-700 font-semibold' : 'text-red-700 font-semibold'">
+              {{ log.success ? 'Oui' : 'Non' }}
+            </td>
+            <td class="px-6 py-4 text-sm">{{ log.siteLibelle || ('#' + (log.siteId || '-')) }}</td>
+            <td class="px-6 py-4 text-sm">{{ log.caisseId || '-' }}</td>
+            <td class="px-6 py-4 text-sm">{{ log.sessionCaisseId || '-' }}</td>
+            <td class="px-6 py-4 text-sm">{{ log.referenceMetier || '-' }}</td>
+            <td class="px-6 py-4 text-sm text-gray-600">{{ log.commentaire || '-' }}</td>
+            <td class="px-6 py-4 text-sm">
+              <a [routerLink]="['/audit/logs', log.id]" class="font-semibold text-blue-700 hover:text-blue-900">Consulter</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="flex flex-wrap items-center justify-between gap-3 border-t bg-gray-50 p-4">
+        <div class="text-sm text-gray-600">{{ totalElements }} ligne(s)</div>
+        <div class="mc-button-row">
+          <button class="mc-btn bg-white text-gray-700 ring-1 ring-gray-200 disabled:opacity-50" [disabled]="page === 0" (click)="goToPage(page - 1)">Précédent</button>
+          <span class="px-2 py-1 text-sm">Page {{ page + 1 }} / {{ totalPages || 1 }}</span>
+          <button class="mc-btn bg-white text-gray-700 ring-1 ring-gray-200 disabled:opacity-50" [disabled]="page + 1 >= totalPages" (click)="goToPage(page + 1)">Suivant</button>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="!loading && logs.length === 0" class="mc-state mc-state-info text-center">
+      Aucun log d'audit pour cette période
+    </div>
+</div>

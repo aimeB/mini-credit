@@ -1,0 +1,105 @@
+<div class="mc-page">
+  <header class="mc-page-hero">
+    <h1 class="mc-page-title">Soumettre la session au contrôle</h1>
+    <p class="mc-page-subtitle">Préparez et transmettez la session au Contrôleur pour validation avant la clôture finale.</p>
+  </header>
+
+  <app-workflow-guidance-banner [guidance]="closingGuidance"></app-workflow-guidance-banner>
+
+  <div class="mc-state mc-state-info">
+    {{ transmissionNotice }}
+  </div>
+
+  <div *ngIf="loading" class="mc-state mc-state-info">
+    Chargement de la session...
+  </div>
+
+  <div *ngIf="error" class="mc-state mc-state-danger">
+    {{ error }}
+  </div>
+
+  <div *ngIf="session" class="space-y-6">
+    <div class="mc-panel">
+      <h3 class="text-lg font-bold text-gray-900 mb-4">Informations de session</h3>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+        <div><span class="text-gray-500">Caisse:</span> <span class="font-semibold">{{ session.caisseCode }}</span></div>
+        <div><span class="text-gray-500">Site:</span> <span class="font-semibold">{{ session.siteNom || '-' }}</span></div>
+        <div><span class="text-gray-500">Caissier affecté:</span> <span class="font-semibold">{{ session.caissierResponsableNom || '-' }}</span></div>
+        <div><span class="text-gray-500">Caissier connecté:</span> <span class="font-semibold">{{ currentUserName }}</span></div>
+        <div><span class="text-gray-500">Date ouverture:</span> <span class="font-semibold">{{ session.dateOuverture | date:'dd/MM/yyyy HH:mm' }}</span></div>
+        <div><span class="text-gray-500">Statut:</span>
+          <span class="mc-badge" [ngClass]="session.statut === 'OUVERTE' ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-700'">
+            {{ session.statut }}
+          </span>
+        </div>
+        <div><span class="text-gray-500">Solde ouverture:</span> <span class="font-semibold">{{ formatCdf(session.soldeOuverture) }}</span></div>
+        <div><span class="text-gray-500">Total entrées:</span> <span class="font-semibold text-emerald-700">{{ formatCdf(session.totalEntrees) }}</span></div>
+        <div><span class="text-gray-500">Total sorties:</span> <span class="font-semibold text-red-700">{{ formatCdf(session.totalSorties) }}</span></div>
+        <div class="md:col-span-2 lg:col-span-3">
+          <span class="text-gray-500">Solde théorique:</span>
+          <span class="font-bold text-blue-700">{{ formatCdf(soldeTheoriqueCalcule) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <form class="mc-panel" [formGroup]="form" (ngSubmit)="cloturerSession()">
+      <h3 class="text-lg font-bold text-gray-900 mb-4">Saisie de pré-clôture</h3>
+
+      <div *ngIf="!isSessionCloturable" class="mc-state mc-state-warning mb-4">
+        Cette session est déjà clôturée ou n'est pas dans un état clôturable.
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="mc-field-label">Solde physique *</label>
+          <input type="number" class="mc-input" formControlName="soldePhysique" min="0" step="0.01" />
+          <p *ngIf="form.get('soldePhysique')?.invalid && form.get('soldePhysique')?.touched" class="text-xs text-red-600 mt-1">
+            Le solde physique est obligatoire et doit être positif.
+          </p>
+        </div>
+
+        <div>
+          <label class="mc-field-label">Écart calculé</label>
+          <div class="rounded-lg border px-3 py-2 font-semibold"
+               [ngClass]="ecartCalcule === 0 ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-red-200 bg-red-50 text-red-700'">
+            {{ formatCdf(ecartCalcule) }}
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="hasEcart" class="mc-state mc-state-danger mt-4">
+        Écart détecté: une observation est obligatoire.
+      </div>
+
+      <div class="mt-4">
+        <label class="mc-field-label">Observation</label>
+        <textarea rows="3" class="mc-textarea" formControlName="observation"></textarea>
+        <p *ngIf="form.get('observation')?.hasError('requiredOnEcart')" class="text-xs text-red-600 mt-1">
+          Observation obligatoire si l'écart est différent de 0.
+        </p>
+      </div>
+
+      <div class="mc-button-row mt-6">
+        <button type="button" class="mc-btn mc-btn-primary"
+                (click)="preparerCloture()" [disabled]="!isSessionCloturable">
+          Préparer la soumission
+        </button>
+        <button type="submit" class="mc-btn bg-amber-600 text-white hover:bg-amber-700"
+                [disabled]="saving || !isSessionCloturable || form.invalid || (hasEcart && !(form.value.observation || '').trim())">
+          {{ saving ? 'Soumission en cours...' : 'Soumettre au contrôle' }}
+        </button>
+        <a *ngIf="session" [routerLink]="['/caisses/sessions', session.id]" class="mc-btn bg-gray-200 text-gray-700 hover:bg-gray-300">
+          Retour session
+        </a>
+        <button type="button" class="mc-btn bg-gray-100 text-gray-700 hover:bg-gray-200" (click)="annuler()">
+          Annuler
+        </button>
+      </div>
+
+      <div *ngIf="prepared" class="mc-state mc-state-info mt-4">
+        Soumission préparée. Après soumission, le Contrôleur devra vérifier le solde physique, le solde théorique, les écarts éventuels et valider le contrôle avant la clôture finale.
+      </div>
+    </form>
+  </div>
+</div>

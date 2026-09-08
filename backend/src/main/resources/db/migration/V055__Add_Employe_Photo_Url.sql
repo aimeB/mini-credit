@@ -1,0 +1,2 @@
+ALTER TABLE employe
+    ADD COLUMN photo_url VARCHAR(500) NULL;

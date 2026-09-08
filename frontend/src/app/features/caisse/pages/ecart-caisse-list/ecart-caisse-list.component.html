@@ -1,0 +1,65 @@
+<div class="page">
+  <div class="page-header">
+    <h2 class="text-white drop-shadow-sm">
+      {{ sessionId ? 'Écarts — Session #' + sessionId : 'Écarts de caisse' }}
+    </h2>
+    <a [routerLink]="backLink" class="btn btn-secondary">Retour</a>
+  </div>
+
+  <app-workflow-guidance-banner [guidance]="guidance"></app-workflow-guidance-banner>
+
+  <!-- Chargement -->
+  <div *ngIf="loading()" class="info">Chargement des écarts...</div>
+
+  <!-- Erreur -->
+  <div *ngIf="errorMessage()" class="error">{{ errorMessage() }}</div>
+
+  <!-- Tableau -->
+  <div *ngIf="!loading() && !errorMessage()" class="card">
+
+    <div *ngIf="ecarts().length === 0" class="info">
+      Aucun écart de caisse trouvé.
+    </div>
+
+    <table *ngIf="ecarts().length > 0" class="w-full text-sm">
+      <thead>
+        <tr class="border-b text-left text-gray-600">
+          <th class="py-2 pr-4">ID</th>
+          <th class="py-2 pr-4">Date</th>
+          <th class="py-2 pr-4">Type</th>
+          <th class="py-2 pr-4">Montant</th>
+          <th class="py-2 pr-4">Statut</th>
+          <th class="py-2 pr-4">Seuil dépassé</th>
+          <th class="py-2">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let ecart of ecarts()" class="border-b hover:bg-gray-50">
+          <td class="py-2 pr-4">{{ ecart.id }}</td>
+          <td class="py-2 pr-4">{{ ecart.dateJour }}</td>
+          <td class="py-2 pr-4">{{ getTypeLabel(ecart.typeEcart) }}</td>
+          <td class="py-2 pr-4 font-mono">{{ ecart.montantEcart | number:'1.2-2' }}</td>
+          <td class="py-2 pr-4">
+            <span class="px-2 py-0.5 rounded text-xs font-medium"
+                  [ngClass]="getStatutCss(ecart.statut)">
+              {{ getStatutLabel(ecart.statut) }}
+            </span>
+          </td>
+          <td class="py-2 pr-4">
+            <span *ngIf="ecart['seuilDepass\u00e9']"
+                  class="px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800">
+              Oui
+            </span>
+            <span *ngIf="!ecart['seuilDepass\u00e9']" class="text-gray-400">Non</span>
+          </td>
+          <td class="py-2">
+            <a [routerLink]="['/caisses/ecarts', ecart.id]"
+               class="btn btn-primary text-xs">
+              Détail
+            </a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

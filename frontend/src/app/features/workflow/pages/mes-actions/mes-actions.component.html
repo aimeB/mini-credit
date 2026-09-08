@@ -1,0 +1,108 @@
+<div class="mc-page">
+  <section class="mc-page-hero">
+    <h1 class="mc-page-title">Mes actions à traiter</h1>
+    <p class="mc-page-subtitle">Suivi des tâches opérationnelles et supervision séparée.</p>
+  </section>
+
+  <section class="mc-segmented" *ngIf="canSuperviseActions()">
+    <div class="mc-button-row">
+      <button type="button" class="mc-segmented-button"
+        [ngClass]="activeView === 'mine' ? 'mc-segmented-button-active' : 'mc-segmented-button-inactive'"
+        (click)="activeView = 'mine'">
+        Mes actions à traiter
+      </button>
+      <button type="button" class="mc-segmented-button"
+        [ngClass]="activeView === 'supervision' ? 'mc-segmented-button-active' : 'mc-segmented-button-inactive'"
+        (click)="activeView = 'supervision'">
+        Supervision des actions
+      </button>
+    </div>
+  </section>
+
+  <section class="mc-filter-panel">
+    <div class="mc-filter-grid">
+      <label class="mc-field-label">
+        Statut
+        <select class="mc-select" [(ngModel)]="statutFilter" (ngModelChange)="loadActions()">
+          <option value="">Tous</option>
+          <option *ngFor="let statut of statuts" [value]="statut" [hidden]="!statut">{{ statut }}</option>
+        </select>
+      </label>
+
+      <label class="mc-field-label">
+        Priorité
+        <select class="mc-select" [(ngModel)]="prioriteFilter">
+          <option value="">Toutes</option>
+          <option *ngFor="let priorite of priorites" [value]="priorite" [hidden]="!priorite">{{ priorite }}</option>
+        </select>
+      </label>
+
+      <label class="mc-field-label">
+        Module
+        <select class="mc-select" [(ngModel)]="moduleFilter">
+          <option value="">Tous</option>
+          <option *ngFor="let module of modules" [value]="module" [hidden]="!module">{{ module }}</option>
+        </select>
+      </label>
+    </div>
+  </section>
+
+  <section *ngIf="error" class="mc-state mc-state-danger">
+    {{ error }}
+  </section>
+
+  <section *ngIf="loading" class="mc-state mc-state-info">
+    Chargement des actions...
+  </section>
+
+  <section *ngIf="!loading" class="space-y-3">
+    <div *ngIf="visibleActions.length === 0" class="mc-state mc-state-success">
+      Aucune action trouvée pour les filtres courants.
+    </div>
+
+    <article *ngFor="let action of visibleActions" class="mc-action-card">
+      <div class="mc-action-card-layout">
+        <div class="space-y-1">
+          <h2 class="text-base font-semibold text-slate-900">{{ action.titre }}</h2>
+          <p class="mc-meta-line">Référence: {{ action.referenceMetier }} | Module: {{ action.module }}</p>
+          <p class="mc-meta-line" *ngIf="action.description">{{ action.description }}</p>
+          <p class="text-sm leading-6 text-slate-700" *ngIf="action.roleAttendu || action.actionAttendue">
+            <span *ngIf="action.roleAttendu">Rôle attendu: <strong>{{ action.roleAttendu }}</strong></span>
+            <span *ngIf="action.roleAttendu && action.actionAttendue"> | </span>
+            <span *ngIf="action.actionAttendue">Action attendue: <strong>{{ action.actionAttendue }}</strong></span>
+          </p>
+          <p class="text-xs text-slate-500">Créée le {{ action.dateCreation | date: 'dd/MM/yyyy HH:mm' }}</p>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          <span class="mc-badge" [ngClass]="getStatutBadgeClasses(action.statut)">
+            {{ action.statut }}
+          </span>
+          <span class="mc-badge" [ngClass]="getPrioriteBadgeClasses(action.priorite)">
+            {{ action.priorite }}
+          </span>
+        </div>
+      </div>
+
+      <div *ngIf="activeView === 'supervision'" class="mc-state mc-state-warning mt-4 py-3">
+        Lecture supervision uniquement. Le traitement reste réservé au rôle destinataire: {{ action.roleAttendu || action.roleDestinataire }}.
+      </div>
+
+      <div class="mc-button-row mt-4">
+        <button type="button" class="mc-btn mc-btn-dark" (click)="voirDossier(action)">
+          {{ activeView === 'supervision' ? 'Consulter dossier' : 'Voir dossier' }}
+        </button>
+
+        <button type="button" class="mc-btn mc-btn-primary"
+          *ngIf="canTreat(action) && action.statut === 'A_FAIRE'" (click)="marquerCommeVu(action)">
+          Marquer vue
+        </button>
+
+        <button type="button" class="mc-btn mc-btn-success"
+          *ngIf="canTreat(action) && (action.statut === 'A_FAIRE' || action.statut === 'EN_COURS')" (click)="terminer(action)">
+          Terminer
+        </button>
+      </div>
+    </article>
+  </section>
+</div>

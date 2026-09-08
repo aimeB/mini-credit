@@ -1,0 +1,478 @@
+<div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-8 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-5xl mx-auto">
+    <!-- Back Button and Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+      <a
+        routerLink="/membres"
+        class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium transition-colors"
+      >
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        Retour à la liste
+      </a>
+
+      @if (membre && !loading) {
+        <div class="text-right">
+          <h1 class="text-2xl font-bold text-gray-900">
+            {{ membre.prenom }} {{ membre.nom }}
+          </h1>
+          <p class="text-gray-600 text-sm">#{{ membre.id }}</p>
+        </div>
+      }
+    </div>
+
+    <!-- Error Alert -->
+    @if (error) {
+      <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg">
+        <div class="flex items-start">
+          <svg class="w-6 h-6 text-red-500 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p class="text-red-700 font-medium">{{ error }}</p>
+        </div>
+      </div>
+    }
+
+    <!-- Loading Spinner -->
+    @if (loading) {
+      <div class="flex flex-col items-center justify-center py-20">
+        <div class="relative w-16 h-16 mb-4">
+          <div class="absolute inset-0 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full animate-spin"></div>
+          <div class="absolute inset-1 bg-white rounded-full"></div>
+        </div>
+        <p class="text-gray-600 font-medium">Chargement du profil du membre...</p>
+      </div>
+    } @else if (membre) {
+      <div class="mb-6">
+        <app-workflow-guidance-banner [guidance]="detailGuidance"></app-workflow-guidance-banner>
+      </div>
+
+      <!-- Hero Card Header -->
+      <div class="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg text-white p-6 sm:p-8 mb-8">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+          <div class="flex items-center gap-6">
+            <!-- Avatar -->
+            @if (membre.photoUrl) {
+              <img
+                [src]="membre.photoUrl"
+                [alt]="'Photo de ' + (membre.nomComplet || (membre.prenom || '') + ' ' + membre.nom)"
+                (error)="onPhotoError()"
+                class="flex-shrink-0 w-20 h-20 rounded-full object-cover border-2 border-white/70"
+              />
+            } @else {
+              <div class="flex-shrink-0 w-20 h-20 bg-blue-500 rounded-full flex items-center justify-center text-3xl font-bold" aria-label="Avatar par défaut">
+                {{ ((membre.prenom || '').charAt(0)) + ((membre.nom || '').charAt(0)) }}
+              </div>
+            }
+            <div>
+              <h2 class="text-3xl font-bold mb-2">{{ membre.prenom }} {{ membre.nom }}</h2>
+              <div class="flex flex-col gap-2 text-blue-100">
+                <span class="flex items-center">
+                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                  </svg>
+                  {{ membre.telephonePrincipal || 'Non fourni' }}
+                </span>
+                <span class="flex items-center">
+                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  {{ membre.ville || 'Non fourni' }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Status Badge -->
+          @if (membre.statut) {
+            <div class="text-center">
+              <p class="text-xs uppercase tracking-wide text-blue-200 mb-2">Statut</p>
+              <span [class]="'inline-block px-4 py-2 rounded-full font-semibold text-sm bg-white ' + getStatutBadgeColor(membre.statut)">
+                {{ getStatutLabel(membre.statut) }}
+              </span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-col sm:flex-row gap-4 mb-8">
+        @if (canEditMember) {
+          <a
+            [routerLink]="['/membres', membre.id, 'edit']"
+            class="flex-1 sm:flex-none inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg"
+          >
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            Modifier
+          </a>
+        } @else {
+          <a
+            routerLink="/collectes/ma-collecte"
+            class="flex-1 sm:flex-none inline-flex items-center justify-center px-6 py-3 bg-teal-600 text-white font-semibold rounded-lg hover:bg-teal-700 transition-colors shadow-md hover:shadow-lg"
+          >
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Ajouter à ma collecte
+          </a>
+        }
+
+        <a
+          [routerLink]="['/epargne/membre', membre.id]"
+          class="flex-1 sm:flex-none inline-flex items-center justify-center px-6 py-3 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition-colors shadow-md hover:shadow-lg"
+        >
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Voir l'Épargne
+        </a>
+
+        <a
+          [routerLink]="['/credits/demandes/nouveau']"
+          [queryParams]="{ membreId: membre.id }"
+          class="flex-1 sm:flex-none inline-flex items-center justify-center px-6 py-3 bg-amber-600 text-white font-semibold rounded-lg hover:bg-amber-700 transition-colors shadow-md hover:shadow-lg"
+        >
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          Demande de Crédit
+        </a>
+
+        <button
+          (click)="deleteMember()"
+          [disabled]="loading"
+          class="flex-1 sm:flex-none inline-flex items-center justify-center px-6 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+          Clôturer le Compte
+        </button>
+      </div>
+
+      <!-- Content Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left Column - Main Information -->
+        <div class="lg:col-span-2 space-y-6">
+          <!-- Personal Information Card -->
+          <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
+              <h3 class="text-lg font-bold text-gray-900 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Informations Personnelles
+              </h3>
+            </div>
+            <div class="p-6 space-y-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <p class="text-sm text-gray-600 font-medium">Nom</p>
+                  <p class="text-gray-900 font-semibold text-lg">{{ membre.nom }}</p>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-600 font-medium">Prénom</p>
+                  <p class="text-gray-900 font-semibold text-lg">{{ membre.prenom || '-' }}</p>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-600 font-medium">Postnom</p>
+                  <p class="text-gray-900 font-semibold text-lg">{{ membre.postnom || '-' }}</p>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-600 font-medium">Sexe</p>
+                  <p class="text-gray-900 font-semibold text-lg">
+                    {{ membre.sexe === 'M' ? 'Masculin' : (membre.sexe === 'F' ? 'Féminin' : (membre.sexe || '-')) }}
+                  </p>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-600 font-medium">Date de Naissance</p>
+                  <p class="text-gray-900 font-semibold text-lg">{{ membre.dateNaissance || '-' }}</p>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-600 font-medium">Date d'Adhésion</p>
+                  <p class="text-gray-900 font-semibold text-lg">{{ membre.dateAdhesion || '-' }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contact & Address Information Card -->
+          <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
+              <h3 class="text-lg font-bold text-gray-900 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Localisation & Contact
+              </h3>
+            </div>
+            <div class="p-6 space-y-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div class="sm:col-span-2">
+                  <p class="text-sm text-gray-600 font-medium">Adresse</p>
+                  <p class="text-gray-900 font-semibold text-lg">{{ membre.adresse || '-' }}</p>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-600 font-medium">Ville</p>
+                  <p class="text-gray-900 font-semibold text-lg">{{ membre.ville || '-' }}</p>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-600 font-medium">Commune</p>
+                  <p class="text-gray-900 font-semibold text-lg">{{ membre.commune || '-' }}</p>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-600 font-medium">Quartier</p>
+                  <p class="text-gray-900 font-semibold text-lg">{{ membre.quartier || '-' }}</p>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-600 font-medium">Téléphone Principal</p>
+                  <p class="text-gray-900 font-semibold text-lg">{{ membre.telephonePrincipal || '-' }}</p>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-600 font-medium">Téléphone Secondaire</p>
+                  <p class="text-gray-900 font-semibold text-lg">{{ membre.telephoneSecondaire || '-' }}</p>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-600 font-medium">Email</p>
+                  <p class="text-gray-900 font-semibold text-lg">{{ membre.email || '-' }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Professional Information Card -->
+          <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
+              <h3 class="text-lg font-bold text-gray-900 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4m0 2v4m0-11v2m0 0c.425.693 1 1.625 1 4s-.575 3.307-1 4m-6-10v2m0 0c-.425.693-1 1.625-1 4s.575 3.307 1 4m0-8V4" />
+                </svg>
+                Informations Professionnelles
+              </h3>
+            </div>
+            <div class="p-6 space-y-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <p class="text-sm text-gray-600 font-medium">Profession / Activité</p>
+                  <p class="text-gray-900 font-semibold text-lg">{{ membre.professionActivite || '-' }}</p>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-600 font-medium">Lieu d'Activité</p>
+                  <p class="text-gray-900 font-semibold text-lg">{{ membre.lieuActivite || '-' }}</p>
+                </div>
+                <div class="sm:col-span-2">
+                  <p class="text-sm text-gray-600 font-medium">Source d'Inscription</p>
+                  <p class="text-gray-900 font-semibold text-lg">{{ membre.sourceInscription || '-' }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Credits Card -->
+          <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="bg-gradient-to-r from-amber-50 to-amber-100 px-6 py-4 border-b border-amber-200">
+              <h3 class="text-lg font-bold text-gray-900 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V7m0 1v8m0 0v1" />
+                </svg>
+                Crédits du membre
+              </h3>
+            </div>
+            <div class="p-6">
+              @if (loadingCredits) {
+                <p class="text-sm text-gray-600">Chargement des crédits du membre...</p>
+              } @else if (creditError) {
+                <div class="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                  {{ creditError }}
+                </div>
+              } @else if (credits.length > 0) {
+                <div class="overflow-x-auto">
+                  <table class="w-full text-sm">
+                    <thead class="text-left text-gray-600 border-b border-gray-200">
+                      <tr>
+                        <th class="py-2 pr-4 font-semibold">N° crédit</th>
+                        <th class="py-2 pr-4 font-semibold">Statut</th>
+                        <th class="py-2 pr-4 font-semibold text-right">Montant</th>
+                        <th class="py-2 pr-4 font-semibold text-right">Dossier</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                      @for (credit of credits; track credit.id) {
+                        <tr>
+                          <td class="py-3 pr-4 font-semibold text-gray-900">{{ credit.numeroCredit }}</td>
+                          <td class="py-3 pr-4 text-gray-700">{{ credit.statut }}</td>
+                          <td class="py-3 pr-4 text-right text-gray-900">{{ formatCdf(credit.montantOctroye) }}</td>
+                          <td class="py-3 pr-4 text-right">
+                            <a
+                              [routerLink]="['/credits', credit.id]"
+                              class="inline-flex items-center px-3 py-1 rounded text-xs font-semibold text-white bg-slate-700 hover:bg-slate-800 transition-colors"
+                            >
+                              Voir dossier
+                            </a>
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              } @else {
+                <p class="text-sm text-gray-600">Aucun crédit lié à ce membre.</p>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column - Organization & Summary -->
+        <div class="space-y-6">
+          <!-- Savings Account Card -->
+          <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="bg-gradient-to-r from-emerald-50 to-emerald-100 px-6 py-4 border-b border-emerald-200">
+              <h3 class="text-lg font-bold text-gray-900 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V7m0 1v8m0 0v1m0-1H9m3 0h3" />
+                </svg>
+                Compte epargne
+              </h3>
+            </div>
+            <div class="p-6 space-y-4">
+              @if (loadingCompte) {
+                <p class="text-sm text-gray-600">Chargement du compte epargne...</p>
+              } @else if (compteEpargne) {
+                <div class="space-y-3">
+                  <p class="text-sm text-gray-700"><span class="font-semibold">Statut:</span> Ouvert</p>
+                  <p class="text-sm text-gray-700"><span class="font-semibold">Solde disponible:</span> {{ formatCdf(compteEpargne.soldeDisponible) }}</p>
+                  <p class="text-sm text-gray-700"><span class="font-semibold">Solde bloque:</span> {{ formatCdf(compteEpargne.soldeBloque) }}</p>
+                  <div class="flex flex-col gap-2 pt-2">
+                    <a
+                      [routerLink]="['/epargne/membre', membre.id]"
+                      class="inline-flex items-center justify-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-semibold"
+                    >
+                      Voir compte epargne
+                    </a>
+                    <a
+                      [routerLink]="['/epargne/membre', membre.id]"
+                      class="inline-flex items-center justify-center px-4 py-2 border border-emerald-300 text-emerald-700 rounded-lg hover:bg-emerald-50 transition-colors text-sm font-semibold"
+                    >
+                      Historique epargne
+                    </a>
+                  </div>
+                </div>
+              } @else {
+                <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-sm">
+                  Compte epargne non trouve alors qu'il devrait etre cree automatiquement.
+                </div>
+
+                @if (canRepairAccount) {
+                  <button
+                    type="button"
+                    (click)="repairMissingAccount()"
+                    [disabled]="loadingCompte"
+                    class="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-semibold disabled:opacity-60"
+                  >
+                    Reparer / creer compte manquant
+                  </button>
+                }
+
+                @if (compteError) {
+                  <p class="text-sm text-red-600">{{ compteError }}</p>
+                }
+              }
+            </div>
+          </div>
+
+          <!-- Organization Information Card -->
+          <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
+              <h3 class="text-lg font-bold text-gray-900 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5.581m0 0H9m0 0h5.581M9 12h6" />
+                </svg>
+                Organisation
+              </h3>
+            </div>
+            <div class="p-6 space-y-4">
+              <div>
+                <p class="text-xs uppercase tracking-wide text-gray-600 font-semibold mb-1">Site</p>
+                <p class="text-gray-900 font-semibold">{{ membre.siteId || '-' }}</p>
+              </div>
+              <div>
+                <p class="text-xs uppercase tracking-wide text-gray-600 font-semibold mb-1">Agent Terrain</p>
+                <p class="text-gray-900 font-semibold">{{ membre.agentId || '-' }}</p>
+              </div>
+              <div class="pt-4 border-t border-gray-200">
+                <p class="text-xs uppercase tracking-wide text-gray-600 font-semibold mb-1">Statut Compte</p>
+                <span [class]="'inline-block px-3 py-1 rounded-full text-xs font-semibold ' + getStatutBadgeColor(membre.statut)">
+                  {{ getStatutLabel(membre.statut) }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Observations Card -->
+          @if (membre.observation) {
+            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+              <div class="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-bold text-gray-900 flex items-center">
+                  <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                  </svg>
+                  Observations
+                </h3>
+              </div>
+              <div class="p-6">
+                <p class="text-gray-700 text-sm leading-relaxed">{{ membre.observation }}</p>
+              </div>
+            </div>
+          }
+
+          <!-- Quick Summary Card -->
+          <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-md p-6 border border-blue-200">
+            <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+              <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              Actions Rapides
+            </h3>
+            <div class="space-y-2">
+              <p class="text-sm text-gray-700">
+                <span class="font-semibold">ID Membre:</span> #{{ membre.id }}
+              </p>
+              <p class="text-sm text-gray-700">
+                <span class="font-semibold">Enregistré le:</span> {{ membre.dateAdhesion }}
+              </p>
+              <a
+                routerLink="/membres"
+                class="block mt-4 text-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Ver la liste complète
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    } @else if (!loading) {
+      <!-- Empty State -->
+      <div class="bg-white rounded-xl shadow-md p-12 text-center">
+        <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">Membre non trouvé</h3>
+        <p class="text-gray-600 mb-6">Le membre demandé n'existe pas ou a été supprimé.</p>
+        <a
+          routerLink="/membres"
+          class="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+          Retour à la liste
+        </a>
+      </div>
+    }
+  </div>
+</div>

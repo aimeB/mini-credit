@@ -1,0 +1,406 @@
+﻿<div class="mc-page-wide">
+  <div class="max-w-4xl mx-auto">
+
+    <!-- Header -->
+    <header class="mc-page-hero flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <h1 class="mc-page-title">
+          {{ isEditMode ? "Modifier l'Employé" : "Ajouter un Employé" }}
+        </h1>
+        <p class="mc-page-subtitle">
+          {{ isEditMode ? "Mettez à jour les informations administratives." : "Créez la fiche employé. Le compte utilisateur sera créé à part." }}
+        </p>
+      </div>
+      @if (returnToAgenceId) {
+        <a [routerLink]="['/agences', returnToAgenceId]"
+           class="mc-btn bg-white/15 text-white ring-1 ring-white/30 hover:bg-white/25">
+          Retour à l'agence
+        </a>
+      } @else {
+        <a routerLink="/employes"
+           class="mc-btn bg-white/15 text-white ring-1 ring-white/30 hover:bg-white/25">
+          Retour
+        </a>
+      }
+    </header>
+
+    <!-- Bandeau contextuel : création depuis une agence -->
+    @if (!isEditMode && agenceIdFromParam) {
+      <div class="mc-state mc-state-info flex items-center gap-3 text-sm">
+        <div>
+          <p class="font-semibold">Création depuis une agence</p>
+          <p class="text-sky-700 text-xs mt-0.5">L'agence est présélectionnée. Choisissez le site parmi ceux de cette agence, puis renseignez la fiche employé.</p>
+        </div>
+        <a [routerLink]="['/agences', agenceIdFromParam]"
+           class="mc-btn ml-auto bg-sky-100 px-3 py-1.5 text-xs text-sky-700 hover:bg-sky-200">
+          Voir l'agence
+        </a>
+      </div>
+    }
+
+    <!-- Parcours recommandé (création) -->
+    @if (!isEditMode) {
+      <div class="mc-state mc-state-info text-sm">
+        <p class="font-semibold mb-1">Parcours recommandé :</p>
+        <ol class="list-decimal list-inside space-y-1 text-blue-700">
+          <li>Créer l&apos;<strong>Agence</strong></li>
+          <li>Créer le <strong>Site</strong> lié à l&apos;agence</li>
+          <li>Créer la <strong>fiche Employé</strong> &larr; vous êtes ici</li>
+          <li>Créer le <strong>compte Utilisateur</strong> et le lier à cet employé</li>
+        </ol>
+      </div>
+    }
+
+    <!-- Alertes -->
+    @if (error) {
+      <div class="mc-state mc-state-danger text-sm">{{ error }}</div>
+    }
+    @if (success) {
+      <div class="mc-state mc-state-success text-sm">{{ success }}</div>
+    }
+
+    <!-- Loading -->
+    @if (loading) {
+      <div class="mc-state mc-state-info text-center">Chargement...</div>
+    } @else {
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-8">
+
+        <!-- Section 1 : Identité -->
+        <div class="mc-panel">
+          <h2 class="text-lg font-bold text-gray-800 mb-5 border-b pb-3">Identité</h2>
+
+          <!-- Matricule -->
+          @if (isEditMode) {
+            <div class="mb-5">
+              <label class="mc-field-label">Matricule</label>
+              <div class="flex items-center gap-2">
+                <span class="px-4 py-2.5 bg-gray-100 border border-gray-200 rounded-lg text-gray-700 font-mono font-semibold tracking-wider text-sm">
+                  {{ currentMatricule ?? '&mdash;' }}
+                </span>
+                <span class="text-xs text-gray-400 italic">Auto-généré &middot; Non modifiable</span>
+              </div>
+            </div>
+          } @else {
+            <div class="mb-5">
+              <label class="mc-field-label">Matricule</label>
+              <div class="mc-state mc-state-info text-sm">
+                <span>Généré automatiquement au format <strong>AGENCE-FONCTION-AA-SEQ</strong> (ex. DEL1-GES-26-001)</span>
+              </div>
+            </div>
+          }
+
+          <!-- Nom / Prénom -->
+          <div class="grid grid-cols-2 gap-4 mb-5">
+            <div>
+              <label class="mc-field-label">
+                Nom <span class="text-red-500">*</span>
+              </label>
+              <input type="text" formControlName="nom"
+                [class.border-red-500]="form.get('nom')?.invalid && form.get('nom')?.touched"
+                class="mc-input"
+                placeholder="FALCK" />
+            </div>
+            <div>
+              <label class="mc-field-label">
+                Prénom <span class="text-red-500">*</span>
+              </label>
+              <input type="text" formControlName="prenom"
+                [class.border-red-500]="form.get('prenom')?.invalid && form.get('prenom')?.touched"
+                class="mc-input"
+                placeholder="Jean" />
+            </div>
+          </div>
+
+          <!-- Téléphone -->
+          <div class="mb-5">
+            <label class="mc-field-label">
+              Téléphone <span class="text-red-500">*</span>
+            </label>
+            <input type="tel" formControlName="telephone"
+              [class.border-red-500]="form.get('telephone')?.invalid && form.get('telephone')?.touched"
+              class="mc-input"
+              placeholder="+243812345678" />
+            @if (phoneError) {
+              <p class="text-red-500 text-xs mt-1">{{ phoneError }}</p>
+            } @else {
+              <p class="text-gray-400 text-xs mt-1">Format : +243 suivi de 9 chiffres. Ex : +243812345678</p>
+            }
+          </div>
+
+          <!-- Photo : import ou URL manuelle, sans upload depuis la fiche détail -->
+          <div class="mb-5">
+            <label class="mc-field-label" for="employe-photo-url">Photo</label>
+            <div class="flex flex-col sm:flex-row items-start gap-4">
+              <div class="flex-shrink-0 w-20 h-20 rounded-full bg-slate-600 text-white flex items-center justify-center text-xl font-bold uppercase">
+                @if (form.get('photoUrl')?.value) {
+                  <img
+                    [src]="form.get('photoUrl')?.value"
+                    [alt]="'Aperçu photo de ' + (form.get('prenom')?.value || '') + ' ' + (form.get('nom')?.value || '')"
+                    (error)="onPhotoPreviewError()"
+                    class="w-20 h-20 rounded-full object-cover"
+                  />
+                } @else {
+                  {{ (form.get('prenom')?.value || '').charAt(0) }}{{ (form.get('nom')?.value || '').charAt(0) }}
+                }
+              </div>
+              <div class="flex-1 w-full">
+                <div class="flex flex-wrap items-center gap-3 mb-3">
+                  <button type="button" (click)="photoFileInput.click()" [disabled]="photoUploading || photoRemoving"
+                    class="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    data-testid="choose-photo-button">
+                    <span aria-hidden="true">📷</span>
+                    {{ photoUploading ? 'Téléversement...' : 'Importer une photo' }}
+                  </button>
+                  <input #photoFileInput type="file" accept="image/jpeg,image/png,image/webp,image/*"
+                    class="sr-only" (change)="onPhotoSelected($event)" />
+                </div>
+                <p class="text-gray-500 text-xs mb-2">JPEG, PNG ou WebP — 2 Mo maximum</p>
+                <label class="mc-field-label text-xs" for="employe-photo-url">Ou coller une URL de photo</label>
+                <input id="employe-photo-url" type="url" formControlName="photoUrl"
+                  class="mc-input"
+                  placeholder="URL manuelle facultative" />
+                <div class="flex items-center justify-between gap-3 mt-1">
+                  <p class="text-gray-400 text-xs">L’URL est facultative si vous importez un fichier.</p>
+                  @if (form.get('photoUrl')?.value) {
+                    <button type="button" (click)="clearPhoto()" [disabled]="photoRemoving"
+                      class="text-xs text-red-600 hover:text-red-800 font-medium disabled:opacity-50">
+                      {{ photoRemoving ? 'Suppression...' : 'Retirer la photo' }}
+                    </button>
+                  }
+                </div>
+                @if (photoError) {
+                  <p class="text-red-600 text-xs mt-2" role="alert">{{ photoError }}</p>
+                }
+                @if (photoSuccess) {
+                  <p class="text-green-700 text-xs mt-2" role="status">{{ photoSuccess }}</p>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Fonction -->
+          <div class="mb-5">
+            <label class="mc-field-label">
+              Fonction / Poste <span class="text-red-500">*</span>
+            </label>
+            <select formControlName="fonction"
+              [class.border-red-500]="form.get('fonction')?.invalid && form.get('fonction')?.touched"
+              class="mc-select">
+              <option value="">-- Sélectionner une fonction --</option>
+              @for (f of fonctions; track f) {
+                <option [value]="f">{{ getFonctionLabel(f) }}</option>
+              }
+            </select>
+            @if (form.get('fonction')?.invalid && form.get('fonction')?.touched) {
+              <p class="text-red-500 text-xs mt-1">La fonction est obligatoire</p>
+            }
+          </div>
+
+          <!-- Adresse / Commune -->
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="mc-field-label">Adresse</label>
+              <textarea formControlName="adresse" rows="2"
+                class="mc-textarea"
+                placeholder="Avenue, numéro..."></textarea>
+            </div>
+            <div>
+              <label class="mc-field-label">Commune / Quartier</label>
+              <input type="text" formControlName="commune"
+                class="mc-input"
+                placeholder="Gombe, Lingwala..." />
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2 : Affectation -->
+        <div class="mc-panel">
+          <h2 class="text-lg font-bold text-gray-800 mb-5 border-b pb-3">Affectation</h2>
+
+          @if (isTransverseFunction) {
+            <div class="mb-5 mc-state mc-state-info text-sm">
+              <p class="font-semibold">Affectation opérationnelle : Toutes les agences</p>
+              <p class="text-sky-700 text-xs mt-0.5">Cette fonction est transverse et n&apos;est rattachée à aucun site.</p>
+            </div>
+          }
+
+          <!-- Agence -->
+          <div class="mb-5">
+            <label class="mc-field-label">
+              {{ isTransverseFunction ? 'Agence technique' : 'Agence' }} <span class="text-red-500">*</span>
+            </label>
+            <select formControlName="agenceId"
+              [class.border-red-500]="form.get('agenceId')?.invalid && form.get('agenceId')?.touched"
+              class="mc-select">
+              <option value="">-- Sélectionner une agence --</option>
+              @for (a of agences; track a.id) {
+                <option [value]="a.id">{{ a.nomAgence }} ({{ a.codeAgence }})</option>
+              }
+            </select>
+            @if (form.get('agenceId')?.invalid && form.get('agenceId')?.touched) {
+              <p class="text-red-500 text-xs mt-1">L&apos;agence est obligatoire</p>
+            }
+            @if (isTransverseFunction) {
+              <p class="text-gray-500 text-xs mt-1">Contrainte technique actuelle de la base ; l&apos;affectation métier reste toutes les agences.</p>
+            }
+          </div>
+
+          <!-- Site -->
+          @if (isAgentTerrainFunction) {
+            <div class="mb-5">
+              <label class="mc-field-label">
+                Site <span class="text-red-500">*</span>
+              </label>
+              <select formControlName="siteId"
+                [class.border-red-500]="form.get('siteId')?.invalid && form.get('siteId')?.touched"
+                class="mc-select disabled:bg-gray-100">
+                @if (!form.get('agenceId')?.value) {
+                  <option value="">-- Choisissez d&apos;abord une agence --</option>
+                } @else if (filteredSites.length === 0) {
+                  <option value="">-- Aucun site pour cette agence --</option>
+                } @else {
+                  <option value="">-- Sélectionner un site --</option>
+                  @for (s of filteredSites; track s.id) {
+                    <option [value]="s.id">{{ s.nomSite }}</option>
+                  }
+                }
+              </select>
+              @if (form.get('siteId')?.invalid && form.get('siteId')?.touched) {
+                <p class="text-red-500 text-xs mt-1">Le site est obligatoire pour un Agent Terrain.</p>
+              }
+            </div>
+          } @else {
+            <div class="mb-5 mc-state mc-state-info text-sm">
+              {{ isTransverseFunction ? 'Aucun site à sélectionner pour une fonction transverse.' : 'Le site concerne uniquement les Agents Terrain.' }}
+            </div>
+          }
+
+          <!-- Date embauche -->
+          <div>
+            <label class="mc-field-label">
+              Date d&apos;embauche <span class="text-red-500">*</span>
+            </label>
+            <input type="date" formControlName="dateEmbauche"
+              [class.border-red-500]="form.get('dateEmbauche')?.invalid && form.get('dateEmbauche')?.touched"
+              class="mc-input" />
+          </div>
+        </div>
+
+        <!-- Section 3 : Rémunération -->
+        <div class="mc-panel">
+          <h2 class="text-lg font-bold text-gray-800 mb-5 border-b pb-3">Rémunération (CDF)</h2>
+
+          <div class="grid grid-cols-3 gap-4">
+            <div>
+              <label class="mc-field-label">
+                Salaire de base <span class="text-red-500">*</span>
+              </label>
+              <input type="number" formControlName="salaireBase" min="0" step="1000"
+                [class.border-red-500]="form.get('salaireBase')?.invalid && form.get('salaireBase')?.touched"
+                class="mc-input"
+                placeholder="250000" />
+            </div>
+            <div>
+              <label class="mc-field-label">Prime fixe</label>
+              <input type="number" formControlName="primeFixe" min="0" step="1000"
+                class="mc-input"
+                placeholder="0" />
+            </div>
+            <div>
+              <label class="mc-field-label">Bonus variable</label>
+              <input type="number" formControlName="bonusVariable" min="0" step="1000"
+                class="mc-input"
+                placeholder="0" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 4 : Compte Utilisateur -->
+        <div class="mc-panel">
+          @if (!isEditMode) {
+            <!-- Création : orienter vers l&apos;étape suivante, pas de sélecteur -->
+            <div class="flex items-start gap-3">
+              <div class="flex-shrink-0 w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 font-bold text-sm">4</div>
+              <div class="flex-1">
+                <h2 class="text-lg font-bold text-gray-800 mb-3">Étape suivante &mdash; Compte Utilisateur</h2>
+                <div class="mc-state mc-state-warning text-sm">
+                  <p class="font-semibold mb-2">Après avoir créé cette fiche employé :</p>
+                  <ol class="list-decimal list-inside space-y-1 text-amber-700">
+                    <li>Rendez-vous dans le module <strong>Utilisateurs</strong></li>
+                    <li>Créez un compte de connexion pour cet employé</li>
+                    <li>Liez ce compte à la fiche employé créée</li>
+                  </ol>
+                  <p class="mt-2 text-amber-600 text-xs">
+                    Le compte utilisateur est créé séparément pour permettre une gestion indépendante des droits d&apos;accès.
+                  </p>
+                </div>
+                <a routerLink="/utilisateurs/nouveau"
+                   class="mc-btn mt-3 bg-amber-600 text-white hover:bg-amber-700">
+                  Créer un compte utilisateur
+                </a>
+              </div>
+            </div>
+          } @else {
+            <!-- Édition : compte lié en lecture seule -->
+            <h2 class="text-lg font-bold text-gray-800 mb-4 border-b pb-3">Compte Utilisateur lié</h2>
+            @if (form.get('utilisateurId')?.value) {
+              <div class="mc-state mc-state-success">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="inline-block w-2 h-2 rounded-full bg-green-500"></span>
+                  <span class="font-semibold text-green-800 text-sm">Compte lié</span>
+                </div>
+                @if (linkedUserUsername) {
+                  <p class="text-gray-800 font-medium font-mono">{{ linkedUserUsername }}</p>
+                } @else {
+                  <p class="text-gray-500 text-sm">Identifiant : #{{ form.get('utilisateurId')?.value }}</p>
+                }
+                @if (linkedUserRoles) {
+                  <p class="text-gray-500 text-xs mt-1">Rôle : {{ linkedUserRoles }}</p>
+                }
+                <p class="text-gray-400 text-xs mt-2 italic">Lien géré depuis le module Utilisateurs</p>
+              </div>
+            } @else {
+              <div class="mc-state mc-state-info">
+                <p class="text-gray-600 font-medium mb-1 text-sm">Aucun compte utilisateur lié à cet employé.</p>
+                <p class="text-gray-400 text-xs mb-3">
+                  Créez un compte et liez-le à cette fiche pour permettre la connexion à l&apos;application.
+                </p>
+                <a [routerLink]="['/utilisateurs/nouveau']" [queryParams]="{employeId: employeId}"
+                   class="mc-btn mc-btn-primary">
+                  Créer un utilisateur pour cet employé
+                </a>
+              </div>
+            }
+          }
+        </div>
+
+        <!-- Statut &amp; Actions -->
+        <div class="mc-panel flex items-center justify-between gap-4">
+          <label class="flex items-center gap-3 cursor-pointer">
+            <input type="checkbox" formControlName="actif"
+              class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500" />
+            <span class="text-gray-700 font-medium">Employé actif</span>
+          </label>
+
+          <div class="mc-button-row">
+            <a routerLink="/employes"
+               class="mc-btn bg-gray-200 text-gray-700 hover:bg-gray-300">
+              Annuler
+            </a>
+            <button type="submit"
+              [disabled]="submitting || form.invalid"
+              [class.opacity-50]="submitting || form.invalid"
+              class="mc-btn mc-btn-primary disabled:cursor-not-allowed">
+              @if (submitting) {
+                Enregistrement...
+              } @else {
+                {{ isEditMode ? "Mettre à jour" : "Créer l'Employé" }}
+              }
+            </button>
+          </div>
+        </div>
+
+      </form>
+    }
+  </div>
+</div>

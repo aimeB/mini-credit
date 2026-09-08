@@ -1,0 +1,101 @@
+<div class="container-fluid p-4">
+  <app-workflow-guidance-banner [guidance]="globalGuidance"></app-workflow-guidance-banner>
+
+  <h2 class="mb-4">Validation Recette #{{ recette?.id }}</h2>
+
+  <div *ngIf="isLoading" class="text-center">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Chargement...</span>
+    </div>
+  </div>
+
+  <div *ngIf="!isLoading && recette" class="card">
+    <div class="card-body">
+      <!-- Synthèse -->
+      <div class="alert alert-info mb-4">
+        <p class="mb-2"><strong>Agent:</strong> {{ recette.agentTerrainNom }}</p>
+        <p class="mb-2"><strong>Site:</strong> {{ recette.siteNom }}</p>
+        <p class="mb-2"><strong>Date:</strong> {{ recette.dateRecette | date: 'dd/MM/yyyy' }}</p>
+        <p class="mb-0">
+          <strong>Total collecté:</strong> 
+          <span class="badge bg-success">{{ recette.totalCollecte | currency: 'CDF' }}</span>
+        </p>
+      </div>
+
+      <!-- Données clés -->
+      <div class="mb-4">
+        <h5>Détails Recette</h5>
+        <div class="row">
+          <div class="col-md-6">
+            <p><strong>Épargne collectée:</strong> {{ recette.epargneCollectee | currency: 'CDF' }}</p>
+            <p><strong>Remboursements crédit:</strong> {{ recette.remboursementsCreditCollectes | currency: 'CDF' }}</p>
+            <p><strong>Frais collectés:</strong> {{ recette.fraisCollectes | currency: 'CDF' }}</p>
+          </div>
+          <div class="col-md-6">
+            <p><strong>Membres visités:</strong> {{ recette.membresVisites }}</p>
+            <p><strong>Nouveaux membres:</strong> {{ recette.nouveauxMembres }}</p>
+            <p><strong>Demandes crédit:</strong> {{ recette.demandesCreditRecueillies }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Écarts trésorerie -->
+      <div class="mb-4">
+        <h5>Écarts Trésorerie</h5>
+        <div class="alert" [ngClass]="recette.excedent > 0 ? 'alert-success' : (recette.manquant > 0 ? 'alert-warning' : 'alert-info')">
+          <p class="mb-2"><strong>Espèces remises:</strong> {{ recette.especesRemises | currency: 'CDF' }}</p>
+          <p class="mb-0"><strong>Espèces émises:</strong> {{ recette.especesEmises | currency: 'CDF' }}</p>
+          <p *ngIf="recette.excedent > 0" class="mt-2 mb-0">
+            <span class="badge bg-success">Excédent: {{ recette.excedent | currency: 'CDF' }}</span>
+          </p>
+          <p *ngIf="recette.manquant > 0" class="mt-2 mb-0">
+            <span class="badge bg-danger">Manquant: {{ recette.manquant | currency: 'CDF' }}</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Observations agent -->
+      <div class="mb-4" *ngIf="recette.observations">
+        <h5>Observations Agent</h5>
+        <p class="text-muted">{{ recette.observations }}</p>
+      </div>
+
+      <!-- Décision -->
+      <div class="mb-4">
+        <h5>Votre Décision</h5>
+        <div class="btn-group mb-3" role="group">
+          <input type="radio" class="btn-check" id="validee" value="VALIDEE" 
+                 [(ngModel)]="decision" name="decision">
+          <label class="btn btn-outline-success" for="validee">
+            <i class="fas fa-check"></i> Valider
+          </label>
+
+          <input type="radio" class="btn-check" id="rejetee" value="REJETEE"
+                 [(ngModel)]="decision" name="decision">
+          <label class="btn btn-outline-danger" for="rejetee">
+            <i class="fas fa-times"></i> Rejeter
+          </label>
+        </div>
+      </div>
+
+      <!-- Motif rejet -->
+      <div *ngIf="decision === 'REJETEE'" class="mb-4">
+        <label class="form-label"><strong>Motif de Rejet *</strong></label>
+        <textarea class="form-control" [(ngModel)]="motifRejet" rows="4"
+                  placeholder="Expliquer les raisons du rejet..."></textarea>
+      </div>
+
+      <!-- Boutons -->
+      <div class="d-flex gap-2">
+        <button class="btn btn-primary" 
+                [disabled]="isLoading || (decision === 'REJETEE' && !motifRejet.trim())"
+                (click)="onValidate()">
+          {{ decision === 'VALIDEE' ? 'Valider' : 'Rejeter' }}
+        </button>
+        <button class="btn btn-secondary" (click)="onCancel()">
+          Annuler
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

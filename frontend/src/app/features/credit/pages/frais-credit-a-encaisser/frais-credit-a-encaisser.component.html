@@ -1,0 +1,86 @@
+<div class="min-h-screen bg-gray-50">
+  <div class="mc-page-wide">
+  <section class="mc-page-hero">
+      <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 class="mc-page-title">Frais crédit à encaisser</h1>
+          <p class="mc-page-subtitle">Demandes avec frais de demande/analyse encore impayés.</p>
+        </div>
+        <a routerLink="/dashboard" class="mc-btn mc-btn-dark w-fit">
+          Retour dashboard
+        </a>
+      </div>
+  </section>
+
+  <main class="space-y-6">
+    <div class="mc-state mc-state-success">
+      Ces frais doivent être encaissés avant les étapes critiques du dossier crédit. L’accès est limité à l’encaissement, sans ouverture de l’analyse crédit complète.
+    </div>
+
+    <div *ngIf="loading" class="mc-state mc-state-info text-center">
+      <div class="inline-block">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+        <p class="mt-4">Chargement des frais à encaisser...</p>
+      </div>
+    </div>
+
+    <div *ngIf="errorMessage" class="mc-state mc-state-danger">
+      {{ errorMessage }}
+    </div>
+
+    <div *ngIf="!loading && !errorMessage && demandes.length === 0" class="mc-state mc-state-info text-center">
+      <p class="text-base font-semibold">Aucun frais crédit à encaisser.</p>
+      <p class="mt-2">Toutes les demandes crédit visibles sont à jour sur les frais de demande/analyse.</p>
+    </div>
+
+    <div *ngIf="!loading && !errorMessage && demandes.length > 0" class="mc-table-wrap">
+      <div class="overflow-x-auto">
+        <table class="mc-table min-w-[980px]">
+          <thead>
+            <tr>
+              <th>N° demande</th>
+              <th>Membre</th>
+              <th>Site</th>
+              <th>Date</th>
+              <th class="text-right">Montant demandé</th>
+              <th class="text-right">Frais attendus</th>
+              <th class="text-right">Déjà payés</th>
+              <th class="text-right">Reste à payer</th>
+              <th class="text-center">Statut</th>
+              <th class="text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let demande of demandes; trackBy: trackByDemandeId">
+              <td class="font-semibold text-gray-900">{{ demande.numeroDemande }}</td>
+              <td>{{ demande.membreNomComplet }}</td>
+              <td>
+                <div>{{ demande.siteNom || '-' }}</div>
+                <div class="text-xs text-gray-500" *ngIf="demande.antenneNom">{{ demande.antenneNom }}</div>
+              </td>
+              <td class="text-gray-600">{{ demande.dateDemande | date:'shortDate' }}</td>
+              <td class="font-medium text-gray-900 text-right">{{ demande.montantDemande | number:'1.0-2' }}</td>
+              <td class="font-medium text-gray-900 text-right">{{ demande.fraisDemande | number:'1.0-2' }}</td>
+              <td class="text-right">{{ demande.fraisDemandePayes | number:'1.0-2' }}</td>
+              <td class="font-bold text-emerald-700 text-right">{{ demande.resteFraisAPayer | number:'1.0-2' }}</td>
+              <td class="text-center">
+                <span class="mc-badge bg-slate-100 text-slate-800">
+                  {{ demande.statutDemande }}
+                </span>
+              </td>
+              <td class="text-center">
+                <a
+                  [routerLink]="['/credits/demandes', demande.demandeCreditId, 'paiement-initial']"
+                  [queryParams]="{ returnUrl: '/credits/frais-a-encaisser' }"
+                  class="mc-btn mc-btn-success">
+                  Encaisser frais
+                </a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+  </div>
+</div>

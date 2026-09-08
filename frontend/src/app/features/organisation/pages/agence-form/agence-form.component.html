@@ -1,0 +1,157 @@
+﻿<div class="mc-page">
+
+    <!-- Header -->
+    <header class="mc-page-hero flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <h1 class="mc-page-title">{{ isEdit ? "Modifier l Agence" : "Creer une Agence" }}</h1>
+        <p class="mc-page-subtitle">{{ isEdit ? "Mise a jour des informations" : "Etape 1 du parcours de demarrage ADMIN" }}</p>
+      </div>
+      <a routerLink="/agences"
+         class="mc-btn bg-white/15 text-white ring-1 ring-white/30 hover:bg-white/25">
+        Liste des agences
+      </a>
+    </header>
+
+    @if (error) {
+      <div class="mc-state mc-state-danger">{{ error }}</div>
+    }
+    @if (success) {
+      <div class="mc-state mc-state-success">{{ success }}</div>
+    }
+
+    <!-- Formulaire -->
+    <form [formGroup]="form" (ngSubmit)="enregistrer()" class="mc-panel space-y-6">
+
+      <app-workflow-guidance-banner [guidance]="formGuidance"></app-workflow-guidance-banner>
+
+      <p class="text-sm text-gray-500"><span class="text-red-500">*</span> Champ obligatoire</p>
+
+      <!-- Code Agence -->
+      <div>
+        <label class="mc-field-label">
+          Code Agence @if (!isEdit) {<span class="text-red-500">*</span>}
+        </label>
+        <input type="text" formControlName="codeAgence"
+          [class.border-red-500]="form.get('codeAgence')?.invalid && form.get('codeAgence')?.touched"
+          [class.bg-gray-100]="isEdit"
+          class="mc-input uppercase"
+          placeholder="Ex: KIN001">
+        @if (getFieldError('codeAgence')) {
+          <p class="text-red-500 text-sm mt-1">{{ getFieldError('codeAgence') }}</p>
+        }
+        @if (isEdit) {
+          <p class="text-gray-400 text-xs mt-1">Le code agence n est pas modifiable.</p>
+        } @else {
+          <p class="text-gray-400 text-xs mt-1">Code unique, automatiquement mis en majuscules.</p>
+        }
+      </div>
+
+      <!-- Nom Agence -->
+      <div>
+        <label class="mc-field-label">
+          Nom de l Agence <span class="text-red-500">*</span>
+        </label>
+        <input type="text" formControlName="nomAgence"
+          [class.border-red-500]="form.get('nomAgence')?.invalid && form.get('nomAgence')?.touched"
+          class="mc-input"
+          placeholder="Ex: Agence Centrale Kinshasa">
+        @if (getFieldError('nomAgence')) {
+          <p class="text-red-500 text-sm mt-1">{{ getFieldError('nomAgence') }}</p>
+        }
+      </div>
+
+      <!-- Ville + Telephone -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="mc-field-label">
+            Ville <span class="text-red-500">*</span>
+          </label>
+          <input type="text" formControlName="ville"
+            [class.border-red-500]="form.get('ville')?.invalid && form.get('ville')?.touched"
+            class="mc-input"
+            placeholder="Kinshasa">
+          @if (getFieldError('ville')) {
+            <p class="text-red-500 text-sm mt-1">{{ getFieldError('ville') }}</p>
+          }
+        </div>
+        <div>
+          <label class="mc-field-label">Telephone</label>
+          <input type="tel" formControlName="telephone"
+            class="mc-input"
+            placeholder="+243 XXX XXX XXX">
+        </div>
+      </div>
+
+      <!-- Commune -->
+      <div>
+        <label class="mc-field-label">
+          Commune <span class="text-red-500">*</span>
+        </label>
+        <input type="text" formControlName="commune"
+          [class.border-red-500]="form.get('commune')?.invalid && form.get('commune')?.touched"
+          class="mc-input"
+          placeholder="Gombe">
+        @if (getFieldError('commune')) {
+          <p class="text-red-500 text-sm mt-1">{{ getFieldError('commune') }}</p>
+        }
+      </div>
+
+      <!-- Quartier + Adresse -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="mc-field-label">
+            Quartier @if (!isEdit) {<span class="text-red-500">*</span>}
+          </label>
+          <input type="text" formControlName="quartier"
+            [class.border-red-500]="form.get('quartier')?.invalid && form.get('quartier')?.touched"
+            class="mc-input"
+            placeholder="Centre-Ville">
+          @if (getFieldError('quartier')) {
+            <p class="text-red-500 text-sm mt-1">{{ getFieldError('quartier') }}</p>
+          }
+        </div>
+        <div>
+          <label class="mc-field-label">
+            Adresse @if (!isEdit) {<span class="text-red-500">*</span>}
+          </label>
+          <input type="text" formControlName="adresse"
+            [class.border-red-500]="form.get('adresse')?.invalid && form.get('adresse')?.touched"
+            class="mc-input"
+            placeholder="Avenue de l Equateur, n°12">
+          @if (getFieldError('adresse')) {
+            <p class="text-red-500 text-sm mt-1">{{ getFieldError('adresse') }}</p>
+          }
+        </div>
+      </div>
+
+      <!-- Reference -->
+      <div>
+        <label class="mc-field-label">Reference <span class="text-gray-400 font-normal">(optionnel)</span></label>
+        <input type="text" formControlName="reference"
+          class="mc-input"
+          placeholder="Ex: Batiment SONAS, 3e etage">
+        <p class="text-gray-400 text-xs mt-1">Point de repere ou description complementaire.</p>
+      </div>
+
+      <!-- Statut -->
+      <div>
+        <label class="flex items-center cursor-pointer gap-3">
+          <input type="checkbox" formControlName="actif"
+            class="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500">
+          <span class="text-gray-700 font-medium">Agence active</span>
+        </label>
+      </div>
+
+      <!-- Boutons -->
+      <div class="mc-button-row border-t border-gray-200 pt-4">
+        <a routerLink="/agences"
+           class="mc-btn flex-1 bg-gray-200 text-center text-gray-800 hover:bg-gray-300">
+          Annuler
+        </a>
+        <button type="submit" [disabled]="form.invalid || loading"
+          class="mc-btn mc-btn-primary flex-1 disabled:cursor-not-allowed disabled:opacity-50">
+          {{ loading ? 'Enregistrement...' : (isEdit ? 'Enregistrer' : 'Creer l Agence') }}
+        </button>
+      </div>
+    </form>
+</div>

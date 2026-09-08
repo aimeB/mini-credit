@@ -1,0 +1,411 @@
+<div class="mc-page-wide">
+  <div class="max-w-5xl mx-auto">
+    <!-- Header -->
+    <header class="mc-page-hero">
+      <h1 class="mc-page-title">Mon Profil</h1>
+      <p class="mc-page-subtitle">Gérez votre compte et vos informations personnelles</p>
+    </header>
+
+    <!-- Welcome Card -->
+    <div class="mc-panel mb-8 border-blue-100 bg-blue-50">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-blue-700 text-sm font-medium">Bienvenue</p>
+          <h2 class="text-3xl font-bold mt-2 text-slate-900">
+            @if (currentMember?.nom) {
+              {{ currentMember?.nom }} {{ currentMember?.prenom ? currentMember?.prenom : '' }}
+            } @else if (currentUsername && !loading) {
+              {{ currentUsername }}
+            } @else if (currentUsername) {
+              <div class="inline-flex items-center space-x-2">
+                <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                <span>Chargement...</span>
+              </div>
+            }
+          </h2>
+          <p class="text-blue-700 mt-2">
+            <span class="font-medium">ID:</span> {{ currentUsername }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    @if (loading) {
+      <div class="mc-state mc-state-info text-center">
+        Chargement de votre profil...
+      </div>
+    } @else {
+      <!-- Error Message -->
+      @if (error) {
+        <div class="mc-state mc-state-danger">
+          {{ error }}
+        </div>
+      }
+
+      @if (currentMember) {
+        <!-- Main Content Area -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          <!-- Left Column: Account & Personal Info -->
+          <div class="lg:col-span-2 space-y-6">
+            
+            <!-- Account Card -->
+            <div class="mc-panel">
+              <h2 class="text-2xl font-bold text-slate-900 mb-6">Compte</h2>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Username -->
+                <div class="pb-4 border-b border-slate-200">
+                  <p class="text-sm text-slate-600 font-medium">Identifiant (Username)</p>
+                  <p class="text-lg font-mono font-semibold text-blue-600 mt-1">{{ currentUsername }}</p>
+                  <p class="text-xs text-slate-500 mt-2">Votre identifiant unique pour vous connecter</p>
+                </div>
+
+                <!-- Email -->
+                <div class="pb-4 border-b border-slate-200">
+                  <p class="text-sm text-slate-600 font-medium">Email</p>
+                  <p class="text-lg font-semibold text-slate-900 mt-1">{{ currentUserEmail }}</p>
+                </div>
+
+                <!-- Téléphone -->
+                <div class="pb-4 border-b border-slate-200">
+                  <p class="text-sm text-slate-600 font-medium">Téléphone</p>
+                  <p class="text-lg font-semibold text-slate-900 mt-1">{{ currentMember.telephonePrincipal || 'N/A' }}</p>
+                </div>
+
+                <!-- Date of Join -->
+                <div class="pb-4 border-b border-slate-200">
+                  <p class="text-sm text-slate-600 font-medium">Membre depuis</p>
+                  <p class="text-lg font-semibold text-slate-900 mt-1">
+                    {{ currentMember.dateAdhesion ? (currentMember.dateAdhesion | date: 'dd/MM/yyyy') : 'N/A' }}
+                  </p>
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="mt-8 pt-6 border-t border-slate-200 flex flex-wrap gap-3">
+                <button (click)="toggleChangeUsername()" class="mc-btn mc-btn-primary">
+                  Changer l'identifiant
+                </button>
+                <button (click)="toggleChangePassword()" class="mc-btn mc-btn-success">
+                  Changer le mot de passe
+                </button>
+              </div>
+            </div>
+
+            <!-- Personal Info Card -->
+            <div class="mc-panel">
+              <h2 class="text-2xl font-bold text-slate-900 mb-6">Informations Personnelles</h2>
+              
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Nom -->
+                <div class="pb-4 border-b border-slate-200">
+                  <p class="text-sm text-slate-600 font-medium">Nom</p>
+                  <p class="text-lg font-semibold text-slate-900 mt-1">{{ currentMember.nom }}</p>
+                </div>
+
+                <!-- Postnom -->
+                <div class="pb-4 border-b border-slate-200">
+                  <p class="text-sm text-slate-600 font-medium">Post-nom</p>
+                  <p class="text-lg font-semibold text-slate-900 mt-1">{{ currentMember.postnom || 'N/A' }}</p>
+                </div>
+
+                <!-- Prenom -->
+                <div class="pb-4 border-b border-slate-200">
+                  <p class="text-sm text-slate-600 font-medium">Prénom</p>
+                  <p class="text-lg font-semibold text-slate-900 mt-1">{{ currentMember.prenom || 'N/A' }}</p>
+                </div>
+
+                <!-- Sexe -->
+                <div class="pb-4 border-b border-slate-200">
+                  <p class="text-sm text-slate-600 font-medium">Genre</p>
+                  <p class="text-lg font-semibold text-slate-900 mt-1">
+                    @switch(currentMember.sexe) {
+                      @case ('M') { Masculin }
+                      @case ('F') { Féminin }
+                      @default { N/A }
+                    }
+                  </p>
+                </div>
+
+                <!-- Date Naissance -->
+                <div class="pb-4 border-b border-slate-200">
+                  <p class="text-sm text-slate-600 font-medium">Date de naissance</p>
+                  <p class="text-lg font-semibold text-slate-900 mt-1">
+                    {{ currentMember.dateNaissance ? (currentMember.dateNaissance | date: 'dd/MM/yyyy') : 'N/A' }}
+                  </p>
+                </div>
+
+                <!-- Statut -->
+                <div class="pb-4 border-b border-slate-200">
+                  <p class="text-sm text-slate-600 font-medium">Statut</p>
+                  <p class="text-lg font-semibold text-slate-900 mt-1">
+                    <span class="mc-badge" [ngClass]="
+                      currentMember.statut === 'ACTIF' 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
+                    ">
+                      {{ currentMember.statut || 'N/A' }}
+                    </span>
+                  </p>
+                </div>
+              </div>
+
+              <!-- Address Info -->
+              <div class="mt-6 pt-6 border-t border-slate-200">
+                <h3 class="font-semibold text-slate-900 mb-4">Adresse</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p class="text-sm text-slate-600">Rue/Quartier</p>
+                    <p class="text-slate-900">{{ currentMember.adresse || 'N/A' }}</p>
+                  </div>
+                  <div>
+                    <p class="text-sm text-slate-600">Quartier</p>
+                    <p class="text-slate-900">{{ currentMember.quartier || 'N/A' }}</p>
+                  </div>
+                  <div>
+                    <p class="text-sm text-slate-600">Commune</p>
+                    <p class="text-slate-900">{{ currentMember.commune || 'N/A' }}</p>
+                  </div>
+                  <div>
+                    <p class="text-sm text-slate-600">Ville</p>
+                    <p class="text-slate-900">{{ currentMember.ville || 'N/A' }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Professional Info Card -->
+            <div class="mc-panel">
+              <h2 class="text-2xl font-bold text-slate-900 mb-6">Informations Professionnelles</h2>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Profession -->
+                <div class="pb-4 border-b border-slate-200">
+                  <p class="text-sm text-slate-600 font-medium">Profession/Activité</p>
+                  <p class="text-lg font-semibold text-slate-900 mt-1">{{ currentMember.professionActivite || 'N/A' }}</p>
+                </div>
+
+                <!-- Lieu d'activité -->
+                <div class="pb-4 border-b border-slate-200">
+                  <p class="text-sm text-slate-600 font-medium">Lieu d'activité</p>
+                  <p class="text-lg font-semibold text-slate-900 mt-1">{{ currentMember.lieuActivite || 'N/A' }}</p>
+                </div>
+
+                <!-- Source d'inscription -->
+                <div class="pb-4 border-b border-slate-200">
+                  <p class="text-sm text-slate-600 font-medium">Source d'inscription</p>
+                  <p class="text-lg font-semibold text-slate-900 mt-1">{{ currentMember.sourceInscription || 'N/A' }}</p>
+                </div>
+
+                <!-- Code Membre -->
+                <div class="pb-4 border-b border-slate-200">
+                  <p class="text-sm text-slate-600 font-medium">Code Membre</p>
+                  <p class="text-lg font-mono font-semibold text-purple-600 mt-1">{{ currentMember.codeMembre }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Quick Stats -->
+          <div class="space-y-6">
+            
+            <!-- Account Status Card -->
+            <div class="mc-panel bg-blue-50">
+              <h3 class="text-lg font-bold text-blue-900 mb-4">Statut du Compte</h3>
+              <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-blue-800">Compte actif</span>
+                  <span class="mc-badge bg-green-100 text-green-800">Actif</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-blue-800">Profil complet</span>
+                  <span class="mc-badge bg-blue-100 text-blue-800">Complet</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-blue-800">Vérification</span>
+                  <span class="mc-badge bg-slate-100 text-slate-800">Sécurisé</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Help Card -->
+            <div class="mc-state mc-state-warning">
+              <h3 class="text-lg font-bold text-yellow-900 mb-2">Infos</h3>
+              <p class="text-sm text-yellow-800">
+                Vos données sont sécurisées et privées. Gardez votre username et mot de passe confidentiels.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Change Username Modal -->
+        @if (showChangeUsername) {
+          <div class="mc-modal-backdrop">
+            <div class="mc-modal-panel max-w-md">
+              <h3 class="text-2xl font-bold text-slate-900 mb-6">Changer l'identifiant</h3>
+              
+              <form (ngSubmit)="submitChangeUsername()">
+                <div class="mb-4">
+                  <label class="block text-sm font-medium text-slate-700 mb-2">
+                    Nouvel identifiant (3-50 caractères)
+                  </label>
+                  <input
+                    type="text"
+                    [(ngModel)]="newUsername"
+                    name="newUsername"
+                    placeholder="ex: john.doe"
+                    class="mc-input"
+                    required
+                  />
+                  <p class="text-xs text-slate-500 mt-2">Lettres, chiffres, points et tirets uniquement</p>
+                </div>
+
+                @if (usernameChangeError) {
+                  <div class="mc-state mc-state-danger mb-4 text-sm">
+                    {{ usernameChangeError }}
+                  </div>
+                }
+
+                @if (usernameChangeSuccess) {
+                  <div class="mc-state mc-state-success mb-4 text-sm">
+                    {{ usernameChangeSuccess }}
+                  </div>
+                }
+
+                <div class="mc-button-row">
+                  <button
+                    type="submit"
+                    [disabled]="changingUsername"
+                    class="mc-btn mc-btn-primary flex-1 disabled:opacity-50"
+                  >
+                    {{ changingUsername ? 'En cours...' : 'Confirmer' }}
+                  </button>
+                  <button
+                    type="button"
+                    (click)="toggleChangeUsername()"
+                    class="mc-btn flex-1 bg-slate-200 text-slate-800 hover:bg-slate-300"
+                  >
+                    Annuler
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        }
+
+        <!-- Change Password Modal -->
+        @if (showChangePassword) {
+          <div class="mc-modal-backdrop">
+            <div class="mc-modal-panel max-w-md">
+              <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-bold text-slate-900">
+                  @if (passwordMode === 'change') {
+                    Changer le mot de passe
+                  } @else {
+                    Réinitialiser le mot de passe
+                  }
+                </h3>
+                <button
+                  (click)="passwordMode = passwordMode === 'change' ? 'reset' : 'change'"
+                  class="mc-btn bg-slate-100 px-2 py-1 text-xs text-slate-600 hover:bg-slate-200"
+                  title="Basculer entre Changer et Réinitialiser"
+                >
+                  @if (passwordMode === 'change') {
+                    Oublié?
+                  } @else {
+                    Retour
+                  }
+                </button>
+              </div>
+              
+              <form (ngSubmit)="submitChangePassword()">
+                <!-- Champ mot de passe actuel (seulement en mode "change") -->
+                @if (passwordMode === 'change') {
+                  <div class="mb-4">
+                    <label class="mc-field-label">
+                      Mot de passe actuel
+                    </label>
+                    <input
+                      type="password"
+                      [(ngModel)]="currentPassword"
+                      name="currentPassword"
+                      placeholder="••••••••"
+                      class="mc-input"
+                      required
+                    />
+                  </div>
+                }
+
+                <!-- Message d'aide pour mode reset -->
+                @if (passwordMode === 'reset') {
+                  <div class="mc-state mc-state-info mb-4 text-sm">
+                    Puisque vous êtes connecté, vous pouvez réinitialiser votre mot de passe sans entrer l'ancien.
+                  </div>
+                }
+
+                <div class="mb-4">
+                  <label class="mc-field-label">
+                    Nouveau mot de passe (min. 8 caractères)
+                  </label>
+                  <input
+                    type="password"
+                    [(ngModel)]="newPassword"
+                    name="newPassword"
+                    placeholder="••••••••"
+                    class="mc-input"
+                    required
+                  />
+                </div>
+
+                <div class="mb-4">
+                  <label class="mc-field-label">
+                    Confirmer le nouveau mot de passe
+                  </label>
+                  <input
+                    type="password"
+                    [(ngModel)]="confirmPassword"
+                    name="confirmPassword"
+                    placeholder="••••••••"
+                    class="mc-input"
+                    required
+                  />
+                </div>
+
+                @if (passwordChangeError) {
+                  <div class="mc-state mc-state-danger mb-4 text-sm">
+                    {{ passwordChangeError }}
+                  </div>
+                }
+
+                @if (passwordChangeSuccess) {
+                  <div class="mc-state mc-state-success mb-4 text-sm">
+                    {{ passwordChangeSuccess }}
+                  </div>
+                }
+
+                <div class="mc-button-row">
+                  <button
+                    type="submit"
+                    [disabled]="changingPassword"
+                    class="mc-btn mc-btn-success flex-1 disabled:opacity-50"
+                  >
+                    {{ changingPassword ? 'En cours...' : 'Confirmer' }}
+                  </button>
+                  <button
+                    type="button"
+                    (click)="toggleChangePassword()"
+                    class="mc-btn flex-1 bg-slate-200 text-slate-800 hover:bg-slate-300"
+                  >
+                    Annuler
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        }
+      }
+    }
+  </div>
+</div>

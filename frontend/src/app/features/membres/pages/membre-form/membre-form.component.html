@@ -1,0 +1,488 @@
+<div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-8 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-4xl mx-auto">
+    <!-- Header with Back Button -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+      <div>
+        <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
+          {{ isEditMode ? 'Modifier le Membre' : 'Créer un Nouveau Membre' }}
+        </h1>
+        <p class="text-gray-600">
+          {{ isEditMode ? 'Mettre à jour les informations du membre' : 'Enregistrer un nouveau membre dans le système' }}
+        </p>
+      </div>
+      <a
+        routerLink="/membres"
+        class="inline-flex items-center justify-center px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+      >
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        Retour à la liste
+      </a>
+    </div>
+
+    <!-- Loading Spinner -->
+    @if (loadingData) {
+      <div class="flex flex-col items-center justify-center py-16">
+        <div class="relative w-16 h-16 mb-4">
+          <div class="absolute inset-0 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full animate-spin"></div>
+          <div class="absolute inset-1 bg-white rounded-full"></div>
+        </div>
+        <p class="text-gray-600 font-medium">Chargement des données...</p>
+      </div>
+    } @else {
+      <!-- Error Alert -->
+      @if (error) {
+        <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg animate-pulse">
+          <div class="flex items-start">
+            <svg class="w-6 h-6 text-red-500 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <h3 class="text-red-800 font-semibold">Erreur</h3>
+              <p class="text-red-700 text-sm">{{ error }}</p>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Success Alert -->
+      @if (success) {
+        <div class="mb-6 p-4 bg-emerald-50 border-l-4 border-emerald-500 rounded-lg animate-pulse">
+          <div class="flex items-start">
+            <svg class="w-6 h-6 text-emerald-500 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <h3 class="text-emerald-800 font-semibold">Succès</h3>
+              <p class="text-emerald-700 text-sm">{{ success }}</p>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Form -->
+      <form [formGroup]="form" (ngSubmit)="enregistrer()" class="bg-white rounded-xl shadow-md p-6 sm:p-8">
+        <div class="mb-6">
+          <app-workflow-guidance-banner [guidance]="formGuidance"></app-workflow-guidance-banner>
+        </div>
+
+        <!-- Required Fields Notice -->
+        <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <p class="text-sm text-blue-800">
+            <span class="font-semibold">Les champs marqués avec</span>
+            <span class="text-red-500 font-bold ml-1">*</span>
+            <span class="font-semibold">sont obligatoires</span>
+          </p>
+        </div>
+
+        <!-- Personal Information Section -->
+        <div class="mb-8">
+          <h2 class="text-xl font-bold text-gray-900 mb-6 flex items-center">
+            <svg class="w-6 h-6 mr-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Informations Personnelles
+          </h2>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Nom -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-900 mb-2">
+                Nom <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                formControlName="nom"
+                [class.border-red-500]="form.get('nom')?.invalid && form.get('nom')?.touched"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white text-gray-900"
+                placeholder="Entrez le nom"
+              >
+              @if (getFieldError('nom')) {
+                <p class="text-red-500 text-sm mt-1">{{ getFieldError('nom') }}</p>
+              }
+            </div>
+
+            <!-- Postnom -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-900 mb-2">Postnom</label>
+              <input
+                type="text"
+                formControlName="postnom"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white text-gray-900"
+                placeholder="Entrez le postnom"
+              >
+            </div>
+
+            <!-- Prenom -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-900 mb-2">
+                Prénom <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                formControlName="prenom"
+                [class.border-red-500]="form.get('prenom')?.invalid && form.get('prenom')?.touched"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white text-gray-900"
+                placeholder="Entrez le prénom"
+              >
+              @if (getFieldError('prenom')) {
+                <p class="text-red-500 text-sm mt-1">{{ getFieldError('prenom') }}</p>
+              }
+            </div>
+
+            <!-- Sexe -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-900 mb-2">Sexe</label>
+              <select
+                formControlName="sexe"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white text-gray-900"
+              >
+                <option value="">-- Choisir --</option>
+                <option value="M">Masculin</option>
+                <option value="F">Féminin</option>
+                <option value="AUTRE">Autre</option>
+              </select>
+            </div>
+
+            <!-- Date de naissance -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-900 mb-2">
+                Date de naissance <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                formControlName="dateNaissance"
+                [class.border-red-500]="form.get('dateNaissance')?.invalid && form.get('dateNaissance')?.touched"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white text-gray-900"
+              >
+              @if (getFieldError('dateNaissance')) {
+                <p class="text-red-500 text-sm mt-1">{{ getFieldError('dateNaissance') }}</p>
+              }
+            </div>
+
+            <!-- Téléphone Principal -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-900 mb-2">
+                Téléphone principal <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="tel"
+                formControlName="telephonePrincipal"
+                [class.border-red-500]="form.get('telephonePrincipal')?.invalid && form.get('telephonePrincipal')?.touched"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white text-gray-900"
+                placeholder="Ex: +243 800 000 000"
+              >
+              @if (getFieldError('telephonePrincipal')) {
+                <p class="text-red-500 text-sm mt-1">{{ getFieldError('telephonePrincipal') }}</p>
+              }
+            </div>
+
+            <!-- Téléphone Secondaire -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-900 mb-2">Téléphone secondaire</label>
+              <input
+                type="tel"
+                formControlName="telephoneSecondaire"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white text-gray-900"
+                placeholder="Ex: +243 800 000 000"
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact Information Section -->
+        <div class="mb-8 pb-8 border-b border-gray-200">
+          <h2 class="text-xl font-bold text-gray-900 mb-6 flex items-center">
+            <svg class="w-6 h-6 mr-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            Informations de Contact
+          </h2>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Adresse -->
+            <div class="md:col-span-2">
+              <label class="block text-sm font-semibold text-gray-900 mb-2">
+                Adresse <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                formControlName="adresse"
+                [class.border-red-500]="form.get('adresse')?.invalid && form.get('adresse')?.touched"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white text-gray-900"
+                placeholder="Entrez l'adresse complète"
+              >
+              @if (getFieldError('adresse')) {
+                <p class="text-red-500 text-sm mt-1">{{ getFieldError('adresse') }}</p>
+              }
+            </div>
+
+            <!-- Ville -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-900 mb-2">Ville</label>
+              <input
+                type="text"
+                formControlName="ville"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white text-gray-900"
+              >
+            </div>
+
+            <!-- Commune -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-900 mb-2">
+                Commune <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                formControlName="commune"
+                [class.border-red-500]="form.get('commune')?.invalid && form.get('commune')?.touched"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white text-gray-900"
+                placeholder="Commune"
+              >
+              @if (getFieldError('commune')) {
+                <p class="text-red-500 text-sm mt-1">{{ getFieldError('commune') }}</p>
+              }
+            </div>
+
+            <!-- Quartier -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-900 mb-2">
+                Quartier <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                formControlName="quartier"
+                [class.border-red-500]="form.get('quartier')?.invalid && form.get('quartier')?.touched"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white text-gray-900"
+                placeholder="Quartier"
+              >
+              @if (getFieldError('quartier')) {
+                <p class="text-red-500 text-sm mt-1">{{ getFieldError('quartier') }}</p>
+              }
+            </div>
+
+            <!-- Email -->
+            <div class="md:col-span-2">
+              <label class="block text-sm font-semibold text-gray-900 mb-2">
+                Email <span class="text-gray-400 text-xs font-normal">(optionnel)</span>
+              </label>
+              <input
+                type="email"
+                formControlName="email"
+                [class.border-red-500]="form.get('email')?.invalid && form.get('email')?.touched"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white text-gray-900"
+                placeholder="exemple@email.com"
+              >
+              @if (getFieldError('email')) {
+                <p class="text-red-500 text-sm mt-1">{{ getFieldError('email') }}</p>
+              }
+              <p class="text-gray-500 text-xs mt-1">💡 Utilisé pour créer le compte de l'utilisateur</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Professional Information Section -->
+        <div class="mb-8 pb-8 border-b border-gray-200">
+          <h2 class="text-xl font-bold text-gray-900 mb-6 flex items-center">
+            <svg class="w-6 h-6 mr-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4m0 2v4m0-11v2m0 0c.425.693 1 1.625 1 4s-.575 3.307-1 4m-6-10v2m0 0c-.425.693-1 1.625-1 4s.575 3.307 1 4m0-8V4" />
+            </svg>
+            Informations Professionnelles
+          </h2>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Profession/Activité -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-900 mb-2">
+                Profession / Activité <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                formControlName="professionActivite"
+                [class.border-red-500]="form.get('professionActivite')?.invalid && form.get('professionActivite')?.touched"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white text-gray-900"
+                placeholder="Ex: Commerce, Agriculture"
+              >
+              @if (getFieldError('professionActivite')) {
+                <p class="text-red-500 text-sm mt-1">{{ getFieldError('professionActivite') }}</p>
+              }
+            </div>
+
+            <!-- Lieu d'Activité -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-900 mb-2">Lieu d'Activité</label>
+              <input
+                type="text"
+                formControlName="lieuActivite"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white text-gray-900"
+                placeholder="Lieu de travail"
+              >
+            </div>
+
+            <!-- Source d'Inscription -->
+            <div class="md:col-span-2">
+              <label class="block text-sm font-semibold text-gray-900 mb-2">Source d'Inscription</label>
+              <input
+                type="text"
+                formControlName="sourceInscription"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white text-gray-900"
+                placeholder="Référence source"
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Organization Information Section -->
+        <div class="mb-8 pb-8 border-b border-gray-200">
+          <h2 class="text-xl font-bold text-gray-900 mb-6 flex items-center">
+            <svg class="w-6 h-6 mr-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5.581m0 0H9m0 0h5.581M9 12h6" />
+            </svg>
+            Informations Organisationnelles
+          </h2>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Site -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-900 mb-2">
+                Site <span class="text-red-500">*</span>
+              </label>
+              @if (siteFieldDisabled && selectedSite) {
+                <div class="w-full px-4 py-3 border border-blue-200 rounded-lg bg-blue-50 text-blue-900 font-semibold">
+                  {{ selectedSite.nomSite }}
+                </div>
+              } @else {
+                <select
+                  formControlName="siteId"
+                  [class.border-red-500]="form.get('siteId')?.invalid && form.get('siteId')?.touched"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white text-gray-900"
+                >
+                  <option [ngValue]="null">-- Choisir un site --</option>
+                  @for (site of sites; track site.id) {
+                    <option [ngValue]="site.id">
+                      {{ site.nomSite }} - {{ site.zone }}
+                    </option>
+                  }
+                </select>
+              }
+              @if (siteFieldDisabled) {
+                <p class="text-blue-700 text-sm mt-1">
+                  Votre site est fixé automatiquement selon votre affectation.
+                </p>
+              }
+              @if (getFieldError('siteId')) {
+                <p class="text-red-500 text-sm mt-1">{{ getFieldError('siteId') }}</p>
+              }
+            </div>
+
+            <!-- Agent Terrain -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-900 mb-2">Agent Terrain</label>
+              <select
+                formControlName="agentId"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white text-gray-900"
+              >
+                <option [ngValue]="null">-- Choisir un agent --</option>
+                @for (agent of agents; track agent.id) {
+                  <option [ngValue]="agent.id">
+                    {{ agent.matricule }} - {{ agent.nomAffichage }}
+                  </option>
+                }
+              </select>
+              @if (loadingAgents) {
+                <p class="text-gray-600 text-sm mt-1">Chargement des agents du site...</p>
+              } @else if (form.get('siteId')?.value && agents.length === 0) {
+                <p class="text-amber-700 text-sm mt-1">Aucun Agent Terrain actif trouvé pour ce site.</p>
+              }
+              @if (isAgentTerrain) {
+                <p class="text-gray-600 text-sm mt-1">
+                  Seuls les agents du site affecté sont proposés.
+                </p>
+              }
+            </div>
+
+            <!-- Date d'Adhésion -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-900 mb-2">
+                Date d'Adhésion <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                formControlName="dateAdhesion"
+                [class.border-red-500]="form.get('dateAdhesion')?.invalid && form.get('dateAdhesion')?.touched"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white text-gray-900"
+              >
+              @if (getFieldError('dateAdhesion')) {
+                <p class="text-red-500 text-sm mt-1">{{ getFieldError('dateAdhesion') }}</p>
+              }
+            </div>
+
+            <!-- Statut (Edit Mode Only) -->
+            @if (isEditMode) {
+              <div>
+                <label class="block text-sm font-semibold text-gray-900 mb-2">Statut</label>
+                <select
+                  formControlName="statut"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white text-gray-900"
+                >
+                  <option value="">-- Choisir --</option>
+                  <option value="EN_ATTENTE">En Attente</option>
+                  <option value="ACTIF">Actif</option>
+                  <option value="SUSPENDU">Suspendu</option>
+                  <option value="BLOQUE">Bloqué</option>
+                  <option value="CLOTURE">Clôturé</option>
+                </select>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Observation Section -->
+        <div class="mb-8">
+          <label class="block text-sm font-semibold text-gray-900 mb-2">Observations</label>
+          <textarea
+            formControlName="observation"
+            rows="4"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white text-gray-900 resize-none"
+            placeholder="Ajoutez des notes ou des observations supplémentaires?"
+          ></textarea>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200">
+          <a
+            routerLink="/membres"
+            class="flex-1 inline-flex items-center justify-center px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
+          >
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            Annuler
+          </a>
+          <button
+            type="submit"
+            [disabled]="loading || loadingData || form.invalid"
+            [class.opacity-50]="loading || loadingData || form.invalid"
+            [class.cursor-not-allowed]="loading || loadingData || form.invalid"
+            class="flex-1 inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all font-semibold shadow-lg hover:shadow-xl disabled:hover:shadow-lg"
+          >
+            @if (loading) {
+              <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              {{ isEditMode ? 'Mise à jour...' : 'Création...' }}
+            } @else {
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              {{ isEditMode ? 'Mettre à jour' : 'Créer le Membre' }}
+            }
+          </button>
+        </div>
+      </form>
+    }
+  </div>
+</div>
